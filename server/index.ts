@@ -2,18 +2,21 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { mkdir, readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
-import { Profile, freshProfile, resetTasks, claimTask, planeStats, GOLD_PACKS, rankOf, Upgrade } from '../shared/data';
-import { Battle, Controls, IDLE, Reward, createBattle, makePlane, stepBattle, forfeitDuel, beginBoss } from '../shared/simulation';
-import { buyPlane, buyModule, equipModule, exchange } from './economy';
+import { Profile, freshProfile, resetTasks, claimTask, planeStats, bossBalance, GOLD_PACKS, pilotRank, addExperience } from '../shared/data';
+import { Battle, Controls, IDLE, Reward, createBattle, makePlane, stepBattle, forfeitDuel, beginBoss, normalizeCampaignPlane, refreshPlaneStats } from '../shared/simulation';
+import { buyPlane, buyModule, equipModule, exchange, researchUpgrade, buyUpgrade } from './economy';
+import { duelBotStats } from './duel-bot';
+import { pvoModelsForLevel } from '../shared/terrain';
+import { migrateCareer, prepareBossAttempt, finishCareer, type CareerAccount } from './career';
 import { AtomicStore } from './storage';
 import { PaymentAccount, verifyPurchases, redeemPurchases } from './payments';
 const port = Number(process.env.PORT ?? 5187), host = process.env.HOST ?? '127.0.0.1';
 const storePath = process.env.BIPLANES_DATA ?? 'data/profiles.json';
 await mkdir(storePath.replace(/[/\\][^/\\]+$/, ''), { recursive: true });
-type Account = PaymentAccount & { token: string; checkpoint?: Battle; restartLevel?: number; restartBoss?: boolean; operations?: Record<string, string> };
+type Account = PaymentAccount & CareerAccount & { token: string; checkpoint?: Battle; restartLevel?: number; restartBoss?: boolean; operations?: Record<string, string> };
 let accounts: Account[];
 try { accounts = JSON.parse(await readFile(storePath, 'utf8')); } catch (e) { if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e; accounts = []; }
-for (const a of accounts) { a.profile.modules ??= []; a.profile.module ??= ''; }
+for (const a of accounts) { a.profile.modules ??= []; a.profile.module ??= ''; migrateCareer(a); }
 const paymentSecret = process.env.YANDEX_PAYMENT_SECRET ?? '';
 const disk = new AtomicStore(storePath, () => accounts);
 let dirty = false, writing = false, financialBusy = false, financialTail: Promise<unknown> = Promise.resolve();
@@ -51,7 +54,7 @@ async function financial<T>(c: Client, work: () => T): Promise<T> {
 }
 async function spend(c: Client, m: any, work: () => void) {
   if (typeof m.nonce !== 'string' || !/^[a-f0-9-]{36}$/i.test(m.nonce)) throw new Error('Повторите покупку в магазине');
-  const fingerprint = JSON.stringify({ type: m.type, id: m.id, amount: m.amount, currency: m.currency });
+  const fingerprint = JSON.stringify({ type: m.type, id: m.id, amount: m.amount, currency: m.currency, branch: m.branch, level: m.level });
   await financial(c, () => {
     const ops = c.account!.operations ??= {};
     if (ops[m.nonce]) { if (ops[m.nonce] !== fingerprint) throw new Error('Некорректный повтор операции'); return; }
@@ -61,7 +64,8 @@ async function spend(c: Client, m: any, work: () => void) {
 function applyRewards(rewards: Reward[], participants: Client[]) {
   for (const r of rewards) {
     const c = participants.find(x => x.account!.profile.id === r.player); if (!c) continue;
-    const p = c.account!.profile; resetTasks(p); p.silver += r.silver; p.xp += r.xp;
+    const p = c.account!.profile; resetTasks(p); p.silver += r.silver; addExperience(p, r.xp);
+    if (r.bossLevel && !(p.defeatedBosses ??= []).includes(r.bossLevel)) p.defeatedBosses.push(r.bossLevel);
     if (r.kind === 'kill') p.daily.kills++;
     if (r.kind === 'level' || r.kind === 'duel') { p.daily.activity++; p.weekly.activity++; if (r.win) p.daily.wins++; }
     if (r.kind === 'level') p.weekly.levels++;
@@ -72,14 +76,29 @@ function applyRewards(rewards: Reward[], participants: Client[]) {
 function assign(c: Client, battle: Battle) { c.battle = battle; c.queued = 0; c.input = { ...IDLE }; send(c, { type: 'start', battle, you: c.account!.profile.id }); }
 function launchDuel(a: Client, b?: Client) {
   const ap = a.account!.profile, bp = b?.account!.profile;
-  const enemy = bp ? makePlane(bp.id, planeStats(bp), false, 1) : makePlane('bot', planeStats(ap), true, 1);
+  const enemy = bp ? makePlane(bp.id, planeStats(bp), false, 1) : makePlane('bot', duelBotStats(ap), true, 1);
   const battle = createBattle(randomUUID(), 'duel', [makePlane(ap.id, planeStats(ap)), enemy]);
   battles.add(battle); assign(a, battle); if (b) assign(b, battle);
 }
 function enterPve(c: Client, resume: boolean) {
+  if (c.battle && c.battle.phase !== 'ended') return fail(c, 'Сначала завершите текущий бой');
   const a = c.account!, p = a.profile;
-  const battle = resume && a.checkpoint ? structuredClone(a.checkpoint) : createBattle(randomUUID(), 'pve', [makePlane(p.id, planeStats(p))], a.restartLevel ?? 1);
-  if ((!resume || !a.checkpoint) && a.restartBoss) beginBoss(battle);
+  const saved = a.checkpoint && (resume || a.checkpoint.phase === 'boss');
+  const battle = saved ? structuredClone(a.checkpoint!) : createBattle(randomUUID(), 'pve', [makePlane(p.id, planeStats(p))], a.restartLevel ?? 1);
+  if (saved) {
+    refreshPlaneStats(battle.planes[0], planeStats(p));
+    const boss = battle.planes.find(q=>q.id==='boss');
+    if (boss) {
+      const balance = bossBalance(battle.level);
+      refreshPlaneStats(boss,{model:'enemy',hp:balance.hp,speed:balance.speed,turn:balance.turn,damage:balance.damage});
+    }
+  }
+  const pvoModels = pvoModelsForLevel(battle.level);
+  battle.obstacles = battle.obstacles.filter(o => o.kind !== 'pvo' || pvoModels.length > 0);
+  for (const o of battle.obstacles) if (o.kind === 'pvo' && !pvoModels.includes(o.pvoModel!)) o.pvoModel = pvoModels[0];
+  if (battle.phase === 'flight') normalizeCampaignPlane(battle.planes[0]);
+  if (!saved && a.restartBoss) beginBoss(battle);
+  prepareBossAttempt(a, battle);
   battle.paused = false; battles.add(battle); assign(c, battle); a.checkpoint = battle; dirty = true;
 }
 function leave(c: Client, disconnected = false) {
@@ -116,7 +135,7 @@ wss.on('connection', ws => {
         send(c, { type: 'welcome', token: a.token, you: a.profile.id, paymentsEnabled: !!paymentSecret }); profile(c); return;
       }
       const a = c.account, p = a.profile; resetTasks(p);
-      if (m.type === 'input') { c.input = { turn: typeof m.turn === 'number' && Number.isFinite(m.turn) ? Math.sign(m.turn) : 0, fire: m.fire === true, boost: m.boost === true }; return; }
+      if (m.type === 'input') { c.input = { horizontal: typeof m.horizontal === 'number' && Number.isFinite(m.horizontal) ? Math.sign(m.horizontal) : 0, turn: typeof m.turn === 'number' && Number.isFinite(m.turn) ? Math.sign(m.turn) : 0, fire: m.fire === true, boost: m.boost === true }; return; }
       if (m.type === 'leave') { leave(c); profile(c); return; }
       if (m.type === 'pause' && c.battle) {
         const hasHumanOpponent = c.battle.mode === 'duel' && c.battle.planes.every(x => !x.bot);
@@ -151,13 +170,11 @@ wss.on('connection', ws => {
         const result = await financial(c, () => redeemPurchases(a, accounts, purchases));
         send(c, { type: 'reply', requestId: m.requestId, ok: true, result }); return;
       }
-      if (m.type === 'upgrade') {
-        if (!['hull', 'engine', 'gun'].includes(m.branch)) return;
-        const branch: Upgrade = m.branch, up = p.upgrades[p.selected] ??= { hull: 0, engine: 0, gun: 0 }, level = up[branch] + 1;
-        if (level > 5) return;
-        const price = 100 * level * level, rank = [2, 3, 5, 7, 9][level - 1];
-        if (rankOf(p.xp) < rank || p.silver < price) return fail(c, 'Нужен ранг ' + rank + ' и ' + price + ' серебра');
-        p.silver -= price; up[branch]++; changed(c); return;
+      if (m.type === 'research' || m.type === 'upgrade') {
+        await spend(c, m, () => {
+          if (m.type === 'research') researchUpgrade(p, m.branch, m.level);
+          else buyUpgrade(p, m.branch, m.level);
+        }); return;
       }
       if (m.type === 'claim') {
         if (m.period !== 'daily' && m.period !== 'weekly') return;
@@ -166,7 +183,7 @@ wss.on('connection', ws => {
       }
       if (m.type === 'login') {
         const day = new Date().toISOString().slice(0, 10); if (p.loginDay === day) return;
-        p.loginDay = day; p.silver += [100, 120, 140, 160, 180, 200, 300][p.loginIndex % 7]; p.xp += [20, 20, 30, 30, 40, 40, 60][p.loginIndex % 7]; p.loginIndex++; changed(c); return;
+        p.loginDay = day; p.silver += [100, 120, 140, 160, 180, 200, 300][p.loginIndex % 7]; addExperience(p, [20, 20, 30, 30, 40, 40, 60][p.loginIndex % 7]); p.loginIndex++; changed(c); return;
       }
     } catch (e) {
       const message = e instanceof Error && !(e instanceof SyntaxError) ? e.message : 'Не удалось обработать действие';
@@ -183,7 +200,7 @@ setInterval(() => {
   for (const c of queue) {
     if (!c.queued) continue;
     const waited = (Date.now() - c.queued) / 1000;
-    const opponent = queue.find(o => o !== c && o.queued && Math.abs(rankOf(o.account!.profile.xp) - rankOf(c.account!.profile.xp)) <= Math.min(9, 2 + Math.floor(waited / 15)) && Math.max(power(o.account!.profile), power(c.account!.profile)) / Math.min(power(o.account!.profile), power(c.account!.profile)) <= 1.25 + waited * .005);
+    const opponent = queue.find(o => o !== c && o.queued && Math.abs(pilotRank(o.account!.profile) - pilotRank(c.account!.profile)) <= Math.min(9, 2 + Math.floor(waited / 15)) && Math.max(power(o.account!.profile), power(c.account!.profile)) / Math.min(power(o.account!.profile), power(c.account!.profile)) <= 1.25 + waited * .005);
     if (opponent) launchDuel(c, opponent);
     else if (Date.now() - c.queued >= 15000 && c.allowBots) launchDuel(c);
   }
@@ -194,11 +211,10 @@ setInterval(() => {
     applyRewards(rewards, participants);
     if (battle.mode === 'pve' && participants[0]) {
       const a = participants[0].account!; a.restartLevel = battle.level; a.restartBoss = battle.phase === 'boss';
+      prepareBossAttempt(a, battle);
+      if (battle.phase === 'flight' && a.bossFailures && battle.level > a.bossFailures.level) a.bossFailures = undefined;
       if (battle.phase === 'ended') {
-        a.checkpoint = undefined;
-        a.restartBoss = battle.planes[0].health <= 0 && battle.planes.some(p => p.id === 'boss');
-        if (battle.level === 50 && battle.planes[0].health > 0) a.restartLevel = 1;
-        dirty = true;
+        finishCareer(a, battle); dirty = true;
       } else if (tick % 30 === 0 || rewards.length) { a.checkpoint = structuredClone(battle); dirty = true; }
     }
     if (tick % 2 === 0) for (const c of participants) send(c, { type: 'state', battle });

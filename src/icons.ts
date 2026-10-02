@@ -25,6 +25,8 @@ const paths = {
   check: '<path d="m5 12 4 4L19 6"/>',
   pause: '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
   exit: '<path d="M10 4H4v16h6m3-13 5 5-5 5m-6-5h14"/>',
+  arrowUp: '<path d="M12 21V3m-7 7 7-7 7 7"/>',
+  arrowDown: '<path d="M12 3v18m-7-7 7 7 7-7"/>',
   turnLeft: '<path d="m7 3-5 5 5 5M2 8h10a8 8 0 0 1 8 8v4"/>',
   turnRight: '<path d="m17 3 5 5-5 5m5-5H12a8 8 0 0 0-8 8v4"/>',
   boost: '<path d="m13 2-9 12h7l-1 8 10-13h-7z"/>',

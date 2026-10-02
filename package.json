@@ -4,10 +4,11 @@
   "version": "0.6.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 5186 --strictPort",
+    "dev": "vite --host 127.0.0.1 --port 5222 --strictPort",
     "server": "tsx server/index.ts",
     "build": "tsc --noEmit && vite build",
     "test": "tsx --test tests/*.test.ts",
+    "balance": "tsx scripts/balance-report.ts",
     "preview": "vite preview --host 127.0.0.1 --port 4186 --strictPort"
   },
   "dependencies": {

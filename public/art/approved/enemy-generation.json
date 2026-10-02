@@ -1,0 +1,40 @@
+{
+  "tool": "built-in image_gen",
+  "reference": "strizh-airframe.png",
+  "assets": [
+    {
+      "file": "career-scout-airframe.png",
+      "prompt": "Use case: stylized-concept. Game sprite, one single aircraft isolated on genuinely transparent background. Input reference is STYLE ONLY, preserve its semi-realistic colorful painted game art, smooth dimensional shading, outlined metal panels, believable aircraft proportions. A compact 1930s olive green and cream biplane interceptor, TWO stacked wings with thin bracing struts, single radial engine in the nose, short upright tail, dark framed canopy. NOT the reference plane shape. Aircraft faces RIGHT, nearly side view with slight top view of near wing matching reference perspective. Entire aircraft visible, generous empty transparent margins, no ground shadow, no text, no watermark, no scene. Crucial: omit ALL propeller blades and blur disks; ONLY empty stationary spinner/hub on every engine nose, because rotating propellers will be drawn by Canvas game code. Wings must not hide engine hubs. No jets, no bubble shapes, no low polygon faceting. Canvas-ready polished readable aircraft."
+    },
+    {
+      "file": "career-heavy-airframe.png",
+      "prompt": "Use case: stylized-concept. Game sprite, one single aircraft isolated on genuinely transparent background. Input reference is STYLE ONLY, preserve its semi-realistic colorful painted game art, smooth dimensional shading, outlined metal panels, believable aircraft proportions. A bulky navy blue and ochre 1940s twin-engine heavy fighter with two engine nacelles on wings, twin vertical tail fins and long glazed cockpit. Clearly distinct broad silhouette. Aircraft faces RIGHT, nearly side view with slight top view of near wing matching reference perspective. Entire aircraft visible, generous empty transparent margins, no ground shadow, no text, no watermark, no scene. Crucial: omit ALL propeller blades and blur disks; ONLY empty stationary spinner/hub on every engine nose, because rotating propellers will be drawn by Canvas game code. Wings must not hide engine hubs. No jets, no bubble shapes, no low polygon faceting. Canvas-ready polished readable aircraft."
+    },
+    {
+      "file": "boss-storm-airframe.png",
+      "prompt": "Use case: stylized-concept. Game sprite, one single aircraft isolated on genuinely transparent background. Input reference is STYLE ONLY, preserve its semi-realistic colorful painted game art, smooth dimensional shading, outlined metal panels, believable aircraft proportions. Boss Captain Storm: cobalt blue and silver muscular 1930s racing biplane with swept stacked wings, large radial engine, enclosed cockpit, lightning motif on tail. Single nose engine. Aircraft faces RIGHT, nearly side view with slight top view of near wing matching reference perspective. Entire aircraft visible, generous empty transparent margins, no ground shadow, no text, no watermark, no scene. Crucial: omit ALL propeller blades and blur disks; ONLY empty stationary spinner/hub on every engine nose, because rotating propellers will be drawn by Canvas game code. Wings must not hide engine hubs. No jets, no bubble shapes, no low polygon faceting. Canvas-ready polished readable aircraft."
+    },
+    {
+      "file": "boss-hunter-airframe.png",
+      "prompt": "Use case: stylized-concept. Game sprite, one single aircraft isolated on genuinely transparent background. Input reference is STYLE ONLY, preserve its semi-realistic colorful painted game art, smooth dimensional shading, outlined metal panels, believable aircraft proportions. Boss Scarlet Hunter: long slender crimson red and ivory propeller interceptor with inverted gull wings, pointed long nose and single propeller hub, tall swept tail. Distinct narrow aerodynamic silhouette. Aircraft faces RIGHT, nearly side view with slight top view of near wing matching reference perspective. Entire aircraft visible, generous empty transparent margins, no ground shadow, no text, no watermark, no scene. Crucial: omit ALL propeller blades and blur disks; ONLY empty stationary spinner/hub on every engine nose, because rotating propellers will be drawn by Canvas game code. Wings must not hide engine hubs. No jets, no bubble shapes, no low polygon faceting. Canvas-ready polished readable aircraft."
+    },
+    {
+      "file": "boss-commander-airframe.png",
+      "prompt": "Use case: stylized-concept. Game sprite, one single aircraft isolated on genuinely transparent background. Input reference is STYLE ONLY, preserve its semi-realistic colorful painted game art, smooth dimensional shading, outlined metal panels, believable aircraft proportions. Final boss Commander: large dark charcoal and brass gold four-engine vintage flying fortress with four separated nacelles, broad straight wings, twin tail fins, glazed command nose, powerful imposing silhouette. Four engines, no jet. Aircraft faces RIGHT, nearly side view with slight top view of near wing matching reference perspective. Entire aircraft visible, generous empty transparent margins, no ground shadow, no text, no watermark, no scene. Crucial: omit ALL propeller blades and blur disks; ONLY empty stationary spinner/hub on every engine nose, because rotating propellers will be drawn by Canvas game code. Wings must not hide engine hubs. No jets, no bubble shapes, no low polygon faceting. Canvas-ready polished readable aircraft."
+    }
+  ],
+  "edits": [
+    {
+      "asset": "career-heavy-airframe.png",
+      "prompt": "Remove ONLY the large central nose engine and its spinner. Replace central nose with a long glazed navigator nose, preserve two wing engine nacelles and their empty spinners, no propeller blades. Exactly TWO engines total. Keep rest of navy ochre twin tail airframe, perspective and transparency."
+    },
+    {
+      "asset": "boss-hunter-airframe.png",
+      "prompt": "Redesign the actual aircraft structure strongly: long pointed inline engine nose (like a vintage racing interceptor), narrow fuselage, a sharply cranked inverted gull near wing with clearly visible kink, tall swept triangular vertical tail, teardrop canopy. Crimson red and ivory. This must have a distinctly DIFFERENT SILHOUETTE from the reference radial engine plane. Retain right-facing perspective, semi-realistic dimensional game illustration and transparent background. NO propeller blades, only empty nose spinner; no jet."
+    },
+    {
+      "asset": "career-heavy-airframe.png",
+      "prompt": "Precise object edit. Keep this entire navy blue ochre twin-tail aircraft and its glazed central nose unchanged. It currently has one visible wing engine on near wing. ADD exactly ONE matching radial engine nacelle ON THE FAR WING, behind the cockpit and above the central fuselage: far engine hub at approximately x=84% image width, y=37% image height, pointing right, with yellow spinner tip. Both engines must be visible and separate: existing near engine plus added far engine. Do not add any central nose engine. No propeller blades or blur disks, empty spinners only. Preserve transparent background, artwork, silhouette and all other parts."
+    }
+  ]
+}

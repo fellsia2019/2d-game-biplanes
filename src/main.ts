@@ -1,10 +1,12 @@
 import Phaser from 'phaser';
 import './style.css';
+import { FlightLesson, tutorialKey, lessonInput, createTrainingBattle, stepTrainingBattle, type TutorialMode } from './tutorial';
+import { flightControls, joystickTurn, joystickHorizontal } from './controls';
 import { SkyScene } from './scene';
 import { Platform } from './platform';
 import { icon } from './icons';
 import { renderLobby, renderHangar, renderStore } from './menu';
-import { DAILY, WEEKLY, PLANES, MODULES, rankOf, ZONE, Profile } from '../shared/data';
+import { DAILY, WEEKLY, PLANES, MODULES, pilotRank, ZONE, Profile } from '../shared/data';
 import { Battle } from '../shared/simulation';
 const app = document.querySelector<HTMLDivElement>('#app')!, toastEl = document.querySelector<HTMLDivElement>('#toast')!;
 const scene = new SkyScene(), platform = new Platform();
@@ -13,6 +15,50 @@ let ws: WebSocket, p: Profile | undefined, battle: Battle | undefined, you = '',
 let toastTimer = 0, connected = false, started = false, lastPhase = '', finished = false;
 let paymentsEnabled = false, swapAccount = false;
 let pendingTrade: object | undefined;
+let lesson: FlightLesson | undefined, afterLesson: (() => void) | undefined;
+const learned = new Set<string>();
+let stickPointer: number | undefined, stickX = 0, stickY = 0;
+let forceTouch = localStorage.getItem('biplanes-touch-controls') === '1';
+const touchDevice = () => forceTouch || matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+function clearControls() {
+  keys.clear(); touches.clear(); stickPointer = undefined; stickX = stickY = 0;
+  document.querySelectorAll('.pressed').forEach(el => el.classList.remove('pressed'));
+  document.querySelector<HTMLElement>('.stick-knob')?.style.setProperty('transform', 'translate(0,0)');
+}
+function beginLesson(mode: TutorialMode, replay = false) {
+  if (!p || !connected || battle) return;
+  const launch = () => send(mode === 'pve' ? { type: 'pve', resume } : { type: 'queue' });
+  const key = tutorialKey(p.id, mode);
+  let done = learned.has(key); try { done ||= localStorage.getItem(key) === 'done'; } catch {}
+  if (done && !replay) { launch(); return; }
+  lesson = new FlightLesson(mode); afterLesson = launch;
+  battle = createTrainingBattle('tutorial-' + crypto.randomUUID(), mode, p);
+  you = p.id; finished = false; lastPhase = ''; pauseReasons.clear(); clearControls();
+  renderBattle(); scene.accept(structuredClone(battle), you); syncOrientation();
+}
+function finishLesson() {
+  if (!lesson || !p) return;
+  const key = tutorialKey(p.id, lesson.mode); learned.add(key); try { localStorage.setItem(key, 'done'); } catch {}
+  const launch = afterLesson; lesson = undefined; afterLesson = undefined; battle = undefined; clearControls(); pauseReasons.clear(); renderMenu(); launch?.();
+}
+function positionLesson() {
+  if (!lesson || !battle) return;
+  const hud = document.querySelector<HTMLElement>('.battle-hud'), hole = document.querySelector<HTMLElement>('.tutorial-spotlight');
+  if (!hud || !hole) return;
+  const bounds = hud.getBoundingClientRect();
+  const target = touchDevice() ? document.querySelector<HTMLElement>(lesson.target === 'stick' ? '.flight-stick' : '[data-control="' + lesson.target + '"]') : undefined;
+  if (target) { const r = target.getBoundingClientRect(); Object.assign(hole.style, { left: (r.left - bounds.left - 8) + 'px', top: (r.top - bounds.top - 8) + 'px', width: (r.width + 16) + 'px', height: (r.height + 16) + 'px', borderRadius: '50%' }); }
+  else { const me = battle.planes[0], scale = bounds.width / 1200; Object.assign(hole.style, { left: (me.x * scale - 95 * scale) + 'px', top: (me.y * scale - 50 * scale) + 'px', width: 190 * scale + 'px', height: 100 * scale + 'px', borderRadius: '24px' }); }
+}
+function renderLesson() {
+  if (!lesson) return;
+  const mobile = touchDevice(), copy = lesson.copy(mobile), el = document.querySelector('#battle-overlay'); if (!el) return;
+  el.innerHTML = '<div class="tutorial-layer" role="dialog" aria-modal="true" aria-labelledby="lesson-title" tabindex="-1"><div class="tutorial-spotlight"><span class="tutorial-hand" aria-hidden="true">☝</span></div><section class="tutorial-card"><span class="eyebrow">' + lesson.step + '/4</span><h2 id="lesson-title">' + copy.title + '</h2><p>' + copy.text + '</p>' + (!mobile && copy.key ? '<kbd class="lesson-key">' + copy.key + '</kbd>' : '') + '</section></div>';
+  document.querySelectorAll('.tutorial-focus').forEach(el => el.classList.remove('tutorial-focus'));
+  if (mobile && lesson.step > 0 && lesson.step < 5) document.querySelector(lesson.target === 'stick' ? '.flight-stick' : '[data-control="' + lesson.target + '"]')?.classList.add('tutorial-focus');
+  positionLesson();
+  el.querySelector<HTMLElement>('.tutorial-layer')?.focus();
+}
 const rpcWaiters = new Map<string, { resolve: (result: any) => void; reject: (error: Error) => void; timer: number }>();
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, x => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[x]!));
 const needsRotation = () => matchMedia('(pointer: coarse)').matches && innerHeight > innerWidth;
@@ -25,7 +71,7 @@ function syncOrientation() {
   app.inert = rotate;
   document.querySelector<HTMLDivElement>('#game')!.inert = rotate;
   const status = document.querySelector('#orientation-status')!;
-  status.textContent = battle && battle.phase !== 'ended' ? battle.mode === 'duel' && battle.planes.every(x => !x.bot) ? 'Онлайн-дуэль продолжается. Вернитесь в альбомный режим.' : pauseReasons.has('manual') ? 'Полёт на паузе. После поворота нажмите «Продолжить».' : 'Полёт на паузе. Поверните телефон, чтобы продолжить.' : 'Включите автоповорот и держите телефон горизонтально.';
+  status.textContent = battle && battle.phase !== 'ended' ? !lesson && battle.mode === 'duel' && battle.planes.every(x => !x.bot) ? 'Онлайн-дуэль продолжается. Вернитесь в альбомный режим.' : pauseReasons.has('manual') ? 'Полёт на паузе. После поворота нажмите «Продолжить».' : 'Полёт на паузе. Поверните телефон, чтобы продолжить.' : 'Включите автоповорот и держите телефон горизонтально.';
   if (rotate && queueStarted) send({ type: 'cancel' });
   if (rotate !== pauseReasons.has('orientation')) setPause('orientation', rotate);
 }
@@ -64,18 +110,18 @@ function navButton(id: string, icon: string, label: string) { return '<button cl
 function topbar() {
   if (!p) return '';
   return '<header class="topbar"><a class="brand" href="#" data-tab="play" aria-label="Главный экран">' + icon('compass') + '<span>БИПЛАНЫ</span></a>' +
-    (tab !== 'play' && tab !== 'help' && tab !== 'settings' ? '<div class="wallet"><span class="silver" aria-label="Серебро: ' + money(p.silver) + '">' + icon('silver') + '<b>' + money(p.silver) + '</b></span><button class="gold balance-button" data-tab="store" aria-label="Золото: ' + money(p.gold) + '. Открыть магазин">' + icon('gold') + '<b>' + money(p.gold) + '</b></button></div>' : '') + '</header>';
+    (tab !== 'play' && tab !== 'help' && tab !== 'settings' ? '<div class="wallet"><span class="silver" aria-label="Серебро: ' + money(p.silver) + '">' + icon('silver') + '<b>' + money(p.silver) + '</b></span><button class="gold balance-button" data-tab="store" aria-label="Золото: ' + money(p.gold) + '. Открыть магазин">' + icon('gold') + '<b>' + money(p.gold) + '</b></button><span class="xp" aria-label="Опыт">' + money(p.xp) + ' XP</span></div>' : '') + '</header>';
 }
 function tasks() {
   const day = new Date().toISOString().slice(0, 10), claimed = p!.loginDay === day;
   const archive = (p!.taskArchive ?? []).flatMap(entry => (entry.period === 'daily' ? DAILY : WEEKLY)
     .filter(task => entry.completed.includes(task.id) && !entry.claimed.includes(task.id) && entry.expiresAt > Date.now())
-    .map(task => '<section class="task ready"><div class="task-body"><div class="task-title"><span class="task-symbol">' + icon('trophy') + '</span><h3>' + task.name + '</h3></div><p>' + (entry.period === 'daily' ? 'День' : 'Неделя') + ' ' + entry.key + ' · осталось ' + Math.ceil((entry.expiresAt - Date.now()) / 86400000) + ' дн.</p><span class="task-status">Награда сохранена</span></div><div class="task-reward"><span>Награда</span><b>' + icon('silver') + ' ' + money(task.silver) + '<span>+' + task.xp + ' XP</span></b><button class="button" data-claim="' + task.id + '" data-period="' + entry.period + '" data-key="' + entry.key + '">Забрать ' + icon('arrow') + '</button></div></section>')).join('');
-  return '<div class="page-heading"><h1>Задачи</h1><span class="rank-note">Обновление в 03:00 МСК</span></div><section class="daily-gift"><span class="gift-symbol">' + icon('trophy') + '</span><div><span class="eyebrow">ДЕНЬ ' + ((p!.loginIndex - (claimed ? 1 : 0)) % 7 + 1) + ' ИЗ 7</span><h2>Награда за вход</h2></div><button class="button gold-button" data-action="login" ' + (claimed ? 'disabled' : '') + '>' + (claimed ? icon('check') + ' Получено сегодня' : 'Забрать · ' + icon('silver') + ' ' + [100, 120, 140, 160, 180, 200, 300][p!.loginIndex % 7]) + '</button></section>' +
+    .map(task => '<section class="task ready"><div class="task-body"><div class="task-title"><span class="task-symbol">' + icon('trophy') + '</span><h3>' + task.name + '</h3></div><p>' + (entry.period === 'daily' ? 'День' : 'Неделя') + ' ' + entry.key + ' · осталось ' + Math.ceil((entry.expiresAt - Date.now()) / 86400000) + ' дн.</p><span class="task-status">Награда сохранена</span></div><div class="task-reward"><span>Награда</span><b class="silver">' + icon('silver') + ' ' + money(task.silver) + '<span class="xp">+' + task.xp + ' XP</span></b><button class="button" data-claim="' + task.id + '" data-period="' + entry.period + '" data-key="' + entry.key + '">Забрать ' + icon('arrow') + '</button></div></section>')).join('');
+  return '<div class="page-heading"><h1>Задачи</h1><span class="rank-note">Обновление в 03:00 МСК</span></div><section class="daily-gift"><span class="gift-symbol">' + icon('trophy') + '</span><div><span class="eyebrow">ДЕНЬ ' + ((p!.loginIndex - (claimed ? 1 : 0)) % 7 + 1) + ' ИЗ 7</span><h2>Награда за вход</h2></div><button class="button silver-button" data-action="login" ' + (claimed ? 'disabled' : '') + '>' + (claimed ? icon('check') + ' Получено сегодня' : 'Забрать · <span class="silver">' + icon('silver') + ' ' + [100, 120, 140, 160, 180, 200, 300][p!.loginIndex % 7] + '</span>') + '</button></section>' +
     (['daily', 'weekly'] as const).map(period => '<h3 class="task-heading">' + (period === 'daily' ? 'Сегодня' : 'Эта неделя') + '</h3><div class="task-list">' + (period === 'daily' ? DAILY : WEEKLY).map(task => {
       const state = p![period], value = (state as unknown as Record<string, number>)[task.id] ?? 0, done = state.claimed.includes(task.id);
       const ready = value >= task.target;
-      return '<section class="task ' + (done ? 'completed' : ready ? 'ready' : '') + '"><div class="task-body"><div class="task-title"><span class="task-symbol">' + icon(done ? 'check' : period === 'weekly' ? 'trophy' : 'tasks') + '</span><h3>' + task.name + '</h3></div><p>' + task.detail + '</p><div class="task-progress"><span>' + (done ? 'Выполнено' : ready ? 'Выполнено — заберите награду' : 'Прогресс') + '</span><b>' + Math.min(value, task.target) + ' / ' + task.target + '</b></div><div class="progress" role="progressbar" aria-label="' + task.name + '" aria-valuemin="0" aria-valuemax="' + task.target + '" aria-valuenow="' + Math.min(value, task.target) + '"><i style="width:' + Math.min(100, value / task.target * 100) + '%"></i></div></div><div class="task-reward"><span>Награда</span><b>' + icon('silver') + ' ' + money(task.silver) + '<span>+' + task.xp + ' XP</span></b><button class="button ' + (done || !ready ? 'subtle' : '') + '" data-claim="' + task.id + '" data-period="' + period + '" data-key="' + state.key + '" ' + (done || !ready ? 'disabled' : '') + '>' + (done ? icon('check') + ' Получено' : ready ? 'Забрать ' + icon('arrow') : 'В процессе') + '</button></div></section>';
+      return '<section class="task ' + (done ? 'completed' : ready ? 'ready' : '') + '"><div class="task-body"><div class="task-title"><span class="task-symbol">' + icon(done ? 'check' : period === 'weekly' ? 'trophy' : 'tasks') + '</span><h3>' + task.name + '</h3></div><p>' + task.detail + '</p><div class="task-progress"><span>' + (done ? 'Выполнено' : ready ? 'Выполнено — заберите награду' : 'Прогресс') + '</span><b>' + Math.min(value, task.target) + ' / ' + task.target + '</b></div><div class="progress" role="progressbar" aria-label="' + task.name + '" aria-valuemin="0" aria-valuemax="' + task.target + '" aria-valuenow="' + Math.min(value, task.target) + '"><i style="width:' + Math.min(100, value / task.target * 100) + '%"></i></div></div><div class="task-reward"><span>Награда</span><b class="silver">' + icon('silver') + ' ' + money(task.silver) + '<span class="xp">+' + task.xp + ' XP</span></b><button class="button ' + (done || !ready ? 'subtle' : '') + '" data-claim="' + task.id + '" data-period="' + period + '" data-key="' + state.key + '" ' + (done || !ready ? 'disabled' : '') + '>' + (done ? icon('check') + ' Получено' : ready ? 'Забрать ' + icon('arrow') : 'В процессе') + '</button></div></section>';
     }).join('') + '</div>').join('') + '<p class="muted">Все три недельные задачи: ещё 500 серебра и 150 опыта. Выполненные незабранные награды сохраняются семь дней после окончания периода.</p>' + (archive ? '<h3 class="task-heading">Награды прошлых вылетов</h3><div class="task-list">' + archive + '</div>' : '');
 }
 function settings() {
@@ -83,10 +129,10 @@ function settings() {
     const sound = action === 'sound', muted = sound ? scene.audio.muted : scene.audio.musicMuted;
     return '<button class="audio-setting ' + (muted ? 'audio-off' : '') + '" data-action="' + action + '" aria-label="' + (sound ? 'Звуковые эффекты' : 'Фоновая музыка') + '" aria-pressed="' + !muted + '"><span class="setting-symbol" data-audio-icon>' + icon(sound ? muted ? 'muted' : 'volume' : muted ? 'musicOff' : 'music') + '</span><span class="setting-copy"><b>' + (sound ? 'Звуковые эффекты' : 'Фоновая музыка') + '</b><span>' + (sound ? 'Выстрелы, попадания и награды' : 'Музыка в меню и во время полёта') + '</span></span><span class="audio-state"><span data-audio-state>' + (sound ? muted ? 'Выключены' : 'Включены' : muted ? 'Выключена' : 'Включена') + '</span><i class="toggle-track" aria-hidden="true"></i></span></button>';
   }).join('');
-  return '<div class="page-heading"><h1>Настройки</h1></div><section class="settings-panel"><h2>Звук</h2><div class="audio-settings">' + rows + '</div><p class="muted">Настройки сохраняются на этом устройстве.</p></section>';
+  return '<div class="page-heading"><h1>Настройки</h1></div><section class="settings-panel"><h2>Звук</h2><div class="audio-settings">' + rows + '</div><h2>Управление</h2><button class="audio-setting" data-action="touch-setting" aria-pressed="' + forceTouch + '"><span class="setting-symbol">' + icon('turnRight') + '</span><span class="setting-copy"><b>Всегда показывать экранное управление</b><span>Круговой контрол и огонь. На телефоне включаются автоматически.</span></span><span class="audio-state">' + (forceTouch ? 'Включено' : 'Автоматически') + '</span></button><p class="muted">Настройки сохраняются на этом устройстве.</p></section>';
 }
 function help() {
-  return '<div class="help-heading"><button class="button subtle back-button" data-tab="play">' + icon('arrowLeft') + ' Назад</button><h1>Как летать</h1></div><div class="help-grid"><section class="help-card"><h2>Клавиатура</h2><p><kbd>A</kbd> <kbd>' + icon('arrowLeft') + '</kbd> поворот вверх / против часовой</p><p><kbd>D</kbd> <kbd>' + icon('arrow') + '</kbd> поворот вниз / по часовой</p><p><kbd>Пробел</kbd> удерживать огонь</p><p><kbd>Shift</kbd> форсаж · <kbd>Esc</kbd> пауза</p><p>На телефоне — экранные кнопки. Их можно удерживать одновременно.</p></section><section class="help-card"><h2>Кампания</h2><p>Летите вправо через 50 уровней. Врагов можно уничтожать или обходить. Скалы опасны, огонь ПВО предупреждает о выстреле.</p><p>На уровнях 10, 25 и 50 карта останавливается для боя с боссом. Победа возобновляет полёт.</p><p>При выходе полёт сохраняется. После гибели можно начать текущий уровень заново.</p></section><section class="help-card"><h2>Воздушная дуэль</h2><p>Первый до трёх побед, максимум две минуты. После потери самолёта — новое появление со щитом. Выстрел снимает щит.</p><p>Поиск игрока длится 15 секунд. Если боты разрешены, бой начнётся с ИИ. Бот всегда подписан.</p></section><section class="help-card"><h2>Развитие самолёта</h2><p>Прочность, скорость и огонь улучшаются во вкладке «Самолёты». Следите за перегревом и запасом форсажа.</p><p>Опыт открывает ранги и новые самолёты. Получайте серебро за бой, задачи и ежедневный вход.</p></section></div>';
+  return '<div class="help-heading"><button class="button subtle back-button" data-tab="play">' + icon('arrowLeft') + ' Назад</button><h1>Как летать</h1></div><div class="help-grid"><section class="help-card"><h2>Обучение</h2><p>Безопасный полёт с подсказками для вашего устройства.</p><button class="button" data-action="tutorial-pve">Повторить: карьера</button><button class="button subtle" data-action="tutorial-duel">Повторить: один на один</button><h2>Клавиатура</h2><p><b>Обычные уровни карьеры:</b> <kbd>W</kbd> вверх, <kbd>S</kbd> вниз; <kbd>D</kbd> вперёд, <kbd>A</kbd> назад. Самолёт летит горизонтально.</p><p><b>Дуэль и боссы:</b> <kbd>A</kbd> <kbd>' + icon('arrowLeft') + '</kbd> поворот вверх / против часовой</p><p><kbd>D</kbd> <kbd>' + icon('arrow') + '</kbd> поворот вниз / по часовой</p><p><kbd>Пробел</kbd> удерживать огонь</p><p><kbd>Shift</kbd> форсаж · <kbd>Esc</kbd> пауза</p><p>На телефоне — круговой контрол слева и огонь справа. Их можно удерживать одновременно.</p></section><section class="help-card"><h2>Кампания</h2><p>Летите вправо через 50 уровней. Врагов можно уничтожать или обходить. Скалы опасны, огонь ПВО предупреждает о выстреле.</p><p>На уровнях 10, 25 и 50 карта останавливается для боя с боссом. Победа возобновляет полёт.</p><p>При выходе полёт сохраняется. После гибели можно начать текущий уровень заново. На босса — 3 попытки, затем карьера с первого уровня.</p></section><section class="help-card"><h2>Воздушная дуэль</h2><p>Первый до трёх побед, максимум две минуты. После потери самолёта — новое появление со щитом. Выстрел снимает щит.</p><p>Поиск игрока длится 15 секунд. Если боты разрешены, бой начнётся с ИИ. Бот всегда подписан.</p></section><section class="help-card"><h2>Развитие самолёта</h2><p>Прочность, скорость и огонь улучшаются во вкладке «Самолёты». Следите за перегревом и запасом форсажа.</p><p>Победы над боссами открывают самолёты. Опыт расходуется на исследование улучшений, серебро — на их покупку. Получайте серебро за бой, задачи и ежедневный вход.</p></section></div>';
 }
 function renderMenu(preserveScroll = false) {
   const scrollTop = preserveScroll ? document.querySelector('.menu-content')?.scrollTop ?? 0 : 0;
@@ -102,9 +148,9 @@ function renderQueue() {
 }
 function renderBattle() {
   if (!battle) return;
-  scene.active = true; document.body.classList.add('in-flight');
+  scene.active = true; document.body.classList.add('in-flight'); document.body.classList.toggle('touch-flight', touchDevice());
   syncAudio();
-  app.innerHTML = '<div class="battle-hud"><div class="battle-top"><div class="hud-plane"><b id="hp-text">' + icon('plane') + ' <span id="hp-value"></span></b><div class="meter hp"><i id="hp-bar"></i></div></div><div class="battle-title"><b id="mode-title"></b><small id="mode-subtitle"></small></div><div class="hud-actions"><button class="hud-button" data-action="pause" aria-label="Пауза">' + icon('pause') + '</button><button class="hud-button hud-exit" data-action="home" aria-label="Главный экран">' + icon('exit') + '</button></div></div><div class="level-progress"><i id="level-bar"></i></div><div id="boss-hud"></div><div class="battle-bottom"><div class="instrument"><span>ОРУЖИЕ</span><div class="meter heat"><i id="heat-bar"></i></div></div><div class="instrument"><span>ФОРСАЖ</span><div class="meter energy"><i id="energy-bar"></i></div></div><span id="earned">' + icon('silver') + ' <span id="earned-silver"></span><span id="earned-xp"></span></span></div><div class="touch-controls"><div><button data-control="left" aria-label="Поворот против часовой">' + icon('turnLeft') + '</button><button data-control="right" aria-label="Поворот по часовой">' + icon('turnRight') + '</button></div><div><button class="boost-control" data-control="boost" aria-label="Форсаж">' + icon('boost') + '</button><button class="fire-control" data-control="fire" aria-label="Стрелять">' + icon('target') + '</button></div></div><div id="battle-overlay"></div></div>';
+  app.innerHTML = '<div class="battle-hud"><div class="battle-top"><div class="hud-plane"><b id="hp-text">' + icon('plane') + ' <span id="hp-value"></span></b><div class="meter hp"><i id="hp-bar"></i></div></div><div class="battle-title"><b id="mode-title"></b><small id="mode-subtitle"></small></div><div class="hud-actions"><button class="hud-button" data-action="pause" aria-label="Пауза">' + icon('pause') + '</button></div></div><div class="level-progress"><i id="level-bar"></i></div><div id="boss-hud"></div><div class="battle-bottom"><div class="instrument"><span>ОРУЖИЕ</span><div class="meter heat"><i id="heat-bar"></i></div></div><div class="instrument"><span>ФОРСАЖ</span><div class="meter energy"><i id="energy-bar"></i></div></div><span id="earned" class="silver">' + icon('silver') + ' <span id="earned-silver"></span><span id="earned-xp" class="xp"></span></span></div><div class="touch-controls"><div><button class="flight-stick" data-joystick aria-label="Круговой контрол управления"><span class="stick-directions" aria-hidden="true">↕</span><span class="stick-knob"></span></button></div><div><button class="boost-control" data-control="boost" aria-label="Форсаж">' + icon('boost') + '</button><button class="fire-control" data-control="fire" aria-label="Стрелять">' + icon('target') + '</button></div></div><div id="battle-overlay"></div></div>';
   updateHud();
 }
 function updateHud() {
@@ -114,37 +160,43 @@ function updateHud() {
   const setText = (id: string, value: string) => { const el = document.getElementById(id); if (el && el.textContent !== value) el.textContent = value; };
   const bar = (id: string, v: number) => { const el = document.getElementById(id); if (el) el.style.width = Math.max(0, Math.min(100, v * 100)) + '%'; };
   setText('hp-value', Math.max(0, Math.ceil(me.health)) + ' / ' + Math.round(me.hp)); bar('hp-bar', me.health / me.hp); bar('heat-bar', me.heat); bar('energy-bar', me.energy);
+  const vertical = battle.mode === 'pve' && battle.phase === 'flight';
+  const stick = document.querySelector('.flight-stick'); stick?.setAttribute('aria-label', vertical ? 'Круговой контрол: вверх, вниз, вперёд и назад' : 'Круговой контрол: направление полёта');
+  const directions = document.querySelector('.stick-directions'); if (directions) directions.textContent = vertical ? '✥' : '↻';
   const def = ZONE[battle.level - 1], enemy = battle.planes.find(x => x.id !== you);
-  setText('mode-title', battle.mode === 'pve' ? (battle.phase === 'boss' ? def.boss!.name : 'УРОВЕНЬ ' + battle.level + ' / 50') : me.score + ' : ' + (enemy?.score ?? 0));
-  setText('mode-subtitle', battle.mode === 'pve' ? (battle.phase === 'boss' ? 'ДУЭЛЬ С БОССОМ' : def.name) : (enemy?.bot ? 'БОТ · КУРСАНТ' : 'ОНЛАЙН · ИГРОК') + ' · ' + Math.max(0, Math.ceil(120 - battle.time)) + ' сек');
+  setText('mode-title', lesson ? 'ТРЕНИРОВКА' : battle.mode === 'pve' ? (battle.phase === 'boss' ? def.boss!.name + ' · ' + (battle.bossAttempt ?? 1) + '/3' : 'УРОВЕНЬ ' + battle.level + ' / 50') : me.score + ' : ' + (enemy?.score ?? 0));
+  const subtitle = document.getElementById('mode-subtitle');
+  if (subtitle) { subtitle.hidden = !lesson && battle.mode === 'pve'; subtitle.textContent = lesson ? 'БЕЗОПАСНЫЙ ПОЛЁТ' : battle.mode === 'pve' ? '' : (enemy?.bot ? 'БОТ · КУРСАНТ' : 'ОНЛАЙН · ИГРОК') + ' · ' + Math.max(0, Math.ceil(120 - battle.time)) + ' сек'; }
   bar('level-bar', battle.mode === 'pve' ? battle.distance / def.length : battle.time / 120);
   const earned = battle.earned[you]; setText('earned-silver', '+' + money(earned?.silver ?? 0)); setText('earned-xp', '+' + money(earned?.xp ?? 0) + ' XP');
   const boss = document.getElementById('boss-hud'); if (boss) boss.innerHTML = battle.phase === 'boss' ? '<div class="boss-meter"><i style="width:' + Math.max(0, enemy!.health / enemy!.hp * 100) + '%"></i></div><span>' + Math.max(0, Math.ceil(enemy!.health)) + ' / ' + Math.round(enemy!.hp) + '</span>' : '';
   const phase = battle.paused ? 'paused' : battle.phase;
   if (phase !== lastPhase) { lastPhase = phase; renderOverlay(); }
-  if (battle.phase === 'ended' && !finished) { finished = true; keys.clear(); touches.clear(); platform.gameplay(false); scene.audio.play('reward'); }
+  if (battle.phase === 'ended' && !finished) { finished = true; clearControls(); platform.gameplay(false); scene.audio.play('reward'); }
 }
 function renderOverlay() {
   const el = document.getElementById('battle-overlay'); if (!el || !battle) return;
+  if (lesson && !battle.paused) { renderLesson(); return; }
   if (battle.phase === 'ended') {
     const me = battle.planes.find(x => x.id === you)!, e = battle.earned[you], duel = battle.mode === 'duel';
     const enemy = battle.planes.find(x => x.id !== you), win = duel && me.score > (enemy?.score ?? 0);
-    el.innerHTML = '<div class="shade"><section class="result-panel"><span class="result-symbol">' + (win || battle.level === 50 && me.health > 0 ? '' + icon('gold') + '' : '' + icon('plane') + '') + '</span><span class="eyebrow">' + (duel ? 'ДУЭЛЬ ЗАВЕРШЕНА' : 'КОНЕЦ ВЫЛЕТА · УРОВЕНЬ ' + battle.level) + '</span><h1>' + (duel && battle.result === 'Дуэль завершена' ? win ? 'Победа!' : 'Поражение' : battle.result) + '</h1><div class="result-loot"><b>' + icon('silver') + ' ' + money(e?.silver ?? 0) + '</b><b>+' + money(e?.xp ?? 0) + ' XP</b></div><button class="button" data-action="home">Главный экран ' + icon('arrow') + '</button>' + (!duel && me.health <= 0 ? '<button class="plain" data-action="retry">Повторить уровень ' + battle.level + '</button>' : '') + '</section></div>';
-  } else if (battle.paused) el.innerHTML = '<div class="shade"><section class="result-panel"><h1>Пауза</h1><p>Полёт сохранён.</p><button class="button" data-action="resume">Продолжить ' + icon('arrow') + '</button><button class="plain" data-action="home">Главный экран</button></section></div>';
+    el.innerHTML = '<div class="shade"><section class="result-panel"><span class="result-symbol">' + (win || battle.level === 50 && me.health > 0 ? '' + icon('trophy') + '' : '' + icon('plane') + '') + '</span><span class="eyebrow">' + (duel ? 'ДУЭЛЬ ЗАВЕРШЕНА' : 'КОНЕЦ ВЫЛЕТА · УРОВЕНЬ ' + battle.level) + '</span><h1>' + (duel && battle.result === 'Дуэль завершена' ? win ? 'Победа!' : 'Поражение' : battle.result) + '</h1><div class="result-loot"><b class="silver">' + icon('silver') + ' ' + money(e?.silver ?? 0) + '</b><b class="xp">+' + money(e?.xp ?? 0) + ' XP</b></div><button class="button" data-action="home">Главный экран ' + icon('arrow') + '</button>' + (!duel && me.health <= 0 ? '<button class="plain" data-action="retry">' + (battle.bossAttemptsExhausted ? 'С первого уровня' : battle.planes.some(p => p.id === 'boss') ? 'Повторить босса · осталось ' + (3 - (battle.bossAttempt ?? 1)) : 'Повторить уровень ' + battle.level) + '</button>' : '') + '</section></div>';
+  } else if (battle.paused) el.innerHTML = '<div class="shade"><section class="result-panel"><h1>Пауза</h1><p>' + (lesson ? 'Продолжите обучение, когда будете готовы.' : 'Полёт сохранён.') + '</p><button class="button" data-action="resume">Продолжить ' + icon('arrow') + '</button><button class="plain" data-action="home">Главный экран</button></section></div>';
   else el.innerHTML = '';
 }
 function setPause(reason: string, value: boolean) {
-  const onlineDuel = battle?.mode === 'duel' && battle.planes.every(x => !x.bot);
+  const onlineDuel = !lesson && battle?.mode === 'duel' && battle.planes.every(x => !x.bot);
   if (onlineDuel && reason === 'manual') { toast('Онлайн-дуэль продолжается; пауза пока доступна только против ИИ'); return; }
   if (value) pauseReasons.add(reason); else pauseReasons.delete(reason);
   syncAudio();
-  keys.clear(); touches.clear(); send({ type: 'input', turn: 0, fire: false, boost: false });
+  clearControls(); if (!lesson) send({ type: 'input', turn: 0, fire: false, boost: false });
   if (!battle || battle.phase === 'ended') return;
   if (onlineDuel) return;
+  if (lesson) { battle.paused = pauseReasons.size > 0; scene.accept(structuredClone(battle), you); renderOverlay(); return; }
   send({ type: 'pause', paused: pauseReasons.size > 0 });
   platform.gameplay(pauseReasons.size === 0);
 }
-function home() { tab = 'play'; send({ type: 'leave' }); battle = undefined; finished = false; pauseReasons.clear(); keys.clear(); touches.clear(); syncOrientation(); renderMenu(); }
+function home() { const training = !!lesson; lesson = undefined; afterLesson = undefined; tab = 'play'; if (!training) send({ type: 'leave' }); battle = undefined; finished = false; pauseReasons.clear(); clearControls(); syncOrientation(); renderMenu(); }
 document.addEventListener('click', e => {
   const target = (e.target as HTMLElement).closest<HTMLElement>('button, a'); if (!target) return;
   scene.audio.unlock();
@@ -160,11 +212,15 @@ document.addEventListener('click', e => {
   if (target.dataset.moduleEquip !== undefined) send({ type: 'module-equip', id: target.dataset.moduleEquip });
   if (target.dataset.exchange) { const amount = Number(target.dataset.exchange), currency = target.dataset.currency!; confirmTrade({ type: 'exchange', amount, currency }, 'Обмен золота', 'Списать золото: ' + amount + ' на ' + (currency === 'silver' ? 'серебро: ' + amount * 25 : amount * 8 + ' опыта') + '. Обмен необратим.'); }
   if (target.dataset.pack) void platform.purchase(target.dataset.pack, rpc).then(() => toast('Покупка получена и сохранена')).catch(error => toast(error.message || 'Покупка не завершена'));
-  if (target.dataset.upgrade) send({ type: 'upgrade', branch: target.dataset.upgrade });
+  if (target.dataset.research) spend({type:'research', branch:target.dataset.research, level:Number(target.dataset.level)});
+  if (target.dataset.upgrade) spend({ type: 'upgrade', branch: target.dataset.upgrade, level:Number(target.dataset.level) });
   if (target.dataset.claim) send({ type: 'claim', id: target.dataset.claim, period: target.dataset.period, key: target.dataset.key });
   switch (target.dataset.action) {
-    case 'queue': send({ type: 'queue' }); break;
-    case 'pve': send({ type: 'pve', resume }); break;
+    case 'queue': beginLesson('duel'); break;
+    case 'pve': beginLesson('pve'); break;
+    case 'touch-setting': forceTouch = !forceTouch; localStorage.setItem('biplanes-touch-controls', forceTouch ? '1' : '0'); renderMenu(true); break;
+    case 'tutorial-pve': beginLesson('pve', true); break;
+    case 'tutorial-duel': beginLesson('duel', true); break;
     case 'cancel': send({ type: 'cancel' }); break;
     case 'login': send({ type: 'login' }); break;
     case 'sound': scene.audio.toggle(); refreshAudioButtons(); break;
@@ -186,26 +242,71 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => { const input = e.target as HTMLInputElement; if (input.id === 'allow-bots') { p!.allowBots = input.checked; send({ type: 'bots', allowed: input.checked }); } });
 document.addEventListener('keydown', e => {
   if (!battle || battle.phase === 'ended') return;
-  if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
+  if (lesson && e.code === 'Tab' && !battle.paused) { e.preventDefault(); return; }
+  if (['KeyW', 'KeyS', 'KeyA', 'KeyD', 'Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
   if (e.code === 'Escape' && !e.repeat) setPause('manual', !pauseReasons.has('manual'));
   keys.add(e.code); scene.audio.unlock();
+  if (!e.repeat && lesson && !battle.paused && !pauseReasons.size) lesson.trigger(currentControls());
 });
 document.addEventListener('keyup', e => keys.delete(e.code));
 document.addEventListener('pointerdown', e => {
+  const stick = (e.target as HTMLElement).closest<HTMLElement>('[data-joystick]');
+  if (stick) { if (stickPointer !== undefined) return; e.preventDefault(); stick.setPointerCapture(e.pointerId); stickPointer = e.pointerId; moveStick(e); scene.audio.unlock(); return; }
   const button = (e.target as HTMLElement).closest<HTMLElement>('[data-control]'); if (!button) return;
   e.preventDefault(); button.setPointerCapture(e.pointerId); touches.set(e.pointerId, button.dataset.control!); button.classList.add('pressed'); scene.audio.unlock();
+  if (lesson && !battle?.paused && !pauseReasons.size) lesson.trigger(currentControls());
 });
-function releasePointer(e: PointerEvent) { touches.delete(e.pointerId); (e.target as HTMLElement).closest('[data-control]')?.classList.remove('pressed'); }
-document.addEventListener('pointerup', releasePointer); document.addEventListener('pointercancel', releasePointer);
+function moveStick(e: PointerEvent) {
+  if (stickPointer !== e.pointerId) return;
+  const stick = document.querySelector<HTMLElement>('.flight-stick'); if (!stick) return;
+  const r = stick.getBoundingClientRect(), radius = r.width / 2;
+  const x = (e.clientX - r.left - radius) / radius, y = (e.clientY - r.top - r.height / 2) / radius, length = Math.max(1, Math.hypot(x, y));
+  stickX = x / length; stickY = y / length;
+  if (lesson && !battle?.paused && !pauseReasons.size && Math.abs(stickY) >= .2) lesson.trigger({ turn: Math.sign(stickY), fire: false, boost: false });
+  stick.querySelector<HTMLElement>('.stick-knob')!.style.transform = `translate(${stickX * radius * .55}px,${stickY * radius * .55}px)`;
+}
+document.addEventListener('pointermove', moveStick);
+function releasePointer(e: PointerEvent) {
+  if (stickPointer === e.pointerId) { stickPointer = undefined; stickX = stickY = 0; document.querySelector<HTMLElement>('.stick-knob')?.style.setProperty('transform', 'translate(0,0)'); }
+ touches.delete(e.pointerId); (e.target as HTMLElement).closest('[data-control]')?.classList.remove('pressed'); }
+document.addEventListener('pointerup', releasePointer); document.addEventListener('pointercancel', releasePointer); document.addEventListener('lostpointercapture', releasePointer);
 window.addEventListener('blur', () => setPause('focus', true)); window.addEventListener('focus', () => setPause('focus', false));
 document.addEventListener('visibilitychange', () => setPause('hidden', document.hidden));
 document.addEventListener('contextmenu', e => e.preventDefault());
 setInterval(() => {
   if (queueStarted) { const seconds = Math.floor((Date.now() - queueStarted) / 1000); const counter = document.getElementById('queue-seconds'), hint = document.getElementById('queue-hint'); if (counter) counter.textContent = '' + seconds; if (hint) hint.textContent = seconds < 15 ? 'Ищем пилота близкого ранга' : p?.allowBots ? 'Готовим бой с ботом…' : 'Продолжаем искать игрока'; }
   if (!battle || battle.phase === 'ended' || battle.paused || pauseReasons.size) return;
-  const active = new Set(touches.values()), left = keys.has('KeyA') || keys.has('ArrowLeft') || keys.has('ArrowUp') || active.has('left'), right = keys.has('KeyD') || keys.has('ArrowRight') || keys.has('ArrowDown') || active.has('right');
-  send({ type: 'input', turn: Number(right) - Number(left), fire: keys.has('Space') || active.has('fire'), boost: keys.has('ShiftLeft') || keys.has('ShiftRight') || active.has('boost') });
+  if (!lesson) send({ type: 'input', ...currentControls() });
 }, 1000 / 30);
+function currentControls() {
+  const input = flightControls(battle!, keys, new Set(touches.values()));
+  if (stickPointer !== undefined) {
+    const flight = battle!.mode === 'pve' && battle!.phase === 'flight';
+    input.turn = joystickTurn(flight, battle!.planes.find(p => p.id === you)!.angle, stickX, stickY);
+    if (flight) input.horizontal = joystickHorizontal(stickX);
+  }
+  return input;
+}
+let lessonFrame = performance.now();
+function tickLesson(now: number) {
+  const dt = Math.min(.04, (now - lessonFrame) / 1000); lessonFrame = now;
+  if (lesson && battle && !battle.paused && !pauseReasons.size && !document.hidden) {
+    const raw = lesson.demonstrating ? lessonInput(lesson.step) : currentControls();
+    const input = { turn: lesson.step === 1 || lesson.step === 2 ? raw.turn : 0, fire: lesson.step === 3 && raw.fire, boost: lesson.step === 4 && raw.boost };
+    // Freeze between instructions; no obstacles, damage, economy or online opponent.
+    if (lesson.step > 0 && lesson.step < 5) stepTrainingBattle(battle, you, input, dt);
+    const progressInput = stickPointer !== undefined && !lesson.demonstrating && (lesson.step === 1 || lesson.step === 2) ? { ...input, turn: Math.abs(stickY) >= .2 ? Math.sign(stickY) : 0 } : input;
+    if (lesson.tick(progressInput, dt)) {
+      clearControls();
+      if (lesson.step === 5) { finishLesson(); requestAnimationFrame(tickLesson); return; }
+      renderLesson();
+    }
+
+    scene.accept(structuredClone(battle), you); updateHud(); positionLesson();
+  }
+  requestAnimationFrame(tickLesson);
+}
+requestAnimationFrame(tickLesson);
 function connect() {
   const endpoint = import.meta.env.VITE_SERVER_URL || (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/socket';
   ws = new WebSocket(endpoint);
@@ -222,9 +323,10 @@ function connect() {
       if (!battle && !queueStarted) {
         renderMenu(true);
         if (previous && previous.id === p!.id) {
-          if (rankOf(p!.xp) > rankOf(previous.xp)) { toast('Новый ранг: ' + rankOf(p!.xp) + '!'); scene.audio.play('reward'); }
+          if (pilotRank(p!) > pilotRank(previous)) { toast('Новый ранг: ' + pilotRank(p!) + '!'); scene.audio.play('reward'); }
           else if (p!.gold > previous.gold) { toast('Получено ' + (p!.gold - previous.gold) + ' золота'); scene.audio.play('reward'); }
           else if (p!.silver > previous.silver) { toast('Получено: ' + (p!.silver - previous.silver) + ' серебра и ' + (p!.xp - previous.xp) + ' опыта'); scene.audio.play('reward'); }
+          else if (p!.xp < previous.xp) { toast('Исследовано · теперь купите за серебро'); scene.audio.play('reward'); }
           else if (p!.silver < previous.silver) { toast('Самолёт готов к новым вылетам'); scene.audio.play('reward'); }
         }
       }
@@ -238,7 +340,7 @@ function connect() {
   ws.onclose = e => {
     for (const item of rpcWaiters.values()) { clearTimeout(item.timer); item.reject(new Error('Связь прервалась. Покупки восстановятся при входе.')); } rpcWaiters.clear();
     if (swapAccount) { swapAccount = false; return; }
-    connected = false; queueStarted = 0; battle = undefined; pauseReasons.delete('manual'); keys.clear(); touches.clear(); scene.active = false; platform.gameplay(false); syncOrientation(); renderMenu(); toast(e.reason || 'Связь прервалась. Переподключаемся…'); if (e.code !== 1008) setTimeout(connect, 2000);
+    connected = false; queueStarted = 0; lesson = undefined; afterLesson = undefined; battle = undefined; pauseReasons.clear(); clearControls(); scene.active = false; platform.gameplay(false); syncOrientation(); renderMenu(); toast(e.reason || 'Связь прервалась. Переподключаемся…'); if (e.code !== 1008) setTimeout(connect, 2000);
   };
 }
 scene.onReady = () => { if (!started) { started = true; renderMenu(); void platform.init(value => setPause('platform', value)).then(connect); } };

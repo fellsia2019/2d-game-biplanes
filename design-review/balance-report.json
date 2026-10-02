@@ -1,0 +1,850 @@
+{
+  "generatedAt": "2026-10-02T19:15:52.572Z",
+  "method": "30 Hz authoritative simulation, 60 seconds held fire, no aim assist. TTK uses 40% hit rate; range 30–55%. Income scenario assumes three kills per level, no ads, paid gold, tasks or login bonuses.",
+  "planes": [
+    {
+      "id": "universal",
+      "name": "Сокол",
+      "price": 0,
+      "base": {
+        "stats": {
+          "model": "universal",
+          "hp": 100,
+          "speed": 185,
+          "turn": 2.6,
+          "damage": 10,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1
+        },
+        "shots": 206,
+        "dps": 34.333333333333336,
+        "overheatFraction": 0.35333333333333333
+      },
+      "max": {
+        "stats": {
+          "model": "universal",
+          "hp": 130,
+          "speed": 203.50000000000003,
+          "turn": 2.7300000000000004,
+          "damage": 13,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1
+        },
+        "shots": 206,
+        "dps": 44.63333333333333,
+        "overheatFraction": 0.35333333333333333
+      },
+      "radiator": {
+        "stats": {
+          "model": "universal",
+          "hp": 130,
+          "speed": 203.50000000000003,
+          "turn": 2.7300000000000004,
+          "damage": 11.700000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35
+        },
+        "shots": 271,
+        "dps": 52.845000000000006,
+        "overheatFraction": 0.11388888888888889
+      }
+    },
+    {
+      "id": "swift",
+      "name": "Стриж",
+      "price": 1200,
+      "base": {
+        "stats": {
+          "model": "swift",
+          "hp": 175,
+          "speed": 210,
+          "turn": 3.1,
+          "damage": 18,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1
+        },
+        "shots": 206,
+        "dps": 61.8,
+        "overheatFraction": 0.35333333333333333
+      },
+      "max": {
+        "stats": {
+          "model": "swift",
+          "hp": 227.5,
+          "speed": 231.00000000000003,
+          "turn": 3.2550000000000003,
+          "damage": 23.400000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1
+        },
+        "shots": 206,
+        "dps": 80.34,
+        "overheatFraction": 0.35333333333333333
+      },
+      "radiator": {
+        "stats": {
+          "model": "swift",
+          "hp": 227.5,
+          "speed": 231.00000000000003,
+          "turn": 3.2550000000000003,
+          "damage": 21.060000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35
+        },
+        "shots": 271,
+        "dps": 95.12100000000001,
+        "overheatFraction": 0.11388888888888889
+      }
+    },
+    {
+      "id": "yantar",
+      "name": "Янтарь",
+      "price": 3800,
+      "base": {
+        "stats": {
+          "model": "yantar",
+          "hp": 305,
+          "speed": 238,
+          "turn": 3.7,
+          "damage": 32,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1
+        },
+        "shots": 206,
+        "dps": 109.86666666666666,
+        "overheatFraction": 0.35333333333333333
+      },
+      "max": {
+        "stats": {
+          "model": "yantar",
+          "hp": 396.5,
+          "speed": 261.8,
+          "turn": 3.8850000000000002,
+          "damage": 41.6,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1
+        },
+        "shots": 206,
+        "dps": 142.82666666666668,
+        "overheatFraction": 0.35333333333333333
+      },
+      "radiator": {
+        "stats": {
+          "model": "yantar",
+          "hp": 396.5,
+          "speed": 261.8,
+          "turn": 3.8850000000000002,
+          "damage": 37.440000000000005,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35
+        },
+        "shots": 271,
+        "dps": 169.104,
+        "overheatFraction": 0.11388888888888889
+      }
+    },
+    {
+      "id": "bastion",
+      "name": "Рубин",
+      "price": 10000,
+      "base": {
+        "stats": {
+          "model": "bastion",
+          "hp": 535,
+          "speed": 268,
+          "turn": 4.4,
+          "damage": 57,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1
+        },
+        "shots": 206,
+        "dps": 195.7,
+        "overheatFraction": 0.35333333333333333
+      },
+      "max": {
+        "stats": {
+          "model": "bastion",
+          "hp": 695.5,
+          "speed": 294.8,
+          "turn": 4.620000000000001,
+          "damage": 74.10000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1
+        },
+        "shots": 206,
+        "dps": 254.41000000000003,
+        "overheatFraction": 0.35333333333333333
+      },
+      "radiator": {
+        "stats": {
+          "model": "bastion",
+          "hp": 695.5,
+          "speed": 294.8,
+          "turn": 4.620000000000001,
+          "damage": 66.69000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35
+        },
+        "shots": 271,
+        "dps": 301.21650000000005,
+        "overheatFraction": 0.11388888888888889
+      }
+    },
+    {
+      "id": "skate",
+      "name": "Феникс",
+      "price": 300,
+      "base": {
+        "stats": {
+          "model": "skate",
+          "hp": 935,
+          "speed": 300,
+          "turn": 5.2,
+          "damage": 102,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1
+        },
+        "shots": 206,
+        "dps": 350.2,
+        "overheatFraction": 0.35333333333333333
+      },
+      "max": {
+        "stats": {
+          "model": "skate",
+          "hp": 1215.5,
+          "speed": 330,
+          "turn": 5.460000000000001,
+          "damage": 132.6,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1
+        },
+        "shots": 206,
+        "dps": 455.26,
+        "overheatFraction": 0.35333333333333333
+      },
+      "radiator": {
+        "stats": {
+          "model": "skate",
+          "hp": 1215.5,
+          "speed": 330,
+          "turn": 5.460000000000001,
+          "damage": 119.34,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35
+        },
+        "shots": 271,
+        "dps": 539.019,
+        "overheatFraction": 0.11388888888888889
+      }
+    }
+  ],
+  "transitions": [
+    {
+      "from": "Сокол",
+      "to": "Стриж",
+      "hpGain": 0.34615384615384626,
+      "dpsGain": 0.16945784842463785,
+      "speedGain": 0.03194103194103182,
+      "turnGain": 0.1355311355311355
+    },
+    {
+      "from": "Стриж",
+      "to": "Янтарь",
+      "hpGain": 0.34065934065934056,
+      "dpsGain": 0.15502009720951881,
+      "speedGain": 0.030303030303030276,
+      "turnGain": 0.13671274961597546
+    },
+    {
+      "from": "Янтарь",
+      "to": "Рубин",
+      "hpGain": 0.34930643127364447,
+      "dpsGain": 0.15727599583688123,
+      "speedGain": 0.023682200152788324,
+      "turnGain": 0.13256113256113267
+    },
+    {
+      "from": "Рубин",
+      "to": "Феникс",
+      "hpGain": 0.3443565780014377,
+      "dpsGain": 0.16261891363852876,
+      "speedGain": 0.01763907734056991,
+      "turnGain": 0.1255411255411254
+    }
+  ],
+  "economy": [
+    {
+      "first": 1,
+      "last": 10,
+      "model": "universal",
+      "next": "swift",
+      "build": {
+        "hull": 2,
+        "engine": 1,
+        "gun": 3
+      },
+      "guaranteedSilver": 1800,
+      "guaranteedXp": 520,
+      "expectedKills": 30,
+      "killsSilver": 540,
+      "killsXp": 150,
+      "buildSilver": 1160,
+      "buildXp": 420,
+      "planePrice": 1200,
+      "preBossSilver": 390,
+      "preBossXp": 36,
+      "incomeCases": [
+        {
+          "killsPerLevel": 1,
+          "silverAfterBuildAndPlane": -180
+        },
+        {
+          "killsPerLevel": 3,
+          "silverAfterBuildAndPlane": 180
+        },
+        {
+          "killsPerLevel": 5,
+          "silverAfterBuildAndPlane": 540
+        }
+      ],
+      "silverAfterBuildAndPlane": 180,
+      "xpAfterBuild": 250,
+      "spawn": {
+        "normal": {
+          "seeds": 12,
+          "averageVisibleTargets": 4.616666666666666,
+          "averageSeconds": 26.323333333333792
+        },
+        "boost": {
+          "seeds": 12,
+          "averageVisibleTargets": 3.775,
+          "averageSeconds": 21.530000000000225
+        }
+      },
+      "enemyShotsToKill": [
+        {
+          "level": 1,
+          "base": 3,
+          "recommended": 3,
+          "heavy": 5
+        },
+        {
+          "level": 2,
+          "base": 3,
+          "recommended": 3,
+          "heavy": 5
+        },
+        {
+          "level": 3,
+          "base": 3,
+          "recommended": 3,
+          "heavy": 5
+        },
+        {
+          "level": 4,
+          "base": 3,
+          "recommended": 3,
+          "heavy": 5
+        },
+        {
+          "level": 5,
+          "base": 4,
+          "recommended": 3,
+          "heavy": 6
+        },
+        {
+          "level": 6,
+          "base": 4,
+          "recommended": 3,
+          "heavy": 6
+        },
+        {
+          "level": 7,
+          "base": 4,
+          "recommended": 3,
+          "heavy": 6
+        },
+        {
+          "level": 8,
+          "base": 4,
+          "recommended": 4,
+          "heavy": 7
+        },
+        {
+          "level": 9,
+          "base": 4,
+          "recommended": 4,
+          "heavy": 7
+        },
+        {
+          "level": 10,
+          "base": 4,
+          "recommended": 4,
+          "heavy": 7
+        }
+      ],
+      "boss": {
+        "name": "Капитан Буря",
+        "hp": 700,
+        "speed": 75,
+        "turn": 1.8,
+        "damage": 8,
+        "cooldown": 1.6,
+        "bulletSpeed": 300,
+        "windup": 0.35,
+        "silver": 900,
+        "xp": 180,
+        "baseTtk": 50.970873786407765,
+        "level3Ttk": 43.19565575119302,
+        "recommendedTtk": 43.19565575119302,
+        "maxTtk": 39.20836445108289,
+        "hitsToDefeatPlayer": 15,
+        "survivalSeconds": [
+          {
+            "hitRate": 0.1,
+            "seconds": 224.00000000000003
+          },
+          {
+            "hitRate": 0.2,
+            "seconds": 112.00000000000001
+          },
+          {
+            "hitRate": 0.3,
+            "seconds": 74.66666666666667
+          }
+        ],
+        "maxTtkRange": [
+          28.515174146242106,
+          52.277819268110534
+        ]
+      }
+    },
+    {
+      "first": 11,
+      "last": 25,
+      "model": "swift",
+      "next": "yantar",
+      "build": {
+        "hull": 2,
+        "engine": 2,
+        "gun": 3
+      },
+      "guaranteedSilver": 4500,
+      "guaranteedXp": 820,
+      "expectedKills": 45,
+      "killsSilver": 1260,
+      "killsXp": 360,
+      "buildSilver": 1380,
+      "buildXp": 500,
+      "planePrice": 3800,
+      "preBossSilver": 1840,
+      "preBossXp": 252,
+      "incomeCases": [
+        {
+          "killsPerLevel": 1,
+          "silverAfterBuildAndPlane": -260
+        },
+        {
+          "killsPerLevel": 3,
+          "silverAfterBuildAndPlane": 580
+        },
+        {
+          "killsPerLevel": 5,
+          "silverAfterBuildAndPlane": 1420
+        }
+      ],
+      "silverAfterBuildAndPlane": 580,
+      "xpAfterBuild": 680,
+      "spawn": {
+        "normal": {
+          "seeds": 12,
+          "averageVisibleTargets": 5.966666666666667,
+          "averageSeconds": 26.940000000000495
+        },
+        "boost": {
+          "seeds": 12,
+          "averageVisibleTargets": 4.844444444444444,
+          "averageSeconds": 22.060000000000237
+        }
+      },
+      "enemyShotsToKill": [
+        {
+          "level": 11,
+          "base": 4,
+          "recommended": 4,
+          "heavy": 7
+        },
+        {
+          "level": 12,
+          "base": 4,
+          "recommended": 4,
+          "heavy": 7
+        },
+        {
+          "level": 13,
+          "base": 4,
+          "recommended": 4,
+          "heavy": 7
+        },
+        {
+          "level": 14,
+          "base": 5,
+          "recommended": 4,
+          "heavy": 7
+        },
+        {
+          "level": 15,
+          "base": 5,
+          "recommended": 4,
+          "heavy": 8
+        },
+        {
+          "level": 16,
+          "base": 5,
+          "recommended": 4,
+          "heavy": 8
+        },
+        {
+          "level": 17,
+          "base": 5,
+          "recommended": 4,
+          "heavy": 8
+        },
+        {
+          "level": 18,
+          "base": 5,
+          "recommended": 4,
+          "heavy": 8
+        },
+        {
+          "level": 19,
+          "base": 5,
+          "recommended": 5,
+          "heavy": 9
+        },
+        {
+          "level": 20,
+          "base": 5,
+          "recommended": 5,
+          "heavy": 9
+        },
+        {
+          "level": 21,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 9
+        },
+        {
+          "level": 22,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 9
+        },
+        {
+          "level": 23,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 10
+        },
+        {
+          "level": 24,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 10
+        },
+        {
+          "level": 25,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 10
+        }
+      ],
+      "boss": {
+        "name": "Алый охотник",
+        "hp": 1600,
+        "speed": 88,
+        "turn": 2,
+        "damage": 17,
+        "cooldown": 1.45,
+        "bulletSpeed": 330,
+        "windup": 0.35,
+        "silver": 2400,
+        "xp": 400,
+        "baseTtk": 64.72491909385114,
+        "level3Ttk": 54.851626350721304,
+        "recommendedTtk": 54.851626350721304,
+        "maxTtk": 49.788399302962404,
+        "hitsToDefeatPlayer": 12,
+        "survivalSeconds": [
+          {
+            "hitRate": 0.1,
+            "seconds": 167.1764705882353
+          },
+          {
+            "hitRate": 0.2,
+            "seconds": 83.58823529411765
+          },
+          {
+            "hitRate": 0.3,
+            "seconds": 55.72549019607843
+          }
+        ],
+        "maxTtkRange": [
+          36.209744947609025,
+          66.38453240394988
+        ]
+      }
+    },
+    {
+      "first": 26,
+      "last": 50,
+      "model": "yantar",
+      "next": "bastion",
+      "build": {
+        "hull": 4,
+        "engine": 3,
+        "gun": 5
+      },
+      "guaranteedSilver": 11750,
+      "guaranteedXp": 2000,
+      "expectedKills": 75,
+      "killsSilver": 3150,
+      "killsXp": 900,
+      "buildSilver": 4720,
+      "buildXp": 1540,
+      "planePrice": 10000,
+      "preBossSilver": 3950,
+      "preBossXp": 416,
+      "incomeCases": [
+        {
+          "killsPerLevel": 1,
+          "silverAfterBuildAndPlane": -1920
+        },
+        {
+          "killsPerLevel": 3,
+          "silverAfterBuildAndPlane": 180
+        },
+        {
+          "killsPerLevel": 5,
+          "silverAfterBuildAndPlane": 2280
+        }
+      ],
+      "silverAfterBuildAndPlane": 180,
+      "xpAfterBuild": 1360,
+      "spawn": {
+        "normal": {
+          "seeds": 12,
+          "averageVisibleTargets": 7.703333333333333,
+          "averageSeconds": 27.748000000000538
+        },
+        "boost": {
+          "seeds": 12,
+          "averageVisibleTargets": 6.256666666666667,
+          "averageSeconds": 22.746666666666965
+        }
+      },
+      "enemyShotsToKill": [
+        {
+          "level": 26,
+          "base": 5,
+          "recommended": 4,
+          "heavy": 7
+        },
+        {
+          "level": 27,
+          "base": 5,
+          "recommended": 4,
+          "heavy": 8
+        },
+        {
+          "level": 28,
+          "base": 5,
+          "recommended": 4,
+          "heavy": 8
+        },
+        {
+          "level": 29,
+          "base": 5,
+          "recommended": 4,
+          "heavy": 8
+        },
+        {
+          "level": 30,
+          "base": 5,
+          "recommended": 4,
+          "heavy": 8
+        },
+        {
+          "level": 31,
+          "base": 6,
+          "recommended": 4,
+          "heavy": 8
+        },
+        {
+          "level": 32,
+          "base": 6,
+          "recommended": 4,
+          "heavy": 8
+        },
+        {
+          "level": 33,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 9
+        },
+        {
+          "level": 34,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 9
+        },
+        {
+          "level": 35,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 9
+        },
+        {
+          "level": 36,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 9
+        },
+        {
+          "level": 37,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 9
+        },
+        {
+          "level": 38,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 9
+        },
+        {
+          "level": 39,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 10
+        },
+        {
+          "level": 40,
+          "base": 6,
+          "recommended": 5,
+          "heavy": 10
+        },
+        {
+          "level": 41,
+          "base": 7,
+          "recommended": 5,
+          "heavy": 10
+        },
+        {
+          "level": 42,
+          "base": 7,
+          "recommended": 5,
+          "heavy": 10
+        },
+        {
+          "level": 43,
+          "base": 7,
+          "recommended": 5,
+          "heavy": 10
+        },
+        {
+          "level": 44,
+          "base": 7,
+          "recommended": 5,
+          "heavy": 10
+        },
+        {
+          "level": 45,
+          "base": 7,
+          "recommended": 5,
+          "heavy": 10
+        },
+        {
+          "level": 46,
+          "base": 7,
+          "recommended": 6,
+          "heavy": 11
+        },
+        {
+          "level": 47,
+          "base": 7,
+          "recommended": 6,
+          "heavy": 11
+        },
+        {
+          "level": 48,
+          "base": 7,
+          "recommended": 6,
+          "heavy": 11
+        },
+        {
+          "level": 49,
+          "base": 7,
+          "recommended": 6,
+          "heavy": 11
+        },
+        {
+          "level": 50,
+          "base": 7,
+          "recommended": 6,
+          "heavy": 11
+        }
+      ],
+      "boss": {
+        "name": "Командор",
+        "hp": 3600,
+        "speed": 102,
+        "turn": 2.2,
+        "damage": 35,
+        "cooldown": 1.3,
+        "bulletSpeed": 360,
+        "windup": 0.35,
+        "silver": 6000,
+        "xp": 900,
+        "baseTtk": 81.91747572815534,
+        "level3Ttk": 69.42158960013164,
+        "recommendedTtk": 63.01344286781179,
+        "maxTtk": 63.01344286781179,
+        "hitsToDefeatPlayer": 11,
+        "survivalSeconds": [
+          {
+            "hitRate": 0.1,
+            "seconds": 140.4742857142857
+          },
+          {
+            "hitRate": 0.2,
+            "seconds": 70.23714285714286
+          },
+          {
+            "hitRate": 0.3,
+            "seconds": 46.82476190476191
+          }
+        ],
+        "maxTtkRange": [
+          45.82795844931767,
+          84.01792382374906
+        ]
+      }
+    }
+  ]
+}

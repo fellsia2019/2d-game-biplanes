@@ -1,4 +1,5 @@
 import { WIDTH } from '../shared/data';
+import { FLIGHT_TOP, FLIGHT_BOTTOM, FLIGHT_LEFT, FLIGHT_RIGHT } from '../shared/simulation';
 import type { Battle } from '../shared/simulation';
 
 const DELAY = .1, MAX_PREDICTION = .08;
@@ -56,7 +57,7 @@ export class RenderBuffer {
     // Briefly bridge one missed packet; never simulate collisions or rewards here.
     const extrapolated = frameBetween(older, latest, 1 + Math.min(MAX_PREDICTION, this.clock - latest.time) / (latest.time - older.time));
     return { ...latest, time: extrapolated.time, totalDistance: extrapolated.totalDistance,
-      planes: latest.planes.map(p => { const q = extrapolated.planes.find(q => q.id === p.id); return q ? { ...p, x: q.x, y: q.y, angle: q.angle } : p; }),
+      planes: latest.planes.map(p => { const q = extrapolated.planes.find(q => q.id === p.id); return q ? { ...p, x: latest.mode === 'pve' && latest.phase === 'flight' ? Math.max(FLIGHT_LEFT, Math.min(FLIGHT_RIGHT, q.x)) : q.x, y: latest.mode === 'pve' && latest.phase === 'flight' ? Math.max(FLIGHT_TOP, Math.min(FLIGHT_BOTTOM, q.y)) : q.y, angle: q.angle } : p; }),
       obstacles: latest.obstacles.map(o => { const q = extrapolated.obstacles.find(q => q.id === o.id); return q ? { ...o, x: q.x, y: q.y } : o; }),
       bullets: latest.bullets.map(p => { const q = extrapolated.bullets.find(q => q.id === p.id); return q ? { ...p, x: q.x, y: q.y } : p; }) };
   }

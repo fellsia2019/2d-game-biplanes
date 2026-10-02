@@ -60,11 +60,11 @@ test('Пакет с меньшим серверным временем не во
   assert.ok(after.time >= before.time); assert.ok(after.planes[0].x >= before.planes[0].x);
 });
 
-test('Обычный новый уровень сохраняет позицию и направление самолёта', () => {
+test('Обычный новый уровень сохраняет высоту и фиксирует горизонтальный полёт', () => {
   const s = createBattle('transition', 'pve', [makePlane('pilot', planeStats(freshProfile('pilot')))]);
-  const p = s.planes[0]; p.x = 190; p.angle = .55; p.shield = 0;
+  const p = s.planes[0]; p.x = 190; p.y = 270; p.angle = .55; p.shield = 0;
   s.distance = ZONE[0].length - .01;
   stepBattle(s, { pilot: IDLE }, 1 / 30);
-  assert.equal(s.level, 2); assert.ok(p.x > 190 && p.x < 195);
-  assert.equal(p.angle, .55); assert.equal(p.shield, 0);
+  assert.equal(s.level, 2); assert.equal(p.x, 220); assert.equal(p.y, 270);
+  assert.equal(p.angle, 0); assert.equal(p.shield, 0);
 });
