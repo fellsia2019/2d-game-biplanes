@@ -1,0 +1,162 @@
+{
+  "boss25Suicide": {
+    "time": 4.333333333333328,
+    "before": {
+      "model": "enemy",
+      "hp": 400,
+      "speed": 200,
+      "turn": 2.275,
+      "damage": 10.5,
+      "id": "boss",
+      "bot": true,
+      "x": 220.05555081023726,
+      "y": 596.5911843857899,
+      "angle": 1.0182593202564632,
+      "health": 375,
+      "heat": 0.2666666666666639,
+      "overheated": false,
+      "energy": 0.761111111111108,
+      "shot": -0.6533333333333332,
+      "dead": 0,
+      "shield": 0,
+      "score": 0,
+      "ram": 0,
+      "lastAttacker": "audit-pilot"
+    },
+    "afterLevel": 26,
+    "playerHP": 43.5,
+    "earned": {
+      "silver": 390,
+      "xp": 200
+    }
+  },
+  "deathAtBoundary1": {
+    "phase": "ended",
+    "afterLevel": 2,
+    "hp": 0,
+    "rewards": [
+      {
+        "player": "audit-pilot",
+        "silver": 20,
+        "xp": 10,
+        "kind": "level",
+        "win": true
+      }
+    ]
+  },
+  "deathAtBoundary10": {
+    "phase": "boss",
+    "afterLevel": 10,
+    "hp": 100,
+    "rewards": []
+  },
+  "fighterShootsBackwards": {
+    "fighterX": 194.47666666666666,
+    "playerX": 390,
+    "bullet": {
+      "id": 1,
+      "owner": "obstacle-42",
+      "x": 202.47666666666666,
+      "y": 330,
+      "vx": 240,
+      "vy": 0,
+      "life": 3.966666666666667,
+      "damage": 5
+    }
+  },
+  "modulePower": [
+    {
+      "module": "",
+      "matchmakingPower": 1,
+      "cooling": 1,
+      "boostDuration": 2
+    },
+    {
+      "module": "carburetor",
+      "matchmakingPower": 1,
+      "cooling": 1,
+      "boostDuration": 3
+    },
+    {
+      "module": "radiator",
+      "matchmakingPower": 0.975,
+      "cooling": 1.35,
+      "boostDuration": 2
+    }
+  ],
+  "sustainedWeaponDamage": [
+    {
+      "module": "",
+      "seconds": 119.99999999999575,
+      "shots": 410,
+      "damagePerSecond": 34.16666666666788
+    },
+    {
+      "module": "radiator",
+      "seconds": 119.99999999999575,
+      "shots": 542,
+      "damagePerSecond": 40.65000000000144
+    }
+  ],
+  "checkpointIgnoresHangar": {
+    "selected": "swift",
+    "selectedStats": {
+      "model": "swift",
+      "hp": 92.7,
+      "speed": 194,
+      "turn": 3.12,
+      "damage": 9.5,
+      "boostDuration": 3,
+      "boostRecharge": 7.5,
+      "cooling": 1
+    },
+    "resumedPlane": {
+      "model": "universal",
+      "hp": 100,
+      "speed": 185,
+      "turn": 2.6,
+      "damage": 10,
+      "boostDuration": 2,
+      "boostRecharge": 6,
+      "cooling": 1,
+      "id": "audit-pilot",
+      "bot": false,
+      "x": 220,
+      "y": 330,
+      "angle": 0,
+      "health": 100,
+      "heat": 0,
+      "overheated": false,
+      "energy": 1,
+      "shot": 0,
+      "dead": 0,
+      "shield": 1.5,
+      "score": 0,
+      "ram": 0
+    }
+  },
+  "explicitRestartAppliesHangar": {
+    "model": "swift",
+    "hp": 92.7,
+    "speed": 194,
+    "turn": 3.12,
+    "damage": 9.5,
+    "boostDuration": 3,
+    "boostRecharge": 7.5,
+    "cooling": 1,
+    "id": "audit-pilot",
+    "bot": false,
+    "x": 220,
+    "y": 330,
+    "angle": 0,
+    "health": 92.7,
+    "heat": 0,
+    "overheated": false,
+    "energy": 1,
+    "shot": 0,
+    "dead": 0,
+    "shield": 1.5,
+    "score": 0,
+    "ram": 0
+  }
+}

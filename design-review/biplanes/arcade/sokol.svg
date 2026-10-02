@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200" role="img" aria-labelledby="title desc">
+  <title id="title">Сокол — лазурный ас</title>
+  <desc id="desc">Оригинальный аркадный биплан: два кремовых крыла, бирюзовый фюзеляж, открытая кабина и звездообразный двигатель. Нос направлен вправо.</desc>
+  <g stroke="#183944" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Far wing, tail and undercarriage sit behind the hull. -->
+    <path d="M195 112 242 91 295 96 261 123Z" fill="#c8b883"/>
+    <path d="M66 110 55 73Q54 63 65 63L83 68 115 114Z" fill="#2a9d9c"/>
+    <path d="m64 72 12 4 21 30-17-4Z" fill="#f3cf72" stroke="none"/>
+    <path d="M90 108 38 117Q24 121 36 128L78 137 116 119Z" fill="#f6e5ae"/>
+    <path d="m40 126 39 8 25-14" fill="none" stroke="#c1ae77" stroke-width="3"/>
+    <path d="m91 126-7 23 12 3" fill="none" stroke-width="5"/>
+    <path d="m225 126 30 35m42-30-42 30" fill="none" stroke-width="6"/>
+    <ellipse cx="265" cy="165" rx="12" ry="14" fill="#36515a"/>
+    <path d="m207 127 25 38m51-36-51 36" fill="none" stroke="#cfb986" stroke-width="6"/>
+    <ellipse cx="234" cy="166" rx="15" ry="17" fill="#24424b"/>
+    <ellipse cx="234" cy="165" rx="7" ry="9" fill="#b5c5bd" stroke-width="2.5"/>
+    <!-- Long tapered hull with a recessed open cockpit. -->
+    <path d="M54 111Q117 107 176 98L204 94Q210 108 230 106Q245 105 250 94L292 87Q318 84 341 96L346 116Q335 137 300 141Q253 142 206 130L55 121Z" fill="#3cb1a9"/>
+    <path d="M59 117Q135 120 213 118Q282 132 342 113L341 124Q321 146 281 138L205 130 57 121Z" fill="#14787e" stroke="none"/>
+    <path d="M100 110Q164 101 200 100M261 96l40-3" fill="none" stroke="#a6e6ce" stroke-width="4"/>
+    <path d="m132 105 11-2 13 23-12-1Z" fill="#fff0ba" stroke="none"/>
+    <path d="m152 101 10-1 14 28-12-2Z" fill="#fff0ba" stroke="none"/>
+    <ellipse cx="223" cy="98" rx="23" ry="9" fill="#203943" stroke="#e2ba73" stroke-width="4"/>
+    <path d="M210 98v-9q1-14 12-14t13 14v12" fill="#8b5943"/>
+    <path d="M218 84q9-4 16 3l-1 8-15-1Z" fill="#eec68e" stroke-width="2.5"/>
+    <path d="m224 86 12 2-1 5-12-1Z" fill="#d6f4e9" stroke-width="2"/>
+    <path d="m207 89-20 6 17 3" fill="#d96249" stroke-width="2.5"/>
+    <path d="M249 97q-1-13-9-17l-6 16" fill="#bbe6df" stroke-width="3"/>
+    <!-- Metal radial engine cowling. -->
+    <path d="M309 88Q329 86 345 98L346 119Q336 134 309 138Q321 113 309 88Z" fill="#edd287"/>
+    <path d="M316 93q15-2 25 7" fill="none" stroke="#fff2bb" stroke-width="4"/>
+    <path d="M317 133q16-3 25-14" fill="none" stroke="#b18c48" stroke-width="5"/>
+    <path d="m305 104-5 2m6 6-5 2m4 6-5 2" stroke-width="3"/>
+    <ellipse cx="346" cy="111" rx="10" ry="23" fill="#4a6265"/>
+    <path d="m346 94 1 34m-7-26 11 19m-10 0 11-20" stroke="#adc1b5" stroke-width="3"/>
+    <!-- The near lower wing is visibly separate from the upper wing. -->
+    <path d="M240 119 157 134Q141 138 151 145L175 151Q182 153 194 150L287 132Q300 128 288 123Z" fill="#f5e4ae"/>
+    <path d="m152 143 30 5 106-20" fill="none" stroke="#c2aa6d" stroke-width="4"/>
+    <path d="m165 136 23 4 54-10" fill="none" stroke="#fff7d1" stroke-width="3"/>
+    <!-- Two outer strut bays keep the open cockpit unobstructed at game size. -->
+    <path d="m168 68 20 68 20-74m45-6 15 70 11-73" fill="none" stroke="#183944" stroke-width="5"/>
+    <path d="m244 61 16 36" fill="none" stroke="#48646a" stroke-width="3"/>
+    <path d="M168 42 300 43Q310 43 310 48L299 58 159 80Q150 82 140 78L116 69Q105 63 118 58Z" fill="#f7e9ba"/>
+    <path d="m117 65 34 10 151-25" fill="none" stroke="#fff9da" stroke-width="4"/>
+    <path d="m142 77 17 3 140-22 9-9-154 26Z" fill="#bfa76b" stroke="none"/>
+    <path d="m155 47 23-4 25 25-24 4Z" fill="#2a9d9c" stroke="none"/>
+    <path d="m177 43 9-1 24 25-9 2Z" fill="#d59b43" stroke="none"/>
+    <!-- Propeller is an isolated group for a later runtime animation. -->
+    <g id="propeller">
+      <path d="M360 108q-10-19-7-43 0-6 5-5 8 15 7 47ZM361 114q11 18 8 42 0 6-5 5-8-17-7-45Z" fill="#8d5740" stroke-width="3"/>
+      <path d="m354 66 1 13m13 67-1 10" stroke="#f0d48d" stroke-width="4"/>
+    </g>
+    <path d="M347 104q14-1 23 7-8 9-23 8Z" fill="#f4d98c" stroke-width="3"/>
+  </g>
+</svg>

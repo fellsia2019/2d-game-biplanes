@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200" role="img" aria-labelledby="title desc">
+  <title id="title">Бастион — штормовой дозор</title>
+  <desc id="desc">Оригинальный тяжёлый двухместный биплан в аркадном стиле: удлинённые крылья с двумя пролётами стоек, массивный мотор, синий корпус и охристые плоскости.</desc>
+  <g stroke="#183944" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m191 116 71-30 41 12-45 34Z" fill="#c6a55e"/>
+    <path d="M53 114 38 74q-4-12 9-13l23 4 35 53Z" fill="#4c788e"/>
+    <path d="m47 70 19 5 19 25-22-5Z" fill="#efd194" stroke="none"/>
+    <path d="M75 111 22 123q-11 4 0 10l54 8 38-22Z" fill="#ddbb70"/>
+    <path d="m29 128 44 8 26-12" fill="none" stroke="#f7df9d" stroke-width="3"/>
+    <path d="m73 129-8 26 13 1" fill="none" stroke-width="5"/>
+    <path d="m232 134 37 31 35-30" fill="none" stroke-width="6"/>
+    <ellipse cx="270" cy="168" rx="13" ry="16" fill="#3b545e"/>
+    <path d="m211 133 28 37 47-33" fill="none" stroke="#d2b776" stroke-width="7"/>
+    <ellipse cx="240" cy="171" rx="17" ry="19" fill="#29434e"/>
+    <ellipse cx="240" cy="170" rx="8" ry="10" fill="#a4b7b6" stroke-width="3"/>
+    <path d="M41 116 148 93l22-1q5 13 23 12 14 0 20-12l17-2q5 15 21 14 16-1 20-16l38-3q30-1 45 19l-1 25q-20 19-53 20l-75-9L41 127Z" fill="#4e8197"/>
+    <path d="M47 122q99-6 162-6 69 19 142 4l-1 9q-18 18-49 18l-77-9-180-11Z" fill="#2d586f" stroke="none"/>
+    <path d="M91 108q32-8 61-9m122-3 28-2" fill="none" stroke="#98c9ce" stroke-width="4"/>
+    <path d="m109 102 12-3 17 32-13-1Zm23-5 11-3 17 39-13-1Z" fill="#f4d797" stroke="none"/>
+    <ellipse cx="192" cy="98" rx="22" ry="8" fill="#1c3644" stroke="#bc9b61" stroke-width="4"/>
+    <ellipse cx="251" cy="98" rx="21" ry="8" fill="#1c3644" stroke="#bc9b61" stroke-width="4"/>
+    <path d="M181 97v-11q2-11 11-11 12 0 13 13v11m34-1V87q1-13 12-13 12 0 13 13v12" fill="#88654c"/>
+    <path d="m188 84 16 3-1 7-14-1Zm57-1 18 3-1 8-15-1Z" fill="#e3bd87" stroke-width="2"/>
+    <path d="m196 86 10 2-1 4-10-1Zm56-1 13 2-1 5-13-1Z" fill="#c6e6dc" stroke-width="2"/>
+    <path d="M273 99q1-14-7-19l-4 17" fill="#abd9d7" stroke-width="3"/>
+    <path d="M313 85q26 1 39 18l1 27q-14 15-41 18 7-34 1-63Z" fill="#dcba72"/>
+    <path d="m321 93 21 10" stroke="#fff1bb" stroke-width="4"/>
+    <path d="m320 140 21-12" stroke="#b18c48" stroke-width="5"/>
+    <ellipse cx="353" cy="116" rx="9" ry="24" fill="#475d62"/>
+    <path d="m353 97 1 37m-7-29 13 18m-13 2 12-20" stroke="#a9c0b7" stroke-width="3"/>
+    <path d="m306 103-6 2m6 6-6 2m6 6-6 2m6 6-6 2" stroke-width="3"/>
+    <path d="M244 125 121 139q-14 3-5 10l23 8 157-19q13-4 0-10Z" fill="#e7c47b"/>
+    <path d="m121 143 22 6 143-17" fill="none" stroke="#ffe4a0" stroke-width="3"/>
+    <path d="m125 152 16 4 151-19" fill="none" stroke="#b6934e" stroke-width="4"/>
+    <path d="m132 65 11 76 25-76m41-9 10 77 12-80m46-4 13 77" fill="none" stroke-width="5"/>
+    <path d="m150 73 17 47m69-52 15 45" fill="none" stroke="#648087" stroke-width="2.5"/>
+    <path d="m270 59 12 32" fill="none" stroke-width="3"/>
+    <path d="M137 34 302 35q17 1 11 11L133 80q-10 2-20-3L83 66q-12-6 0-12Z" fill="#efd18e"/>
+    <path d="M90 60 119 71 304 41" fill="none" stroke="#fff0bb" stroke-width="4"/>
+    <path d="m112 77 19 3 182-34 3-7L124 73Z" fill="#ba9956" stroke="none"/>
+    <path d="m112 43 21-8 34 39-26 5Z" fill="#4a8295" stroke="none"/>
+    <path d="m138 35 8-1 34 37-9 2Z" fill="#be7943" stroke="none"/>
+    <g id="propeller" fill="#805740" stroke-width="3">
+      <path d="M367 111q-11-22-9-46 1-7 6-3 8 20 8 47ZM369 120q10 20 9 44-1 7-6 3-9-20-9-45Z"/>
+      <path d="m360 68 3 12m12 66 1 13" stroke="#ecd38d" stroke-width="4"/>
+    </g>
+    <path d="M354 109q17-1 25 8-9 10-25 8Z" fill="#efd18a" stroke-width="3"/>
+  </g>
+</svg>

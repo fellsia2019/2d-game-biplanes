@@ -1,0 +1,205 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="1000" viewBox="0 0 1120 1000"><title>Бипланы — три художественных направления</title><defs><symbol id="sokol" viewBox="0 0 400 200">
+
+
+  <g stroke="#183944" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+    <!-- Far wing, tail and undercarriage sit behind the hull. -->
+    <path d="M195 112 242 91 295 96 261 123Z" fill="#c8b883"/>
+    <path d="M66 110 55 73Q54 63 65 63L83 68 115 114Z" fill="#2a9d9c"/>
+    <path d="m64 72 12 4 21 30-17-4Z" fill="#f3cf72" stroke="none"/>
+    <path d="M90 108 38 117Q24 121 36 128L78 137 116 119Z" fill="#f6e5ae"/>
+    <path d="m40 126 39 8 25-14" fill="none" stroke="#c1ae77" stroke-width="3"/>
+    <path d="m91 126-7 23 12 3" fill="none" stroke-width="5"/>
+    <path d="m225 126 30 35m42-30-42 30" fill="none" stroke-width="6"/>
+    <ellipse cx="265" cy="165" rx="12" ry="14" fill="#36515a"/>
+    <path d="m207 127 25 38m51-36-51 36" fill="none" stroke="#cfb986" stroke-width="6"/>
+    <ellipse cx="234" cy="166" rx="15" ry="17" fill="#24424b"/>
+    <ellipse cx="234" cy="165" rx="7" ry="9" fill="#b5c5bd" stroke-width="2.5"/>
+    <!-- Long tapered hull with a recessed open cockpit. -->
+    <path d="M54 111Q117 107 176 98L204 94Q210 108 230 106Q245 105 250 94L292 87Q318 84 341 96L346 116Q335 137 300 141Q253 142 206 130L55 121Z" fill="#3cb1a9"/>
+    <path d="M59 117Q135 120 213 118Q282 132 342 113L341 124Q321 146 281 138L205 130 57 121Z" fill="#14787e" stroke="none"/>
+    <path d="M100 110Q164 101 200 100M261 96l40-3" fill="none" stroke="#a6e6ce" stroke-width="4"/>
+    <path d="m132 105 11-2 13 23-12-1Z" fill="#fff0ba" stroke="none"/>
+    <path d="m152 101 10-1 14 28-12-2Z" fill="#fff0ba" stroke="none"/>
+    <ellipse cx="223" cy="98" rx="23" ry="9" fill="#203943" stroke="#e2ba73" stroke-width="4"/>
+    <path d="M210 98v-9q1-14 12-14t13 14v12" fill="#8b5943"/>
+    <path d="M218 84q9-4 16 3l-1 8-15-1Z" fill="#eec68e" stroke-width="2.5"/>
+    <path d="m224 86 12 2-1 5-12-1Z" fill="#d6f4e9" stroke-width="2"/>
+    <path d="m207 89-20 6 17 3" fill="#d96249" stroke-width="2.5"/>
+    <path d="M249 97q-1-13-9-17l-6 16" fill="#bbe6df" stroke-width="3"/>
+    <!-- Metal radial engine cowling. -->
+    <path d="M309 88Q329 86 345 98L346 119Q336 134 309 138Q321 113 309 88Z" fill="#edd287"/>
+    <path d="M316 93q15-2 25 7" fill="none" stroke="#fff2bb" stroke-width="4"/>
+    <path d="M317 133q16-3 25-14" fill="none" stroke="#b18c48" stroke-width="5"/>
+    <path d="m305 104-5 2m6 6-5 2m4 6-5 2" stroke-width="3"/>
+    <ellipse cx="346" cy="111" rx="10" ry="23" fill="#4a6265"/>
+    <path d="m346 94 1 34m-7-26 11 19m-10 0 11-20" stroke="#adc1b5" stroke-width="3"/>
+    <!-- The near lower wing is visibly separate from the upper wing. -->
+    <path d="M240 119 157 134Q141 138 151 145L175 151Q182 153 194 150L287 132Q300 128 288 123Z" fill="#f5e4ae"/>
+    <path d="m152 143 30 5 106-20" fill="none" stroke="#c2aa6d" stroke-width="4"/>
+    <path d="m165 136 23 4 54-10" fill="none" stroke="#fff7d1" stroke-width="3"/>
+    <!-- Two outer strut bays keep the open cockpit unobstructed at game size. -->
+    <path d="m168 68 20 68 20-74m45-6 15 70 11-73" fill="none" stroke="#183944" stroke-width="5"/>
+    <path d="m244 61 16 36" fill="none" stroke="#48646a" stroke-width="3"/>
+    <path d="M168 42 300 43Q310 43 310 48L299 58 159 80Q150 82 140 78L116 69Q105 63 118 58Z" fill="#f7e9ba"/>
+    <path d="m117 65 34 10 151-25" fill="none" stroke="#fff9da" stroke-width="4"/>
+    <path d="m142 77 17 3 140-22 9-9-154 26Z" fill="#bfa76b" stroke="none"/>
+    <path d="m155 47 23-4 25 25-24 4Z" fill="#2a9d9c" stroke="none"/>
+    <path d="m177 43 9-1 24 25-9 2Z" fill="#d59b43" stroke="none"/>
+    <!-- Propeller is an isolated group for a later runtime animation. -->
+    <g id="sokol-propeller">
+      <path d="M360 108q-10-19-7-43 0-6 5-5 8 15 7 47ZM361 114q11 18 8 42 0 6-5 5-8-17-7-45Z" fill="#8d5740" stroke-width="3"/>
+      <path d="m354 66 1 13m13 67-1 10" stroke="#f0d48d" stroke-width="4"/>
+    </g>
+    <path d="M347 104q14-1 23 7-8 9-23 8Z" fill="#f4d98c" stroke-width="3"/>
+  </g>
+</symbol><symbol id="veter" viewBox="0 0 400 200">
+
+
+  <defs>
+    <linearGradient id="veter-linen" x2="0" y2="1"><stop stop-color="#f1dfae"/><stop offset="1" stop-color="#c9b57e"/></linearGradient>
+    <linearGradient id="veter-olive" x2="0" y2="1"><stop stop-color="#8d9570"/><stop offset=".5" stop-color="#737e58"/><stop offset="1" stop-color="#46553f"/></linearGradient>
+  </defs>
+  <g stroke="#3e4235" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m188 112 68-23 38 10-41 27Z" fill="#b3a572"/>
+    <path d="M61 112Q48 85 60 68q9-5 24 12l28 33Z" fill="#914e45"/>
+    <path d="m63 78 5 29" stroke="#c38564" stroke-width="3"/>
+    <path d="M84 110 29 126Q22 131 36 134l50 1 42-16Z" fill="url(#veter-linen)"/>
+    <path d="m37 133 49-5 28-11" fill="none" stroke="#9c895f" stroke-width="2"/>
+    <path d="m68 122-9 26 12 4" fill="none" stroke="#665743" stroke-width="4"/>
+    <path d="m232 128 20 32 43-29m-75-3 16 39 45-37" fill="none" stroke="#6b6046" stroke-width="5"/>
+    <ellipse cx="254" cy="163" rx="10" ry="13" fill="#55584c"/>
+    <ellipse cx="236" cy="168" rx="13" ry="16" fill="#333d36"/>
+    <ellipse cx="236" cy="168" rx="8" ry="10" fill="#b9ac84" stroke-width="2"/>
+    <path d="M43 116Q115 109 174 96l33-3q8 12 26 10 11-1 20-15l64 3 27 15-2 22-26 11-70-3-68-9-130-4Z" fill="url(#veter-olive)"/>
+    <path d="M66 116q89-4 147-1l102 12 25-4-25 14-76-4-65-8-127-3Z" fill="#46553f" stroke="none"/>
+    <path d="m87 111 26-4 12 20-24-1Z" fill="#dfca99" stroke="none"/>
+    <path d="m89 111 8-1 11 17-8-1Z" fill="#914e45" stroke="none"/>
+    <path d="M142 104q34-9 61-8m57-2 40 3" fill="none" stroke="#b3b38a" stroke-width="3"/>
+    <path d="m155 110 41 8m-38-10-1 6m12-4-1 6m12-4-1 6m12-4-1 6" stroke="#c3be91" stroke-width="1.8"/>
+    <ellipse cx="229" cy="98" rx="23" ry="8" fill="#302f28" stroke="#aa8152" stroke-width="4"/>
+    <path d="M216 98v-12q1-10 11-10 12 0 13 12l-1 11" fill="#71523c"/>
+    <path d="m224 86 16 2-1 7-14-1Z" fill="#dfb980" stroke-width="2"/>
+    <path d="m231 87 11 2-1 4-11-1Z" fill="#b4d1c1" stroke-width="2"/>
+    <path d="M251 97q2-14-7-18l-4 16" fill="#c2d4bd" stroke-width="2.5"/>
+    <path d="M294 93q28-3 46 9l1 26-25 9-22-2Z" fill="#acb4a1"/>
+    <path d="m300 120 37 1-1 6-20 9-19-1Z" fill="#788676" stroke="none"/>
+    <path d="m305 100 9 1m-10 6 10 1m-9 6 10 1" stroke="#475a4a" stroke-width="3"/>
+    <path d="m286 107 4 12 14 3" fill="none" stroke="#855b40" stroke-width="5"/>
+    <ellipse cx="342" cy="114" rx="8" ry="19" fill="#455046"/>
+    <path d="M236 120 138 136q-10 3-1 8l22 7 126-19q12-3 1-8Z" fill="url(#veter-linen)"/>
+    <path d="m138 142 22 5 120-19" fill="none" stroke="#f3dfb0" stroke-width="2.5"/>
+    <path d="m145 135 14-2 23 14-24 4-20-7Z" fill="#914e45" stroke="none"/>
+    <!-- Two structural bays, one restrained crossing wire per bay. -->
+    <path d="m157 69 9 66m65-78 11 66m-51-59 5 66" fill="none" stroke="#6c5540" stroke-width="4.5"/>
+    <path d="m159 70 81 54m-73 8 62-70" fill="none" stroke="#6e755e" stroke-width="1.8"/>
+    <path d="m241 63 29 33m-61-31 4 19" fill="none" stroke-width="3"/>
+    <path d="M153 43 288 43q15 1 7 9L154 78q-9 1-18-2l-31-9q-11-5 1-11Z" fill="url(#veter-linen)"/>
+    <path d="m108 63 36 9 147-24" fill="none" stroke="#fff0c7" stroke-width="3"/>
+    <path d="m139 77 15 1 141-26 4-5-153 26Z" fill="#a39261" stroke="none"/>
+    <path d="m130 49 20-6 31 28-28 5-15 1-19-6 24-5Z" fill="#914e45" stroke="none"/>
+    <path d="m182 46 27 19m-6-20 26 16m-5-16 24 13m-3-13 22 9" fill="none" stroke="#af9d6c" stroke-width="1.8"/>
+    <path d="m127 55 18 4" stroke="#bb7b5e" stroke-width="3"/>
+    <g id="veter-propeller" fill="#98633e" stroke-width="2.5">
+      <path d="M356 111q-8-16-10-40 0-7 5-5 8 18 10 44ZM357 115q10 14 13 39 0 7-5 5-8-20-12-43Z"/>
+      <path d="m349 74 7 29m3 20 8 28" fill="none" stroke="#e5bd7b" stroke-width="2"/>
+    </g>
+    <path d="M342 108q15-1 22 6-8 7-22 6Z" fill="#c9bf97" stroke-width="3"/>
+  </g>
+</symbol><symbol id="shmel" viewBox="0 0 400 200">
+
+
+  <g stroke="#4a302c" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m208 122 57-33 39 18-40 30Z" fill="#a73b35"/>
+    <path d="M80 116Q57 100 58 78q0-20 16-16 23 7 32 52Z" fill="#db5843"/>
+    <path d="M67 78q2-9 10-5l12 11" stroke="#ff9970" stroke-width="4" fill="none"/>
+    <path d="M93 112q-28-2-54 14-11 9 2 12 37 10 77-13Z" fill="#e56446"/>
+    <path d="M44 131q18-7 36-9" stroke="#ffa17b" stroke-width="4" fill="none"/>
+    <path d="m88 130-6 18 13 5" stroke-width="6" fill="none"/>
+    <path d="m231 127 30 33 41-30" stroke-width="6" fill="none"/>
+    <ellipse cx="263" cy="165" rx="13" ry="15" fill="#775449"/>
+    <path d="m211 126 25 40 51-31" stroke="#be7540" stroke-width="7" fill="none"/>
+    <ellipse cx="237" cy="169" rx="17" ry="19" fill="#523c34"/>
+    <ellipse cx="237" cy="169" rx="8" ry="10" fill="#f1c06f" stroke-width="3"/>
+    <path d="M62 116q69-9 113-23l29-6q8 17 27 15 15-1 21-19 40-10 70 6 27 12 23 32-5 23-34 28-38 6-83-8L64 127Z" fill="#f4bf48"/>
+    <path d="M68 122q83-2 140-6 60 26 134 0-1 24-32 32-40 4-82-7L64 127Z" fill="#db8c35" stroke="none"/>
+    <path d="M117 110q44-12 79-16m69-4 21-2" fill="none" stroke="#ffe699" stroke-width="5"/>
+    <path d="m139 101 15-4 15 37-15-3Zm25-7 15-3 17 47-15-4Z" fill="#c45839" stroke="none"/>
+    <ellipse cx="228" cy="95" rx="24" ry="10" fill="#4b302a" stroke="#b16a38" stroke-width="5"/>
+    <path d="M212 94V83q0-16 14-16 15 0 16 18l-1 14" fill="#9d6141"/>
+    <path d="m222 79 18 4 2 10-18 1Z" fill="#f5cc96" stroke-width="3"/>
+    <path d="m226 81 19 2-1 8-19-1Z" fill="#c4ecdc" stroke-width="3"/>
+    <path d="m231 83 3 6" stroke="#fff8d8" stroke-width="2"/>
+    <path d="m213 84-25 2 10 8 16-3" fill="#e96b4d" stroke-width="3"/>
+    <path d="M252 95q3-17-6-20l-4 20" fill="#d4eee0" stroke-width="3"/>
+    <!-- Oversized round cowling is the identifying silhouette. -->
+    <path d="M302 85q25 0 39 16l3 25q-13 22-42 22-10-35 0-63Z" fill="#e06442"/>
+    <path d="M308 92q14 0 23 8" fill="none" stroke="#ffb079" stroke-width="5"/>
+    <path d="M307 140q21-2 29-16" fill="none" stroke="#a83e32" stroke-width="5"/>
+    <ellipse cx="343" cy="116" rx="11" ry="24" fill="#765343"/>
+    <path d="m343 99 1 34m-7-27 13 17m-13 1 12-18" stroke="#c5996a" stroke-width="3.5"/>
+    <path d="m289 105-6 3m7 6-6 3m7 6-6 3" stroke-width="3"/>
+    <path d="M242 124 167 134q-19 3-11 12 12 13 32 8l100-18q13-5 2-10Z" fill="#dc5841"/>
+    <path d="M163 141q12-3 29-3l73-10" fill="none" stroke="#ff9b6d" stroke-width="4"/>
+    <path d="m169 151 19 3 99-18" fill="none" stroke="#a63b31" stroke-width="4"/>
+    <path d="m173 68 22 69 15-75m43-8 11 73 14-76" fill="none" stroke-width="6"/>
+    <path d="m247 60 17 35" fill="none" stroke="#96633b" stroke-width="3"/>
+    <path d="M179 37 285 41q27 1 16 15L165 80q-19 3-32-4l-18-9q-12-8 3-15l41-13q8-3 20-2Z" fill="#e66849"/>
+    <path d="M124 59q28-13 51-13l115 1" fill="none" stroke="#ffb282" stroke-width="5"/>
+    <path d="m135 75 28 5 137-24 6-9-142 25Z" fill="#b64035" stroke="none"/>
+    <path d="m158 39 18-2 33 35-22 4Z" fill="#ffe0a0" stroke="none"/>
+    <path d="m183 38 8 1 32 31-8 2Z" fill="#ffc468" stroke="none"/>
+    <g id="shmel-propeller" fill="#8d5638" stroke-width="3">
+      <path d="M358 113q-13-24-9-45 2-8 7-2 8 20 8 45ZM360 119q14 19 13 44-2 8-7 2-9-20-11-43Z"/>
+      <path d="m350 72 5 15m16 63-3-12" stroke="#f1d091" stroke-width="4"/>
+    </g>
+    <path d="M345 108q16 0 25 9-9 11-25 8Z" fill="#ffda79" stroke-width="3.5"/>
+  </g>
+</symbol><symbol id="bastion" viewBox="0 0 400 200">
+
+
+  <g stroke="#183944" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m191 116 71-30 41 12-45 34Z" fill="#c6a55e"/>
+    <path d="M53 114 38 74q-4-12 9-13l23 4 35 53Z" fill="#4c788e"/>
+    <path d="m47 70 19 5 19 25-22-5Z" fill="#efd194" stroke="none"/>
+    <path d="M75 111 22 123q-11 4 0 10l54 8 38-22Z" fill="#ddbb70"/>
+    <path d="m29 128 44 8 26-12" fill="none" stroke="#f7df9d" stroke-width="3"/>
+    <path d="m73 129-8 26 13 1" fill="none" stroke-width="5"/>
+    <path d="m232 134 37 31 35-30" fill="none" stroke-width="6"/>
+    <ellipse cx="270" cy="168" rx="13" ry="16" fill="#3b545e"/>
+    <path d="m211 133 28 37 47-33" fill="none" stroke="#d2b776" stroke-width="7"/>
+    <ellipse cx="240" cy="171" rx="17" ry="19" fill="#29434e"/>
+    <ellipse cx="240" cy="170" rx="8" ry="10" fill="#a4b7b6" stroke-width="3"/>
+    <path d="M41 116 148 93l22-1q5 13 23 12 14 0 20-12l17-2q5 15 21 14 16-1 20-16l38-3q30-1 45 19l-1 25q-20 19-53 20l-75-9L41 127Z" fill="#4e8197"/>
+    <path d="M47 122q99-6 162-6 69 19 142 4l-1 9q-18 18-49 18l-77-9-180-11Z" fill="#2d586f" stroke="none"/>
+    <path d="M91 108q32-8 61-9m122-3 28-2" fill="none" stroke="#98c9ce" stroke-width="4"/>
+    <path d="m109 102 12-3 17 32-13-1Zm23-5 11-3 17 39-13-1Z" fill="#f4d797" stroke="none"/>
+    <ellipse cx="192" cy="98" rx="22" ry="8" fill="#1c3644" stroke="#bc9b61" stroke-width="4"/>
+    <ellipse cx="251" cy="98" rx="21" ry="8" fill="#1c3644" stroke="#bc9b61" stroke-width="4"/>
+    <path d="M181 97v-11q2-11 11-11 12 0 13 13v11m34-1V87q1-13 12-13 12 0 13 13v12" fill="#88654c"/>
+    <path d="m188 84 16 3-1 7-14-1Zm57-1 18 3-1 8-15-1Z" fill="#e3bd87" stroke-width="2"/>
+    <path d="m196 86 10 2-1 4-10-1Zm56-1 13 2-1 5-13-1Z" fill="#c6e6dc" stroke-width="2"/>
+    <path d="M273 99q1-14-7-19l-4 17" fill="#abd9d7" stroke-width="3"/>
+    <path d="M313 85q26 1 39 18l1 27q-14 15-41 18 7-34 1-63Z" fill="#dcba72"/>
+    <path d="m321 93 21 10" stroke="#fff1bb" stroke-width="4"/>
+    <path d="m320 140 21-12" stroke="#b18c48" stroke-width="5"/>
+    <ellipse cx="353" cy="116" rx="9" ry="24" fill="#475d62"/>
+    <path d="m353 97 1 37m-7-29 13 18m-13 2 12-20" stroke="#a9c0b7" stroke-width="3"/>
+    <path d="m306 103-6 2m6 6-6 2m6 6-6 2m6 6-6 2" stroke-width="3"/>
+    <path d="M244 125 121 139q-14 3-5 10l23 8 157-19q13-4 0-10Z" fill="#e7c47b"/>
+    <path d="m121 143 22 6 143-17" fill="none" stroke="#ffe4a0" stroke-width="3"/>
+    <path d="m125 152 16 4 151-19" fill="none" stroke="#b6934e" stroke-width="4"/>
+    <path d="m132 65 11 76 25-76m41-9 10 77 12-80m46-4 13 77" fill="none" stroke-width="5"/>
+    <path d="m150 73 17 47m69-52 15 45" fill="none" stroke="#648087" stroke-width="2.5"/>
+    <path d="m270 59 12 32" fill="none" stroke-width="3"/>
+    <path d="M137 34 302 35q17 1 11 11L133 80q-10 2-20-3L83 66q-12-6 0-12Z" fill="#efd18e"/>
+    <path d="M90 60 119 71 304 41" fill="none" stroke="#fff0bb" stroke-width="4"/>
+    <path d="m112 77 19 3 182-34 3-7L124 73Z" fill="#ba9956" stroke="none"/>
+    <path d="m112 43 21-8 34 39-26 5Z" fill="#4a8295" stroke="none"/>
+    <path d="m138 35 8-1 34 37-9 2Z" fill="#be7943" stroke="none"/>
+    <g id="bastion-propeller" fill="#805740" stroke-width="3">
+      <path d="M367 111q-11-22-9-46 1-7 6-3 8 20 8 47ZM369 120q10 20 9 44-1 7-6 3-9-20-9-45Z"/>
+      <path d="m360 68 3 12m12 66 1 13" stroke="#ecd38d" stroke-width="4"/>
+    </g>
+    <path d="M354 109q17-1 25 8-9 10-25 8Z" fill="#efd18a" stroke-width="3"/>
+  </g>
+</symbol></defs><rect width="1120" height="1000" fill="#132830"/><g font-family="Segoe UI,Arial,sans-serif"><text x="40" y="52" fill="#f7edcc" font-size="30" font-weight="700">БИПЛАНЫ / ВЫБОР НАПРАВЛЕНИЯ</text><text x="40" y="84" fill="#aac3c5" font-size="16">Оригинальные векторные модели · настоящая бипланная компоновка · октябрь 2026</text><g transform="translate(40 116)"><rect width="500" height="391" rx="18" fill="#203a43"/><text x="22" y="36" fill="#edc981" font-size="15" font-weight="700">01</text><text x="68" y="37" fill="#f2ead4" font-size="23" font-weight="700">Лазурная эскадрилья</text><text x="22" y="66" fill="#bed0cc" font-size="15">Сокол · чистая аркадная иллюстрация</text><rect x="18" y="82" width="464" height="213" rx="12" fill="#a5cfda"/><path d="M18 264q84-44 143-11t153-9 168 17v22q0 12-12 12H30q-12 0-12-12Z" fill="#96bec6"/><use href="#sokol" x="35" y="83" width="430" height="215"/><text x="22" y="326" fill="#aac2c4" font-size="13">ИГРОВОЙ МАСШТАБ</text><rect x="193" y="307" width="126" height="65" rx="8" fill="#b4dce3"/><use href="#sokol" x="196" y="310" width="120" height="60"/><use href="#sokol" x="351" y="316" width="96" height="48"/><text x="212" y="385" fill="#a9c2c5" font-size="11">120 px / светлый</text><text x="349" y="385" fill="#a9c2c5" font-size="11">96 px / тёмный</text></g><g transform="translate(580 116)"><rect width="500" height="391" rx="18" fill="#203a43"/><text x="22" y="36" fill="#edc981" font-size="15" font-weight="700">02</text><text x="68" y="37" fill="#f2ead4" font-size="23" font-weight="700">Полотно и ветер</text><text x="22" y="66" fill="#bed0cc" font-size="15">Ветер · романтика ранней авиации</text><rect x="18" y="82" width="464" height="213" rx="12" fill="#a5cfda"/><path d="M18 264q84-44 143-11t153-9 168 17v22q0 12-12 12H30q-12 0-12-12Z" fill="#96bec6"/><use href="#veter" x="35" y="83" width="430" height="215"/><text x="22" y="326" fill="#aac2c4" font-size="13">ИГРОВОЙ МАСШТАБ</text><rect x="193" y="307" width="126" height="65" rx="8" fill="#b4dce3"/><use href="#veter" x="196" y="310" width="120" height="60"/><use href="#veter" x="351" y="316" width="96" height="48"/><text x="212" y="385" fill="#a9c2c5" font-size="11">120 px / светлый</text><text x="349" y="385" fill="#a9c2c5" font-size="11">96 px / тёмный</text></g><g transform="translate(40 531)"><rect width="500" height="391" rx="18" fill="#203a43"/><text x="22" y="36" fill="#edc981" font-size="15" font-weight="700">03</text><text x="68" y="37" fill="#f2ead4" font-size="23" font-weight="700">Медовый барон</text><text x="22" y="66" fill="#bed0cc" font-size="15">Шмель · выразительный мультяшный ретро</text><rect x="18" y="82" width="464" height="213" rx="12" fill="#a5cfda"/><path d="M18 264q84-44 143-11t153-9 168 17v22q0 12-12 12H30q-12 0-12-12Z" fill="#96bec6"/><use href="#shmel" x="35" y="83" width="430" height="215"/><text x="22" y="326" fill="#aac2c4" font-size="13">ИГРОВОЙ МАСШТАБ</text><rect x="193" y="307" width="126" height="65" rx="8" fill="#b4dce3"/><use href="#shmel" x="196" y="310" width="120" height="60"/><use href="#shmel" x="351" y="316" width="96" height="48"/><text x="212" y="385" fill="#a9c2c5" font-size="11">120 px / светлый</text><text x="349" y="385" fill="#a9c2c5" font-size="11">96 px / тёмный</text></g><g transform="translate(580 531)"><rect width="500" height="391" rx="18" fill="#203a43"/><text x="22" y="36" fill="#edc981" font-size="15" font-weight="700">01+</text><text x="68" y="37" fill="#f2ead4" font-size="23" font-weight="700">Тяжёлый вариант</text><text x="22" y="66" fill="#bed0cc" font-size="15">Бастион · развитие аркадного направления</text><rect x="18" y="82" width="464" height="213" rx="12" fill="#a5cfda"/><path d="M18 264q84-44 143-11t153-9 168 17v22q0 12-12 12H30q-12 0-12-12Z" fill="#96bec6"/><use href="#bastion" x="35" y="83" width="430" height="215"/><text x="22" y="326" fill="#aac2c4" font-size="13">ИГРОВОЙ МАСШТАБ</text><rect x="193" y="307" width="126" height="65" rx="8" fill="#b4dce3"/><use href="#bastion" x="196" y="310" width="120" height="60"/><use href="#bastion" x="351" y="316" width="96" height="48"/><text x="212" y="385" fill="#a9c2c5" font-size="11">120 px / светлый</text><text x="349" y="385" fill="#a9c2c5" font-size="11">96 px / тёмный</text></g><text x="40" y="973" fill="#b0c8c7" font-size="15">SVG 400 × 200 · прозрачный фон · нос вправо · размеры выше — полная ширина SVG, включая поля</text></g></svg>

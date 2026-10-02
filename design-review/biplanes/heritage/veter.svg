@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200" role="img" aria-labelledby="title desc">
+  <title id="title">Ветер — почтовый семнадцатый</title>
+  <desc id="desc">Оригинальный биплан эпохи полотна и дерева: длинный оливковый корпус, бордовые законцовки, два крыла цвета льна, открытая кабина и деревянный винт.</desc>
+  <defs>
+    <linearGradient id="linen" x2="0" y2="1"><stop stop-color="#f1dfae"/><stop offset="1" stop-color="#c9b57e"/></linearGradient>
+    <linearGradient id="olive" x2="0" y2="1"><stop stop-color="#8d9570"/><stop offset=".5" stop-color="#737e58"/><stop offset="1" stop-color="#46553f"/></linearGradient>
+  </defs>
+  <g stroke="#3e4235" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m188 112 68-23 38 10-41 27Z" fill="#b3a572"/>
+    <path d="M61 112Q48 85 60 68q9-5 24 12l28 33Z" fill="#914e45"/>
+    <path d="m63 78 5 29" stroke="#c38564" stroke-width="3"/>
+    <path d="M84 110 29 126Q22 131 36 134l50 1 42-16Z" fill="url(#linen)"/>
+    <path d="m37 133 49-5 28-11" fill="none" stroke="#9c895f" stroke-width="2"/>
+    <path d="m68 122-9 26 12 4" fill="none" stroke="#665743" stroke-width="4"/>
+    <path d="m232 128 20 32 43-29m-75-3 16 39 45-37" fill="none" stroke="#6b6046" stroke-width="5"/>
+    <ellipse cx="254" cy="163" rx="10" ry="13" fill="#55584c"/>
+    <ellipse cx="236" cy="168" rx="13" ry="16" fill="#333d36"/>
+    <ellipse cx="236" cy="168" rx="8" ry="10" fill="#b9ac84" stroke-width="2"/>
+    <path d="M43 116Q115 109 174 96l33-3q8 12 26 10 11-1 20-15l64 3 27 15-2 22-26 11-70-3-68-9-130-4Z" fill="url(#olive)"/>
+    <path d="M66 116q89-4 147-1l102 12 25-4-25 14-76-4-65-8-127-3Z" fill="#46553f" stroke="none"/>
+    <path d="m87 111 26-4 12 20-24-1Z" fill="#dfca99" stroke="none"/>
+    <path d="m89 111 8-1 11 17-8-1Z" fill="#914e45" stroke="none"/>
+    <path d="M142 104q34-9 61-8m57-2 40 3" fill="none" stroke="#b3b38a" stroke-width="3"/>
+    <path d="m155 110 41 8m-38-10-1 6m12-4-1 6m12-4-1 6m12-4-1 6" stroke="#c3be91" stroke-width="1.8"/>
+    <ellipse cx="229" cy="98" rx="23" ry="8" fill="#302f28" stroke="#aa8152" stroke-width="4"/>
+    <path d="M216 98v-12q1-10 11-10 12 0 13 12l-1 11" fill="#71523c"/>
+    <path d="m224 86 16 2-1 7-14-1Z" fill="#dfb980" stroke-width="2"/>
+    <path d="m231 87 11 2-1 4-11-1Z" fill="#b4d1c1" stroke-width="2"/>
+    <path d="M251 97q2-14-7-18l-4 16" fill="#c2d4bd" stroke-width="2.5"/>
+    <path d="M294 93q28-3 46 9l1 26-25 9-22-2Z" fill="#acb4a1"/>
+    <path d="m300 120 37 1-1 6-20 9-19-1Z" fill="#788676" stroke="none"/>
+    <path d="m305 100 9 1m-10 6 10 1m-9 6 10 1" stroke="#475a4a" stroke-width="3"/>
+    <path d="m286 107 4 12 14 3" fill="none" stroke="#855b40" stroke-width="5"/>
+    <ellipse cx="342" cy="114" rx="8" ry="19" fill="#455046"/>
+    <path d="M236 120 138 136q-10 3-1 8l22 7 126-19q12-3 1-8Z" fill="url(#linen)"/>
+    <path d="m138 142 22 5 120-19" fill="none" stroke="#f3dfb0" stroke-width="2.5"/>
+    <path d="m145 135 14-2 23 14-24 4-20-7Z" fill="#914e45" stroke="none"/>
+    <!-- Two structural bays, one restrained crossing wire per bay. -->
+    <path d="m157 69 9 66m65-78 11 66m-51-59 5 66" fill="none" stroke="#6c5540" stroke-width="4.5"/>
+    <path d="m159 70 81 54m-73 8 62-70" fill="none" stroke="#6e755e" stroke-width="1.8"/>
+    <path d="m241 63 29 33m-61-31 4 19" fill="none" stroke-width="3"/>
+    <path d="M153 43 288 43q15 1 7 9L154 78q-9 1-18-2l-31-9q-11-5 1-11Z" fill="url(#linen)"/>
+    <path d="m108 63 36 9 147-24" fill="none" stroke="#fff0c7" stroke-width="3"/>
+    <path d="m139 77 15 1 141-26 4-5-153 26Z" fill="#a39261" stroke="none"/>
+    <path d="m130 49 20-6 31 28-28 5-15 1-19-6 24-5Z" fill="#914e45" stroke="none"/>
+    <path d="m182 46 27 19m-6-20 26 16m-5-16 24 13m-3-13 22 9" fill="none" stroke="#af9d6c" stroke-width="1.8"/>
+    <path d="m127 55 18 4" stroke="#bb7b5e" stroke-width="3"/>
+    <g id="propeller" fill="#98633e" stroke-width="2.5">
+      <path d="M356 111q-8-16-10-40 0-7 5-5 8 18 10 44ZM357 115q10 14 13 39 0 7-5 5-8-20-12-43Z"/>
+      <path d="m349 74 7 29m3 20 8 28" fill="none" stroke="#e5bd7b" stroke-width="2"/>
+    </g>
+    <path d="M342 108q15-1 22 6-8 7-22 6Z" fill="#c9bf97" stroke-width="3"/>
+  </g>
+</svg>

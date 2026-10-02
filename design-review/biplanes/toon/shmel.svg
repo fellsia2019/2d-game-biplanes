@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200" role="img" aria-labelledby="title desc">
+  <title id="title">Шмель — медовый барон</title>
+  <desc id="desc">Оригинальный мультяшный ретро-биплан: золотой фюзеляж, округлые красные крылья, большая открытая кабина, двигатель и деревянный винт.</desc>
+  <g stroke="#4a302c" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m208 122 57-33 39 18-40 30Z" fill="#a73b35"/>
+    <path d="M80 116Q57 100 58 78q0-20 16-16 23 7 32 52Z" fill="#db5843"/>
+    <path d="M67 78q2-9 10-5l12 11" stroke="#ff9970" stroke-width="4" fill="none"/>
+    <path d="M93 112q-28-2-54 14-11 9 2 12 37 10 77-13Z" fill="#e56446"/>
+    <path d="M44 131q18-7 36-9" stroke="#ffa17b" stroke-width="4" fill="none"/>
+    <path d="m88 130-6 18 13 5" stroke-width="6" fill="none"/>
+    <path d="m231 127 30 33 41-30" stroke-width="6" fill="none"/>
+    <ellipse cx="263" cy="165" rx="13" ry="15" fill="#775449"/>
+    <path d="m211 126 25 40 51-31" stroke="#be7540" stroke-width="7" fill="none"/>
+    <ellipse cx="237" cy="169" rx="17" ry="19" fill="#523c34"/>
+    <ellipse cx="237" cy="169" rx="8" ry="10" fill="#f1c06f" stroke-width="3"/>
+    <path d="M62 116q69-9 113-23l29-6q8 17 27 15 15-1 21-19 40-10 70 6 27 12 23 32-5 23-34 28-38 6-83-8L64 127Z" fill="#f4bf48"/>
+    <path d="M68 122q83-2 140-6 60 26 134 0-1 24-32 32-40 4-82-7L64 127Z" fill="#db8c35" stroke="none"/>
+    <path d="M117 110q44-12 79-16m69-4 21-2" fill="none" stroke="#ffe699" stroke-width="5"/>
+    <path d="m139 101 15-4 15 37-15-3Zm25-7 15-3 17 47-15-4Z" fill="#c45839" stroke="none"/>
+    <ellipse cx="228" cy="95" rx="24" ry="10" fill="#4b302a" stroke="#b16a38" stroke-width="5"/>
+    <path d="M212 94V83q0-16 14-16 15 0 16 18l-1 14" fill="#9d6141"/>
+    <path d="m222 79 18 4 2 10-18 1Z" fill="#f5cc96" stroke-width="3"/>
+    <path d="m226 81 19 2-1 8-19-1Z" fill="#c4ecdc" stroke-width="3"/>
+    <path d="m231 83 3 6" stroke="#fff8d8" stroke-width="2"/>
+    <path d="m213 84-25 2 10 8 16-3" fill="#e96b4d" stroke-width="3"/>
+    <path d="M252 95q3-17-6-20l-4 20" fill="#d4eee0" stroke-width="3"/>
+    <!-- Oversized round cowling is the identifying silhouette. -->
+    <path d="M302 85q25 0 39 16l3 25q-13 22-42 22-10-35 0-63Z" fill="#e06442"/>
+    <path d="M308 92q14 0 23 8" fill="none" stroke="#ffb079" stroke-width="5"/>
+    <path d="M307 140q21-2 29-16" fill="none" stroke="#a83e32" stroke-width="5"/>
+    <ellipse cx="343" cy="116" rx="11" ry="24" fill="#765343"/>
+    <path d="m343 99 1 34m-7-27 13 17m-13 1 12-18" stroke="#c5996a" stroke-width="3.5"/>
+    <path d="m289 105-6 3m7 6-6 3m7 6-6 3" stroke-width="3"/>
+    <path d="M242 124 167 134q-19 3-11 12 12 13 32 8l100-18q13-5 2-10Z" fill="#dc5841"/>
+    <path d="M163 141q12-3 29-3l73-10" fill="none" stroke="#ff9b6d" stroke-width="4"/>
+    <path d="m169 151 19 3 99-18" fill="none" stroke="#a63b31" stroke-width="4"/>
+    <path d="m173 68 22 69 15-75m43-8 11 73 14-76" fill="none" stroke-width="6"/>
+    <path d="m247 60 17 35" fill="none" stroke="#96633b" stroke-width="3"/>
+    <path d="M179 37 285 41q27 1 16 15L165 80q-19 3-32-4l-18-9q-12-8 3-15l41-13q8-3 20-2Z" fill="#e66849"/>
+    <path d="M124 59q28-13 51-13l115 1" fill="none" stroke="#ffb282" stroke-width="5"/>
+    <path d="m135 75 28 5 137-24 6-9-142 25Z" fill="#b64035" stroke="none"/>
+    <path d="m158 39 18-2 33 35-22 4Z" fill="#ffe0a0" stroke="none"/>
+    <path d="m183 38 8 1 32 31-8 2Z" fill="#ffc468" stroke="none"/>
+    <g id="propeller" fill="#8d5638" stroke-width="3">
+      <path d="M358 113q-13-24-9-45 2-8 7-2 8 20 8 45ZM360 119q14 19 13 44-2 8-7 2-9-20-11-43Z"/>
+      <path d="m350 72 5 15m16 63-3-12" stroke="#f1d091" stroke-width="4"/>
+    </g>
+    <path d="M345 108q16 0 25 9-9 11-25 8Z" fill="#ffda79" stroke-width="3.5"/>
+  </g>
+</svg>
