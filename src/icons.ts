@@ -1,0 +1,38 @@
+const paths = {
+  play: '<path d="m7 3 14 9-14 9z"/>',
+  compass: '<circle cx="12" cy="12" r="9.5"/><path d="m16.8 7.2-3.1 6.5-6.5 3.1 3.1-6.5z"/><path d="m10.3 10.3 3.4 3.4"/>',
+  hangar: '<path d="M3 10 12 4l9 6v10H3z"/><path d="M7 20v-8h10v8M7 16h10"/>',
+  plane: '<path d="m21 11-7-2-2-6h-2l1 6-7 2-2-2H1l1 4 9 1-1 7h2l2-7 7-1z"/>',
+  tasks: '<rect x="5" y="5" width="15" height="16" rx="2"/><path d="M9 5V3h6v2M8 10l1 1 2-2m-3 6 1 1 2-2m3-4h3m-3 5h3"/>',
+  store: '<path d="M4 8h16l-1 13H5zM8 8V6a4 4 0 0 1 8 0v2"/><path d="m12 11 1.2 2.5 2.8.4-2 1.9.5 2.7-2.5-1.3-2.5 1.3.5-2.7-2-1.9 2.8-.4z"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4m0 3h.01"/>',
+  settings: '<path d="m9.5 3-.6 2.2-1.7 1L5 5.6 2.5 10l1.6 1.6v1.9L2.5 15 5 19.4l2.2-.6 1.7 1 .6 2.2h5l.6-2.2 1.7-1 2.2.6 2.5-4.4-1.6-1.5v-1.9L21.5 10 19 5.6l-2.2.6-1.7-1L14.5 3z"/><circle cx="12" cy="12.5" r="3.5"/>',
+  silver: '<path d="m12 3 9 9-9 9-9-9z"/><path d="m12 7 5 5-5 5-5-5z"/>',
+  gold: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6.4"/><path d="m12 7 1.4 3 3.3.5-2.4 2.3.6 3.3-2.9-1.6-2.9 1.6.6-3.3-2.4-2.3 3.3-.5z"/>',
+  volume: '<path d="M4 9h4l5-4v14l-5-4H4zM16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/>',
+  muted: '<path d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6m0-6-5 6"/>',
+  music: '<path d="M10 17V5l10-2v12M10 8l10-2"/><ellipse cx="7" cy="18" rx="3" ry="2.5"/><ellipse cx="17" cy="16" rx="3" ry="2.5"/>',
+  musicOff: '<path d="m3 3 18 18M10 9v8m0-12 10-2v12M10 8l10-2"/><ellipse cx="7" cy="18" rx="3" ry="2.5"/><path d="M20 15a3 3 0 0 1-5 3"/>',
+  route: '<path d="M4 18h5a4 4 0 0 0 0-8H7a4 4 0 0 1 0-8h8"/><circle cx="4" cy="18" r="2"/><path d="M15 9V2l5 2-5 2"/>',
+  duel: '<path d="m4 3 12 12-3 3L3 6V3zM20 3 8 15l3 3L21 6V3zM3 15l6 6m-3-3-3 3m18-6-6 6m3-3 3 3"/>',
+  armor: '<path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6z"/><path d="m8 12 3 3 5-6"/>',
+  engine: '<path d="M7 7h10l3 3v7H6l-3-3V9h4zM9 3h6m-3 0v4M2 11v4m18-4h2v4h-2"/><path d="m13 9-3 4h4l-2 3"/>',
+  target: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/>',
+  cooling: '<path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9 4l3 3 3-3M9 20l3-3 3 3M4 10l4-1-1-4m10 14-1-4 4-1M4 14l4 1-1 4m10-14-1 4 4 1"/>',
+  arrow: '<path d="M4 12h16m-6-6 6 6-6 6"/>',
+  arrowLeft: '<path d="M20 12H4m6-6-6 6 6 6"/>',
+  external: '<path d="M14 3h7v7m0-7L10 14M11 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/>',
+  check: '<path d="m5 12 4 4L19 6"/>',
+  pause: '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+  exit: '<path d="M10 4H4v16h6m3-13 5 5-5 5m-6-5h14"/>',
+  turnLeft: '<path d="m7 3-5 5 5 5M2 8h10a8 8 0 0 1 8 8v4"/>',
+  turnRight: '<path d="m17 3 5 5-5 5m5-5H12a8 8 0 0 0-8 8v4"/>',
+  boost: '<path d="m13 2-9 12h7l-1 8 10-13h-7z"/>',
+  trophy: '<path d="M7 3h10v6a5 5 0 0 1-10 0zM7 5H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4m-5 2v5m-4 2h8m-8 0v-2h8v2"/>',
+  rotate: '<rect x="6" y="4" width="10" height="16" rx="2" transform="rotate(-20 11 12)"/><path d="M20 8V3l-4 1m4-1a10 10 0 0 0-10-1M4 16v5l4-1m-4 1a10 10 0 0 0 10 1"/>',
+  heat: '<path d="M10 4v10a4 4 0 1 0 4 0V4a2 2 0 0 0-4 0zM12 9v7m5-10h3m-3 4h2"/>',
+} as const;
+export type IconName = keyof typeof paths;
+export function icon(name: IconName, extraClass = '') {
+  return '<svg class="icon icon-' + name + ' ' + extraClass + '" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + paths[name] + '</svg>';
+}

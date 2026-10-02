@@ -1,0 +1,204 @@
+:root {
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; font-synthesis: none; color-scheme: dark; font-size: 16px;
+  --ink: #ecf3fa; --muted: #96abc0; --green: #82ddcb; --gold: #ffd080; --line: #304156; --panel: #1a293b;
+  --frame-width: min(800px, calc(100vw - 32px), calc((100dvh - 32px) * 16 / 9));
+  color: var(--ink); background: #080e18;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; height: 100dvh; overflow: hidden; background: radial-gradient(ellipse at 50% 20%, #1b2b40, #080e18 75%); }
+button, input, a { -webkit-tap-highlight-color: transparent; }
+button { font: inherit; cursor: pointer; color: inherit; }
+button:disabled { cursor: default; opacity: .64; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #fff0ba; outline-offset: 3px; }
+a { color: inherit; }
+.icon { width: 20px; height: 20px; flex-shrink: 0; vertical-align: middle; }
+#game, .battle-hud { position: fixed; width: var(--frame-width); height: calc(var(--frame-width) * 9 / 16); left: 50%; top: 50%; transform: translate(-50%, -50%); }
+#game { display: flex; align-items: center; justify-content: center; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 80px #0008; background: #19384a; }
+#game canvas { display: block; }
+#app { position: relative; display: flow-root; width: 100%; height: 100%; z-index: 2; }
+h1, h2, h3, p { margin: 0; } h1 { font-size: 27px; letter-spacing: -.7px; } h2 { font-size: 20px; } h3 { font-size: 16px; }
+p { line-height: 1.5; } small { display: block; }
+.eyebrow { display: block; font-size: 16px; font-weight: 800; letter-spacing: 1px; }
+.muted { color: var(--muted); font-size: 16px; margin-top: 14px; }
+.plain { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: none; border: 0; padding: 10px 0; color: var(--green); font-weight: bold; font-size: 16px; min-height: 40px; }
+.plain:hover:not(:disabled) { color: #baffee; }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #228b76; border: 1px solid #4fbd9b; border-bottom: 3px solid #125347; border-radius: 9px; color: #f2fff9; padding: 11px 14px; min-height: 43px; font-weight: 800; font-size: 16px; transition: background .15s, transform .15s; }
+.button:hover:not(:disabled) { background: #2ba88a; transform: translateY(-1px); }
+.button.subtle { color: #cde0ee; background: #26374b; border-color: #435971; }
+.button.gold-button { color: #fff0c8; background: #6d4e24; border-color: #b28a45; }
+.icon-button { display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid transparent; border-radius: 9px; background: none; color: #a3b7ca; }
+.icon-button:hover { background: #283b4e; color: #f5fbff; } .icon-button[aria-pressed=false] { color: #72899e; }
+.shell { container-type: inline-size; width: min(800px, calc(100vw - 32px)); height: min(610px, calc(100dvh - 32px)); margin: max(16px, calc((100dvh - 610px) / 2)) auto 0; display: flex; flex-direction: column; overflow: hidden; background: #131e2d; border: 1px solid #34485e; border-radius: 16px; box-shadow: 0 20px 80px #0008; }
+.topbar { height: 52px; flex-shrink: 0; display: flex; align-items: center; padding: 0 22px; gap: 15px; border-bottom: 1px solid #293b5055; }
+.brand { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; letter-spacing: 1.4px; font-weight: 900; color: #9fb3c7; text-decoration: none; } .brand>.icon { color: #c7ac77; width: 23px; height: 23px; }
+.header-actions { display: flex; gap: 2px; margin-left: auto; }
+.wallet { display: flex; gap: 14px; align-items: center; margin-left: auto; } .wallet+.header-actions { margin-left: 0; }
+.silver, .gold { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 16px; }
+.silver { color: #a4bacf; } .gold { color: var(--gold); } .wallet b { color: #e3edf6; } .wallet .icon { width: 17px; height: 17px; }
+.balance-button { padding: 8px 0; background: none; border: 0; }
+.menu-content { padding: 23px 24px; overflow: auto; min-height: 0; flex: 1; scrollbar-width: thin; scrollbar-color: #456178 transparent; }
+.menu-nav { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 8px 12px; flex-shrink: 0; border-top: 1px solid var(--line); background: #101a27; }
+.nav-item { display: flex; justify-content: center; align-items: center; gap: 8px; border: 1px solid transparent; border-radius: 9px; background: none; min-height: 48px; padding: 9px 7px; font-size: 16px; font-weight: bold; color: #91a8be; }
+.nav-item>span { display: flex; } .nav-item .icon { width: 22px; height: 22px; } .nav-item:hover { background: #203145; } .nav-item.selected { background: #20433f; border-color: #356f60; color: #9df4d8; }
+.screen-play .menu-content { display: flex; flex-direction: column; padding: 12px 36px 18px; background: radial-gradient(ellipse at 50% 10%, #233a50aa, transparent 60%); }
+.launch-screen { width: 100%; max-width: 660px; margin: auto; }
+.launch-aircraft { display: flex; flex-direction: column; align-items: center; gap: 3px; border: 0; background: none; margin: 0 auto 16px; padding: 0; color: #bfd0df; }
+.launch-aircraft>img { width: 220px; height: 110px; object-fit: contain; filter: drop-shadow(0 15px 8px #0006); animation: aircraft-hover 6s ease-in-out infinite; }
+.launch-aircraft>span { display: flex; align-items: center; gap: 14px; } .launch-aircraft b { font-size: 17px; } .launch-aircraft small { display: inline-flex; align-items: center; gap: 5px; font-size: 16px; color: #89a5ba; } .launch-aircraft small .icon { width: 14px; height: 14px; }
+.launch-aircraft:hover small { color: #c4fae9; }
+.launch-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.launch-mode { display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 16px 21px 0; min-width: 0; min-height: 184px; border: 1px solid #ffffff88; border-bottom-width: 5px; border-radius: 14px; box-shadow: 0 10px 25px #0004; overflow: hidden; transition: transform .15s, filter .15s; }
+.launch-mode:hover { transform: translateY(-3px); filter: brightness(1.07); } .launch-mode:active { transform: translateY(2px); }
+.launch-mode.campaign { background: linear-gradient(135deg, #52e4be, #22b294); color: #093c33; border-bottom-color: #117965; }
+.launch-mode.versus { background: linear-gradient(135deg, #ffcf7a, #f3a64c); color: #543416; border-bottom-color: #9f6125; }
+.mode-mark { display: flex; margin-bottom: 10px; } .mode-mark .icon { width: 27px; height: 27px; stroke-width: 2; }
+.launch-mode>strong { font-size: 26px; letter-spacing: -.6px; line-height: 1.08; margin-bottom: 6px; }
+.launch-mode>small { font-size: 16px; font-weight: bold; margin-bottom: 17px; opacity: .8; }
+.launch-cta { display: flex; align-items: center; justify-content: space-between; align-self: stretch; margin: auto -21px 0; padding: 12px 21px; font-size: 19px; font-weight: 900; color: #fff9ea; }
+.campaign .launch-cta { background: #096b5b; } .versus .launch-cta { background: #8d5522; } .launch-cta .icon { width: 25px; height: 25px; }
+.flight-help { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; margin-top: 12px; padding: 10px 18px; border: 1px solid #f4d67e; border-bottom: 3px solid #a77922; border-radius: 10px; background: linear-gradient(110deg, #ffe49b, #edc55c); color: #513a13; font-size: 17px; font-weight: 800; }
+.flight-help>.icon:last-child { margin-left: auto; } .flight-help:hover { background: #ffe6a1; }
+.page-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.rank-note { font-size: 16px; color: var(--muted); }
+.aircraft-collection { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+.aircraft-pick { min-width: 0; display: flex; align-items: center; flex-direction: column; background: #1b293a; border: 1px solid #344b61; border-radius: 11px; padding: 7px 7px 11px; }
+.aircraft-pick:hover { background: #293e50; } .aircraft-pick.viewed { background: #263e4e; border: 2px solid #83d9c1; padding: 6px 6px 10px; }
+.aircraft-pick img { width: 100%; height: 63px; object-fit: contain; } .aircraft-pick b { font-size: 16px; } .aircraft-pick small { display: flex; gap: 4px; align-items: center; font-size: 16px; margin-top: 4px; color: #a2bac9; } .aircraft-pick small .icon { width: 12px; height: 12px; }
+.aircraft-detail { display: grid; grid-template-columns: .9fr 1fr; gap: 22px; padding: 18px; border: 1px solid #385069; border-radius: 12px; background: #1a293a; }
+.detail-portrait { display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse, #344d6277, transparent 70%); } .detail-portrait img { width: 100%; height: 182px; object-fit: contain; filter: drop-shadow(0 13px 9px #0006); }
+.detail-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; } .detail-title h2 { font-size: 27px; } .model-badge { font-size: 16px; white-space: nowrap; color: #b9cbd8; background: #2f4154; border-radius: 5px; padding: 5px 7px; }
+.detail-info>p { color: #a6bbcd; font-size: 16px; margin: 7px 0 15px; }
+.aircraft-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 16px; } .aircraft-specs>div { min-width: 0; } .aircraft-specs .icon { width: 18px; height: 18px; color: #8fb8c1; margin-bottom: 4px; } .aircraft-specs small { font-size: 16px; color: #a1b5c7; } .aircraft-specs b { display: block; font-size: 18px; margin-top: 4px; white-space: nowrap; }
+.detail-action { min-width: 170px; } .purchase-note { margin-top: 8px; color: #b4c5d3; font-size: 16px; }
+.subheading { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 23px 0 12px; } .subheading h2 { font-size: 18px; } .subheading>span { font-size: 16px; color: #98aec1; }
+.improvement-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.improvement { display: grid; grid-template-columns: 28px minmax(0, 1fr) 48px 192px; gap: 8px 12px; align-items: center; padding: 18px; border-radius: 11px; border: 1px solid #354e64; background: #1a2b3c; } .improvement>div:nth-child(2) { grid-column: 2; } .improvement h3 { font-size: 18px; } .improvement small { font-size: 16px; margin-top: 5px; color: #a4b7c9; }
+.improvement-icon { color: #89c9bd; display: flex; } .improvement-icon .icon { width: 23px; height: 23px; } .upgrade-level { font-size: 16px; color: #a5bece; }
+.upgrade-steps { display: flex; grid-column: 2/4; width: 100%; gap: 4px; margin: 4px 0; } .upgrade-steps i { display: block; height: 6px; flex: 1; border-radius: 2px; background: #354e61; } .upgrade-steps .filled { background: #81d7b7; }
+.improvement .button { grid-column: 4; grid-row: 1/4; width: 100%; padding-left: 5px; padding-right: 5px; font-size: 16px; } .upgrade-price { grid-column: 2/4; width: 100%; font-size: 16px; color: #a9bccd; } .upgrade-price .icon { width: 16px; height: 16px; }
+.equipment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .equipment-card { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 16px; background: #252b39; border: 1px solid #746149; border-radius: 11px; } .equipment-card.equipped { border-color: #83cfb4; background: #1e3938; } .equipment-icon { display: flex; color: #e5bf79; } .equipment-icon .icon { width: 28px; height: 28px; } .equipment-card>div { flex: 1; } .equipment-card h3 { font-size: 16px; } .equipment-card p { font-size: 16px; color: #c0b8a7; margin-top: 5px; } .equipment-card .button { width: 100%; }
+.locked-improvements { font-size: 16px; color: #9eb4c9; padding: 18px 0; }
+.store-title { font-size: 18px; margin-bottom: 12px; } .store-notice { font-size: 16px; color: #a6b9ca; margin: -4px 0 16px; }
+.store-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.gold-pack { text-align: center; padding: 19px 12px 15px; border: 1px solid #776445; border-radius: 12px; background: radial-gradient(ellipse at 50% 10%, #57432877, #222b37 75%); } .gold-pack>div { color: var(--gold); margin-bottom: 9px; } .gold-pack>div .icon { width: 35px; height: 35px; } .gold-pack h2 { font-size: 28px; color: #ffe3a6; } .gold-pack>small { font-size: 16px; color: #caba99; margin-top: 2px; } .gold-pack .button { width: 100%; margin-top: 16px; }
+.exchange-rate { color: #aabfcf; font-size: 16px; margin-bottom: 12px; } .exchange-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; } .exchange-card { padding: 16px; border: 1px solid #3c5167; border-radius: 11px; background: #1c2b3d; } .exchange-card>b { display: inline-flex; align-items: center; gap: 4px; font-size: 20px; color: var(--gold); margin-bottom: 12px; } .exchange-card button { justify-content: flex-start; display: flex; width: 100%; border-top: 1px solid #384e63; font-size: 16px; padding: 10px 0; } .exchange-card .icon { width: 16px; height: 16px; }
+.connection-warning { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); padding: 9px 16px; background: #603e2b; border-radius: 7px; font-size: 16px; white-space: nowrap; }
+.daily-gift { background: linear-gradient(120deg, #5b4428, #2d3037); border: 1px solid #c89c50; border-radius: 13px; padding: 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 6px 18px #0003; }
+.gift-symbol { display: flex; color: #ffe0a1; } .gift-symbol .icon { width: 38px; height: 38px; } .daily-gift>div { flex: 1; }
+.daily-gift .eyebrow { color: var(--gold); } .daily-gift h2 { font-size: 21px; margin: 5px 0; } .daily-gift p { font-size: 16px; color: #b9b0a2; }
+.task-heading { margin: 26px 0 14px; font-size: 22px; }
+.task-list { display: flex; flex-direction: column; gap: 16px; }
+.task { display: grid; grid-template-columns: minmax(0, 1fr) 176px; border: 1px solid #506c85; border-left: 4px solid #6588ac; border-radius: 13px; background: linear-gradient(115deg, #263c53, #1e2e43); box-shadow: 0 6px 18px #0003; overflow: hidden; }
+.task.ready { border-color: #68bea8; border-left-color: #9befcf; background: linear-gradient(115deg, #244f48, #203a39); }
+.task.completed { border-color: #41576c; border-left-color: #6a9b91; background: #1c2d3b; }
+.task-body { min-width: 0; padding: 20px; } .task-title { display: flex; align-items: center; gap: 12px; } .task-title h3 { font-size: 20px; line-height: 1.25; }
+.task-symbol { display: grid; place-items: center; flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px; background: #ffffff0d; color: #9cd1e8; } .task-symbol .icon { width: 25px; height: 25px; } .ready .task-symbol, .completed .task-symbol { color: #9befcf; }
+.task-body p { font-size: 16px; color: #b9cddd; margin: 10px 0 16px; } .task-progress { display: flex; justify-content: space-between; align-items: center; gap: 12px; color: #b1c6d6; font-size: 16px; margin-bottom: 9px; } .task-progress b { color: #d4eee7; white-space: nowrap; }
+.progress { height: 8px; background: #0c192aaa; border-radius: 5px; overflow: hidden; } .progress i { height: 100%; display: block; background: linear-gradient(90deg, #54a9a2, #a2edd2); }
+.task-reward { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 18px 15px; border-left: 1px solid #7799b533; background: #07152344; }
+.task-reward>span { color: #b0c1cd; font-size: 16px; } .task-reward>b { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; color: #f2dfb1; font-size: 18px; } .task-reward>b>span { display: block; width: 100%; color: #a1dcd0; font-size: 16px; }
+.task-reward .button { min-width: 0; width: 100%; padding: 10px 6px; } .task-reward .button:disabled { opacity: 1; color: #aabdc9; background: #233345; border-color: #42566b; } .task-status { color: #a8efcf; font-size: 16px; }
+.help-heading { display: flex; align-items: center; gap: 18px; position: sticky; top: -23px; margin: -23px -24px 18px; padding: 16px 24px; z-index: 1; background: #131e2df5; border-bottom: 1px solid #364c61; }
+.settings-panel { padding: 24px; background: #1b2b3e; border: 1px solid #46627a; border-radius: 13px; } .settings-panel h2 { font-size: 22px; margin-bottom: 18px; }
+.audio-settings { display: grid; gap: 14px; } .audio-setting { display: flex; align-items: center; gap: 16px; padding: 20px; text-align: left; background: #253e50; border: 1px solid #5b9b8e; border-radius: 12px; }
+.setting-symbol { display: flex; color: #9fe5cd; } .setting-symbol .icon { width: 29px; height: 29px; } .setting-copy { flex: 1; min-width: 0; } .setting-copy b { font-size: 19px; } .setting-copy>span { display: block; color: #b2c7d6; font-size: 16px; margin-top: 6px; line-height: 1.4; }
+.audio-state { display: flex; flex-direction: column; align-items: flex-end; gap: 9px; color: #a8eed6; font-size: 16px; } .toggle-track { width: 48px; height: 28px; border-radius: 20px; background: #75d4b9; padding: 4px; } .toggle-track::after { content: ''; display: block; width: 20px; height: 20px; border-radius: 50%; background: #143b37; margin-left: 20px; transition: margin .15s; }
+.audio-off { background: #233143; border-color: #435c72; } .audio-off .setting-symbol, .audio-off .audio-state { color: #a2b6c8; } .audio-off .toggle-track { background: #4d647b; } .audio-off .toggle-track::after { background: #d2dfeb; margin-left: 0; }
+.help-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.help-card { border: 1px solid #32495e; border-radius: 11px; background: #1a2839; padding: 19px; }
+.help-card h2 { font-size: 19px; margin-bottom: 16px; } .help-card p { font-size: 16px; margin-bottom: 12px; color: #a5bed2; }
+kbd { display: inline-flex; align-items: center; vertical-align: middle; font-family: inherit; font-size: 16px; border: 1px solid #45617a; border-bottom: 3px solid #45617a; border-radius: 5px; padding: 3px 7px; margin-right: 3px; color: #cce1ef; background: #233950; } kbd .icon { width: 13px; height: 13px; }
+.connecting { height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 18px; background: #111c2ce6; } .connecting p { color: var(--green); } .connecting small { font-size: 16px; color: var(--muted); }
+.shade { position: absolute; inset: 0; background: #07101c9c; backdrop-filter: blur(7px); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.queue-panel, .result-panel { width: 370px; max-width: 100%; max-height: 95%; overflow: auto; text-align: center; border: 1px solid #456074; background: #172435; border-radius: 16px; padding: 28px; box-shadow: 0 18px 70px #0008; }
+.queue-panel h1, .result-panel h1 { font-size: 27px; margin: 10px 0 16px; }
+.queue-panel .eyebrow, .result-panel .eyebrow { color: #89c8c3; font-size: 16px; }
+.radar { width: 100px; height: 100px; border: 1px solid #527d81; border-radius: 50%; margin: 20px auto; display: grid; place-items: center; position: relative; overflow: hidden; background: repeating-radial-gradient(circle, #1b3742 0 16px, #325361 17px, #1b3742 18px 33px); }
+.radar i { position: absolute; width: 100%; height: 100%; background: conic-gradient(transparent 270deg, #80d9c966); animation: radar 3s linear infinite; }
+.radar span { color: #91dece; position: relative; transform: rotate(-20deg); } .radar .icon { width: 35px; height: 35px; }
+.queue-time { display: flex; align-items: center; justify-content: center; gap: 12px; } .queue-time b { font-size: 29px; } .queue-time span { font-size: 16px; color: var(--muted); }
+.queue-panel>p { font-size: 16px; color: #9bb2c4; margin-top: 8px; }
+.bot-option { display: flex; align-items: center; justify-content: center; gap: 9px; margin-top: 20px; font-weight: bold; font-size: 16px; }
+.bot-option input { width: 18px; height: 18px; accent-color: #60b5a3; } .queue-panel .plain { margin-top: 14px; }
+.result-symbol { display: block; color: var(--gold); margin-bottom: 10px; } .result-symbol .icon { width: 44px; height: 44px; }
+.result-panel p { font-size: 16px; color: #9fb3c7; }
+.result-loot { display: flex; gap: 22px; justify-content: center; padding: 22px 0; font-size: 21px; color: #8bdac5; }
+.result-loot b { display: inline-flex; align-items: center; gap: 5px; } .result-panel .button { width: 100%; margin-top: 7px; } .result-panel .plain { width: 100%; margin-top: 10px; }
+#toast { position: fixed; bottom: 22px; left: 50%; transform: translate(-50%, 20px); z-index: 100; background: #284058; color: #eef7fc; padding: 13px 20px; border: 1px solid #48637c; box-shadow: 0 5px 30px #0006; border-radius: 10px; font-size: 16px; max-width: 90%; text-align: center; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+.battle-hud { container-type: inline-size; pointer-events: none; color: #f7fafc; border: 1px solid #7794ad55; border-radius: 16px; overflow: hidden; }
+.battle-top { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; align-items: start; justify-content: space-between; }
+.hud-plane { background: #12273bdb; backdrop-filter: blur(5px); padding: 9px 12px; border-radius: 9px; min-width: 116px; border: 1px solid #85aec844; }
+.hud-plane b { font-size: 16px; display: flex; align-items: center; gap: 5px; margin-bottom: 7px; } .hud-plane .icon { width: 16px; height: 16px; }
+.meter { height: 4px; border-radius: 3px; background: #ffffff29; overflow: hidden; } .meter i { height: 100%; display: block; transition: width .08s linear; }
+.hp i { background: #92e5c0; } .heat i { background: #ffc45f; } .energy i { background: #86dbe9; }
+.battle-title { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; background: #12273bd9; padding: 9px 12px; border-radius: 9px; border: 1px solid #95b8cc44; width: 248px; }
+.battle-title b { font-size: 16px; display: block; } .battle-title small { font-size: 16px; letter-spacing: .5px; margin-top: 4px; color: #bcd3df; }
+.hud-actions { display: flex; gap: 6px; }
+.hud-button { display: grid; place-items: center; pointer-events: auto; background: #12273bdd; color: #e1f3fc; border: 1px solid #95b8cc55; border-radius: 9px; width: 42px; height: 42px; }
+.hud-button .icon { width: 18px; height: 18px; }
+.level-progress { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #243d5140; } .level-progress i { display: block; height: 100%; background: #f5cd74; transition: width .1s; }
+.battle-bottom { position: absolute; left: 14px; bottom: 13px; display: flex; gap: 13px; align-items: end; background: #142b3cd9; border: 1px solid #95b8cc44; backdrop-filter: blur(4px); padding: 9px 12px; border-radius: 9px; }
+.instrument { width: 90px; } .instrument span { font-size: 16px; display: block; margin-bottom: 6px; }
+#earned { display: inline-flex; align-items: center; gap: 5px; font-size: 16px; color: #ffdf98; } #earned .icon { width: 15px; height: 15px; } #earned-xp { margin-left: 4px; }
+.keyboard-hint { position: absolute; bottom: 25px; right: 16px; font-size: 16px; letter-spacing: .4px; text-shadow: 0 1px 4px #07101c; color: #eef5ed; }
+.touch-controls { display: none; position: absolute; bottom: 78px; left: 15px; right: 15px; justify-content: space-between; align-items: end; }
+.touch-controls>div { display: flex; gap: 10px; align-items: end; }
+.touch-controls button { display: grid; place-items: center; pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none; background: #173344d9; border: 1.5px solid #bfebdfa3; color: #e8fff8; box-shadow: 0 3px 0 #07182988; backdrop-filter: blur(3px); border-radius: 50%; width: 48px; height: 48px; }
+.touch-controls button .icon { width: 26px; height: 26px; } .touch-controls button.pressed { background: #4b998f; transform: translateY(2px); box-shadow: none; }
+.touch-controls .fire-control { width: 58px; height: 58px; border-color: #ffda91; background: #6c573bdd; } .fire-control .icon { width: 31px; height: 31px; }
+.touch-controls .boost-control { width: 44px; height: 44px; margin-bottom: 10px; }
+#boss-hud { position: absolute; left: 50%; top: 94px; transform: translateX(-50%); text-align: center; width: 220px; }
+.boss-meter { height: 7px; background: #263a4e; border: 1px solid #fee6be99; border-radius: 6px; overflow: hidden; } .boss-meter i { height: 100%; background: #ff7b5c; display: block; transition: width .1s; } #boss-hud span { font-size: 16px; text-shadow: 0 1px 3px #102235; display: block; margin-top: 4px; }
+#battle-overlay { position: absolute; inset: 0; pointer-events: none; } #battle-overlay .shade { pointer-events: auto; }
+#orientation-guard { position: fixed; inset: 0; z-index: 120; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 28px; text-align: center; background: radial-gradient(ellipse at 50% 35%, #29415a, #0d1827 75%); }
+#orientation-guard[hidden] { display: none; } #orientation-guard h1 { font-size: 28px; color: #ffe1a0; } #orientation-guard p { font-size: 18px; max-width: 330px; color: #d1e1eb; } #orientation-status { max-width: 320px; line-height: 1.5; font-size: 16px; color: #9eb8cd; }
+.orientation-symbol { display: grid; place-items: center; width: 132px; height: 132px; border: 1px solid #7192ad; border-radius: 28px; background: #223b50; box-shadow: 0 12px 40px #0005; margin-bottom: 8px; color: #ffda85; } .orientation-symbol .icon { width: 76px; height: 76px; stroke-width: 1.2; }
+
+@keyframes aircraft-hover { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-4px) rotate(-2deg); } }
+@keyframes radar { to { transform: rotate(360deg); } }
+@container (max-width: 700px) { .nav-item { flex-direction: column; gap: 4px; padding: 5px 2px; } }
+@container (max-width: 620px) {
+  .aircraft-detail { gap: 15px; grid-template-columns: .85fr 1fr; padding: 15px; } .detail-title { flex-wrap: wrap; } .detail-portrait img { height: 165px; } .improvement { grid-template-columns: 27px minmax(0, 1fr) auto; } .upgrade-steps { grid-column: 2/4; margin: 4px 0; } .improvement .button { grid-column: 1/4; grid-row: 3; } .upgrade-price { grid-column: 1/4; text-align: center; } .help-grid { grid-template-columns: 1fr; }
+  .task { grid-template-columns: minmax(0, 1fr) 150px; } .task-body { padding: 16px; } .task-reward { padding: 16px 10px; } .daily-gift { flex-wrap: wrap; } .daily-gift .button { width: 100%; }
+  .audio-setting { flex-wrap: wrap; } .audio-state { flex-direction: row; width: 100%; justify-content: flex-end; margin-top: 4px; }
+}
+@container (max-width: 480px) {
+  .topbar { padding: 0 12px; gap: 8px; height: 50px; } .brand { font-size: 16px; } .shell:not(.screen-play):not(.screen-settings):not(.screen-help) .brand span { display: none; } .wallet { gap: 11px; } .wallet b { font-size: 16px; }
+  .menu-content { padding: 18px 16px; } .menu-nav { grid-template-columns: repeat(6, 1fr); padding: 6px; gap: 4px; } .nav-item { grid-column: span 2; gap: 3px; font-size: 16px; min-height: 50px; } .nav-item:nth-child(n+4) { grid-column: span 3; flex-direction: row; gap: 8px; }
+  .screen-play .menu-content { padding: 10px 15px; } .launch-aircraft { margin-bottom: 12px; } .launch-aircraft>img { width: 200px; height: 100px; } .launch-aircraft>span { flex-direction: column; gap: 2px; } .launch-aircraft b { font-size: 17px; }
+  .launch-modes { gap: 11px; } .launch-mode { padding: 14px 12px 0; min-height: 180px; border-radius: 12px; } .launch-mode>strong { font-size: 22px; min-height: 48px; } .launch-mode>small { font-size: 16px; line-height: 1.4; margin-bottom: 13px; } .mode-mark .icon { width: 24px; height: 24px; } .mode-mark { margin-bottom: 8px; } .launch-cta { margin-left: -12px; margin-right: -12px; padding: 10px 12px; font-size: 16px; } .launch-cta .icon { width: 20px; height: 20px; }
+  .page-heading { margin-bottom: 16px; align-items: flex-start; flex-direction: column; gap: 6px; } .page-heading h1 { font-size: 25px; } .rank-note { font-size: 16px; }
+  .aircraft-collection { grid-template-columns: repeat(2, 1fr); gap: 8px; } .aircraft-pick { padding: 6px 4px 10px; } .aircraft-pick.viewed { padding: 5px 3px 9px; } .aircraft-pick img { height: 60px; } .aircraft-pick b { font-size: 18px; } .aircraft-pick small { font-size: 16px; gap: 4px; }
+  .aircraft-detail { grid-template-columns: 1fr; gap: 8px; } .detail-portrait img { height: 128px; } .detail-title h2 { font-size: 25px; } .aircraft-specs { grid-template-columns: repeat(2, 1fr); } .detail-action { width: 100%; } .detail-info>p { margin-bottom: 13px; }
+  .subheading { flex-direction: column; align-items: flex-start; gap: 6px; } .subheading>span { font-size: 16px; } .equipment-grid { grid-template-columns: 1fr; }
+  .store-grid { grid-template-columns: 1fr; gap: 10px; } .gold-pack { display: grid; grid-template-columns: 38px minmax(0, 1fr) 128px; column-gap: 10px; align-items: center; text-align: left; padding: 16px 12px; } .gold-pack h2 { font-size: 24px; grid-column: 2; } .gold-pack>div { grid-row: 1/3; margin: 0; } .gold-pack>div .icon { width: 32px; height: 32px; } .gold-pack>small { grid-column: 2; } .gold-pack .button { grid-column: 3; grid-row: 1/3; padding: 10px 4px; font-size: 16px; margin: 0; }
+  .exchange-grid { grid-template-columns: 1fr; gap: 10px; } .exchange-card { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 8px 12px; padding: 16px; } .exchange-card>b { grid-column: 1/3; margin: 0; font-size: 20px; } .exchange-card button { font-size: 16px; }
+  .daily-gift { gap: 12px; padding: 18px; } .daily-gift h2 { font-size: 20px; } .gift-symbol .icon { width: 30px; height: 30px; } .task { grid-template-columns: 1fr; } .task-body { padding: 18px 16px; } .task-reward { border-left: 0; border-top: 1px solid #7799b533; display: grid; grid-template-columns: minmax(0, 1fr) 130px; gap: 6px 12px; padding: 14px 16px; } .task-reward>b { grid-column: 1; } .task-reward>.button { grid-column: 2; grid-row: 1/3; } .task-progress { align-items: flex-end; } .task-title { gap: 10px; }
+  .help-heading { top: -18px; margin: -18px -16px 18px; padding: 12px 16px; gap: 12px; } .help-heading h1 { font-size: 23px; } .back-button { padding: 10px 12px; }
+  .settings-panel { padding: 18px 14px; } .audio-setting { padding: 16px 12px; gap: 12px; } .setting-copy b { font-size: 18px; }
+}
+@container (max-width: 620px) {
+  .battle-top { top: 10px; left: 10px; right: 10px; } .hud-plane { min-width: 128px; padding: 8px; } .battle-title { padding: 8px; width: 220px; }
+  .battle-bottom { bottom: 10px; left: 10px; padding: 8px; gap: 9px; }
+  .result-panel { padding: 18px 24px; width: 340px; } .result-symbol .icon { width: 28px; height: 28px; } .result-panel h1 { font-size: 22px; margin: 7px 0; } .result-loot { padding: 13px 0; }
+  #boss-hud { top: 94px; width: 180px; }
+}
+
+@container (max-width: 360px) { .launch-mode>strong { font-size: 20px; min-height: 44px; } .launch-mode>small { font-size: 16px; } .mode-mark { display: none; } .launch-cta { font-size: 16px; padding-left: 9px; padding-right: 9px; gap: 4px; } .launch-cta .icon { width: 16px; height: 16px; } .launch-mode { min-height: 170px; } .gold-pack { grid-template-columns: 30px minmax(0, 1fr) 120px; gap: 6px; padding: 14px 8px; } .gold-pack>div .icon { width: 26px; height: 26px; } }
+@container (max-width: 480px) { .battle-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; } .hud-plane { min-width: 128px; justify-self: start; } .battle-title { position: static; transform: none; grid-row: 2; grid-column: 1/3; width: 100%; } .hud-actions { grid-row: 1; grid-column: 2; } .battle-bottom { flex-wrap: wrap; right: 10px; justify-content: space-between; } #earned { width: 100%; } }
+@media (max-height: 520px) {
+  .shell { height: calc(100dvh - 16px); margin: 8px auto 0; } .topbar { height: 38px; } .menu-nav { padding-top: 4px; padding-bottom: 4px; } .nav-item { min-height: 44px; } .screen-play .menu-content { padding: 6px 28px; }
+  .launch-aircraft { flex-direction: row; gap: 12px; margin-bottom: 6px; } .launch-aircraft>img { width: 108px; height: 45px; } .launch-aircraft>span { flex-direction: row; align-items: center; gap: 12px; } .launch-mode { min-height: 114px; padding-top: 10px; } .mode-mark { display: none; } .launch-mode>strong { font-size: 23px; min-height: auto; } .launch-mode>small { margin-bottom: 8px; } .launch-cta { padding-top: 8px; padding-bottom: 8px; font-size: 16px; } .flight-help { min-height: 43px; padding: 8px 16px; margin-top: 8px; }
+  .screen-settings .menu-content { padding: 12px 20px; } .screen-settings .page-heading { margin-bottom: 12px; } .settings-panel { padding: 14px; } .settings-panel h2 { display: none; } .audio-settings { grid-template-columns: 1fr 1fr; gap: 12px; } .audio-setting { flex-wrap: wrap; padding: 12px; gap: 10px; } .setting-copy b { font-size: 18px; } .setting-symbol .icon { width: 24px; height: 24px; } .audio-state { width: 100%; flex-direction: row; align-items: center; justify-content: flex-end; gap: 12px; }
+}
+@media (max-width: 500px) {
+  :root { --frame-width: min(800px, calc(100vw - 16px), calc((100dvh - 16px) * 16 / 9)); }
+  .shell { width: calc(100vw - 16px); height: calc(100dvh - 16px); margin: 8px auto 0; border-radius: 12px; }
+}
+@media (pointer: coarse) { .touch-controls { display: flex; } .keyboard-hint { display: none; } }
+@media (max-height: 360px) and (min-width: 501px) {
+  .screen-play .menu-content { padding: 4px 24px; } .launch-aircraft { margin-bottom: 4px; } .launch-aircraft>img { width: 90px; height: 30px; } .launch-mode { min-height: 98px; padding-top: 8px; } .launch-mode>strong { font-size: 20px; margin-bottom: 4px; } .launch-mode>small { margin-bottom: 5px; } .launch-cta { padding-top: 6px; padding-bottom: 6px; } .launch-cta .icon { width: 20px; height: 20px; } .flight-help { margin-top: 6px; min-height: 40px; padding-top: 6px; padding-bottom: 6px; }
+  .screen-settings .menu-content { padding: 8px 16px; } .settings-panel { padding: 10px; } .settings-panel>.muted, .setting-copy>span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .launch-aircraft>img { animation: none; } button { transition: none; } }
