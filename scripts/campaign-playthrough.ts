@@ -5,17 +5,17 @@ import { angleDiff, approachBoss, createBattle, finishBossReward, makePlane, ref
 import { GROUND_Y, rockPoints, touchesPolygon } from '../shared/terrain';
 import { awardBossModifier, chooseModifier, finishCareer, prepareBossAttempt, type CareerAccount } from '../server/career';
 import { buyPlane, buyUpgrade, researchUpgrade } from '../server/economy';
-import type { ModifierId } from '../shared/modifiers';
+import type { ModifierId, OwnedModifier } from '../shared/modifiers';
 
 const clamp = (n: number, low: number, high: number) => Math.max(low, Math.min(high, n));
 export const DT = 1 / 30;
 
 /** Uses only visible battlefield data and ordinary controls; never edits combat state. */
-export function campaignPilot(s: Battle): Controls {
+export function campaignPilot(s: Battle, scenario: ControlScenario = {}): Controls {
   const p = s.planes[0];
   if (s.phase === 'flight') return flightPilot(s, p);
   if (s.phase !== 'boss') return {turn: 0, fire: false, boost: false};
-  return bossPilot(s, p);
+  return bossPilot(s, p, scenario.sustainedEscape ?? false);
 }
 
 function flightPilot(s: Battle, p: Plane): Controls {
@@ -53,7 +53,7 @@ function flightPilot(s: Battle, p: Plane): Controls {
   return {turn: best, horizontal: p.x > 225 ? -1 : 0, fire: true, boost: false};
 }
 
-function bossPilot(s: Battle, p: Plane): Controls {
+function bossPilot(s: Battle, p: Plane, sustainedEscape: boolean): Controls {
   const boss = s.planes[1], dx = boss.x - p.x, dy = boss.y - p.y;
   const distance = Math.hypot(dx, dy);
   const targetVx = Math.cos(boss.angle) * boss.speed, targetVy = Math.sin(boss.angle) * boss.speed;
@@ -72,45 +72,130 @@ function bossPilot(s: Battle, p: Plane): Controls {
   const enemyBullets = s.bullets.filter(b => b.owner !== p.id);
   let best = 0, score = Infinity;
   for (const turn of [-1, -.5, 0, .5, 1, clamp(angleDiff(desired, p.angle) / p.turn / .16, -1, 1)]) {
-    let x = p.x, y = p.y, angle = p.angle, cost = 0;
-    for (let i = 1; i <= 10; i++) {
-      const t = i * .08; if (i <= 2) angle += turn * p.turn * .08;
-      x = (x + Math.cos(angle) * p.speed * .08 + 1200) % 1200; y += Math.sin(angle) * p.speed * .08;
-      if (y < 75) { y = 75; if (Math.sin(angle) < 0) angle = Math.abs(angle); }
-      cost += angleDiff(desired, angle) ** 2 * 1.3;
-      if (y > 555) cost += (y - 555) ** 2 * 2;
-      const bx = (boss.x + Math.cos(boss.angle) * boss.speed * t + 1200) % 1200, by = boss.y + Math.sin(boss.angle) * boss.speed * t;
-      const separation = Math.hypot(x - bx, y - by);
-      if (separation < 130) cost += (130 - separation) ** 2 * .04;
-      for (const b of enemyBullets) {
-        if (b.life < t) continue;
-        const gap = Math.hypot(b.x + b.vx * t - x, b.y + b.vy * t - y);
-        if (gap < 55) cost += (55 - gap) ** 2 * .035;
+    // A short steering correction helps aim; a sustained turn is also necessary
+    // to escape a boss near the ground. Assuming every turn stops after 0.16s
+    // can otherwise reject a safe climbing arc and keep flying into the boss.
+    for (const holdDuration of sustainedEscape ? [.16, .8] : [.16]) {
+      let x = p.x, y = p.y, angle = p.angle, cost = 0;
+      for (let i = 1; i <= 10; i++) {
+        const t = i * .08; if (t <= holdDuration + 1e-9) angle += turn * p.turn * .08;
+        x = (x + Math.cos(angle) * p.speed * .08 + 1200) % 1200; y += Math.sin(angle) * p.speed * .08;
+        if (y < 75) { y = 75; if (Math.sin(angle) < 0) angle = Math.abs(angle); }
+        cost += angleDiff(desired, angle) ** 2 * 1.3;
+        if (y > 555) cost += (y - 555) ** 2 * 2;
+        const bx = (boss.x + Math.cos(boss.angle) * boss.speed * t + 1200) % 1200, by = boss.y + Math.sin(boss.angle) * boss.speed * t;
+        const separation = Math.hypot(x - bx, y - by);
+        if (separation < 130) cost += (130 - separation) ** 2 * .04;
+        for (const b of enemyBullets) {
+          if (b.life < t) continue;
+          const gap = Math.hypot(b.x + b.vx * t - x, b.y + b.vy * t - y);
+          if (gap < 55) cost += (55 - gap) ** 2 * .035;
+        }
       }
+      if (cost < score) { score = cost; best = turn; }
     }
-    if (cost < score) { score = cost; best = turn; }
   }
   return {turn: best, fire: Math.abs(angleDiff(aim, p.angle)) < .35, boost: false};
 }
 
-export interface PlaythroughOptions {seed: number; endLevel?: number; maxDeaths?: number; maxActiveSeconds?: number; onEvent?: (event: ProgressEvent) => void}
+export interface ControlScenario {reactionSeconds?: number; keyboardTurns?: boolean; firingRetention?: number; sustainedEscape?: boolean}
+export interface PlaythroughOptions {
+  seed: number; endLevel?: number; maxDeaths?: number; maxActiveSeconds?: number; onEvent?: (event: ProgressEvent) => void;
+  modifierChoice?: 'priority' | 'first-offer'; upgradePolicy?: 'balanced' | 'none'; paidPhoenix?: boolean; controls?: ControlScenario;
+}
 export interface ProgressEvent {kind: string; level: number; seconds: number; model: string; silver: number; xp: number; detail: string}
 export interface LevelVisit {level: number; seconds: number; phase: 'flight' | 'boss'; outcome: 'passed' | 'lost'; healthRemaining: number; model: string; kills: number; shots: number; triggerPulls: number; landedProjectiles: number; observedHitRate: number; hitFrames: number; damageDealt: number; shotDutyFraction: number; damage: number; hp: number; modifiers: NonNullable<Profile['modifiers']>; firingReference?: {method: string; sustainedDps: number; fortyPercentHitRateSeconds: number}}
 export interface PlaythroughResult {
   seed: number; completed: boolean; reachedLevel: number; stoppedReason: string; finalPhase: Battle['phase'];
   activeSeconds: number; flightSeconds: number; bossSeconds: number; deaths: number; bossDeaths: number; rollbacks: number;
   bossVictories: number[]; earned: {silver: number; xp: number}; finalProfile: Profile; timeline: ProgressEvent[]; visits: LevelVisit[];
+  scenario: {modifierChoice: 'priority' | 'first-offer'; upgradePolicy: 'balanced' | 'none'; paidGoldCredit: number; controls: ControlScenario};
 }
 
-/** No paid gold, ad rewards, task/login payouts or premium. Purchases use server economy rules. */
-function spendEarned(profile: Profile, level: number, seconds: number, timeline: ProgressEvent[], onEvent?: PlaythroughOptions['onEvent']) {
+/** Input sensitivity model, not a claim about human reaction or ability. */
+function sampledPilot(scenario: ControlScenario = {}) {
+  let lastBattle: Battle | undefined, lastPhase: Battle['phase'] | undefined, nextDecision = 0;
+  let held: Controls = {turn: 0, fire: false, boost: false};
+  return (s: Battle): Controls => {
+    if (s !== lastBattle || s.phase !== lastPhase || s.time + 1e-9 >= nextDecision) {
+      lastBattle = s; lastPhase = s.phase; nextDecision = s.time + Math.max(DT, scenario.reactionSeconds ?? DT);
+      held = campaignPilot(s, scenario);
+      if (scenario.keyboardTurns) held.turn = Math.abs(held.turn) < .25 ? 0 : Math.sign(held.turn);
+      // A reproducible lost-fire window changes Controls only; never edits a hit or bullet.
+      const retention = clamp(scenario.firingRetention ?? 1, 0, 1);
+      if ((s.time % 3) / 3 >= retention) held.fire = false;
+    }
+    return {...held};
+  };
+}
+
+export interface BossScenarioOptions {
+  model: typeof PLANES[number]['id']; level: number; seed: number;
+  upgrades?: Record<Upgrade, number>; modifiers?: OwnedModifier[]; controls?: ControlScenario; maxSeconds?: number;
+}
+export interface BossScenarioResult {
+  fixture: true; method: string; options: BossScenarioOptions; stats: Stats;
+  outcome: 'won' | 'lost' | 'timeout'; seconds: number; finalPhase: Battle['phase'];
+  healthRemaining: number; bossHealthRemaining: number; bossDamageDealt: number; projectilesLaunched: number; damagingFrames: number;
+  lossCause?: 'ground' | 'boss-collision' | 'weapon-damage';
+}
+
+/** A combat fixture starts at a boss gate; it does not prove the build was economically earned. */
+export function runBossScenario(options: BossScenarioOptions): BossScenarioResult {
+  if (!ZONE[options.level - 1]?.boss || !Number.isInteger(options.seed)) throw new Error('Choose an existing boss level and integer seed');
+  const upgrades = options.upgrades ?? {hull: 0, engine: 0, gun: 0};
+  if (Object.values(upgrades).some(n => !Number.isInteger(n) || n < 0 || n > 5)) throw new Error('Upgrade fixture levels must be 0..5');
+  const p = freshProfile('boss-fixture-' + options.seed); p.selected = options.model; p.owned = [options.model];
+  p.upgrades[options.model] = {...upgrades}; p.modifiers = structuredClone(options.modifiers ?? []);
+  const stats = planeStats(p, true), battle = createBattle('boss-fixture-' + options.seed, 'pve', [makePlane(p.id, stats)], options.level);
+  approachBoss(battle); startBossFight(battle);
+  const boss = battle.planes[1], hp = boss.hp, controller = sampledPilot(options.controls);
+  let projectilesLaunched = 0, damagingFrames = 0;
+  while (battle.phase === 'boss' && battle.time < (options.maxSeconds ?? 900)) {
+    const before = boss.health, beforeShot = battle.planes[0].shot, beforeRocket = battle.planes[0].rocketClock ?? 10;
+    stepBattle(battle, {[p.id]: controller(battle)}, DT);
+    const pilot = battle.planes[0];
+    if (beforeShot <= DT && pilot.shot === .18) projectilesLaunched += 1 + (pilot.traits?.sideShotDamage ? 2 : 0);
+    if (beforeRocket < 10 && pilot.rocketClock === 10 && pilot.traits?.rocketDamage) projectilesLaunched++;
+    if (boss.health < before) damagingFrames++;
+  }
+  const pilot = battle.planes[0], lossCause = pilot.health <= 0 ? pilot.y + 22 >= GROUND_Y ? 'ground' : Math.hypot(pilot.x - boss.x, pilot.y - boss.y) < 56 ? 'boss-collision' : 'weapon-damage' : undefined;
+  return {fixture: true, method: 'Isolated boss combat fixture with specified aircraft/upgrades/modifiers. Ordinary Controls at 30 Hz, real collisions, bullets and damage. No health/shield edits, debug victories or skipped boss HP. Build availability/purchases are not proven by this fixture; sampled controls are a sensitivity model, not timed human play.', options: structuredClone(options), stats,
+    outcome: boss.health <= 0 && battle.planes[0].health > 0 ? 'won' : battle.planes[0].health <= 0 ? 'lost' : 'timeout', seconds: battle.time, finalPhase: battle.phase,
+    healthRemaining: Math.max(0, battle.planes[0].health), bossHealthRemaining: Math.max(0, boss.health), bossDamageDealt: hp - Math.max(0, boss.health), projectilesLaunched, damagingFrames, ...(lossCause ? {lossCause} : {})};
+}
+
+export function aircraftCombatMatrix() {
+  const nextBoss = {universal: 10, swift: 25, yantar: 50, bastion: 250, skate: 250} as const;
+  const builds = [{hull: 0, engine: 0, gun: 0}, {hull: 2, engine: 1, gun: 2}, {hull: 5, engine: 5, gun: 5}];
+  const rows = PLANES.flatMap(model => builds.map(upgrades => runBossScenario({model: model.id, level: nextBoss[model.id], seed: 7, upgrades})));
+  const controlSensitivity = PLANES.map(model => runBossScenario({model: model.id, level: nextBoss[model.id], seed: 7, upgrades: {hull: 2, engine: 1, gun: 2}, controls: {reactionSeconds: .1, keyboardTurns: true, firingRetention: .85}}));
+  const alternateEscape = [runBossScenario({model: 'yantar', level: 50, seed: 7, upgrades: {hull: 5, engine: 5, gun: 5}, controls: {sustainedEscape: true}}),
+    ...PLANES.map(model => runBossScenario({model: model.id, level: nextBoss[model.id], seed: 7, upgrades: {hull: 2, engine: 1, gun: 2}, controls: {reactionSeconds: .1, keyboardTurns: true, firingRetention: .85, sustainedEscape: true}}))];
+  return {qualification: 'Aircraft-specific point fights without modifiers; these are combat fixtures, not earned careers or a human benchmark. Three builds per aircraft plus separate delayed/keyboard input sensitivity and an alternative sustained-turn avoidance policy. Losses/timeouts are reported rather than replaced with cheats.', rows, controlSensitivity, alternateEscape};
+}
+
+export function independentCampaignScenarios() {
+  const limits = {seed: 7, maxDeaths: 80, maxActiveSeconds: 6 * 3600};
+  return {qualification: 'Alternative earned careers, separate from the original three-run report. first-offer chooses the first actual card without ranking its benefit. paidPhoenix assumes one credited 300 gold purchase and obeys the real boss 50 unlock/purchase helper; it does not verify a platform receipt. earlyNoUpgrade ends after boss 50. sampledKeyboard is a bounded input-sensitivity experiment, not a measured human.',
+    firstOffer: runCampaign({...limits, modifierChoice: 'first-offer'}),
+    earlyNoUpgrade: runCampaign({...limits, endLevel: 50, modifierChoice: 'first-offer', upgradePolicy: 'none'}),
+    paidPhoenix: runCampaign({...limits, paidPhoenix: true}),
+    sampledKeyboard: runCampaign({...limits, modifierChoice: 'first-offer', controls: {reactionSeconds: .1, keyboardTurns: true, firingRetention: .85, sustainedEscape: true}})};
+}
+
+/** Default progression uses earned resources; the paid aircraft scenario declares its gold credit. */
+function spendEarned(profile: Profile, level: number, seconds: number, timeline: ProgressEvent[], options: PlaythroughOptions) {
   const event = (kind: string, detail: string) => {
     const row = {kind, level, seconds, model: profile.selected, silver: profile.silver, xp: profile.xp, detail};
-    timeline.push(row); onEvent?.(row);
+    timeline.push(row); options.onEvent?.(row);
   };
   const silverPlanes = PLANES.filter(p => p.currency === 'silver' && planeUnlocked(profile, p));
   const target = silverPlanes.at(-1)!;
-  if (!profile.owned.includes(target.id) && profile.silver >= target.price) { buyPlane(profile, target.id); event('aircraft', target.name); }
+  if (profile.selected !== 'skate' && !profile.owned.includes(target.id) && profile.silver >= target.price) { buyPlane(profile, target.id); event('aircraft', target.name); }
+  const phoenix = PLANES.find(model => model.id === 'skate')!;
+  if (options.paidPhoenix && !profile.owned.includes(phoenix.id) && planeUnlocked(profile, phoenix)) { buyPlane(profile, phoenix.id); event('paid-aircraft', phoenix.name); }
+  if (options.upgradePolicy === 'none') return;
   const current = PLANES.find(p => p.id === profile.selected)!;
   const nextPlane = PLANES.find(p => p.currency === 'silver' && p.hp > current.hp && !profile.owned.includes(p.id));
   const unlockedWaiting = nextPlane && planeUnlocked(profile, nextPlane);
@@ -143,7 +228,10 @@ export function runCampaign(options: PlaythroughOptions): PlaythroughResult {
   const endLevel = options.endLevel ?? ZONE.length, profile = freshProfile('campaign-measurement-' + options.seed);
   if (!Number.isInteger(options.seed) || !Number.isInteger(endLevel) || endLevel < 1 || endLevel > ZONE.length) throw new Error('Use an integer seed and a campaign end level between 1 and ' + ZONE.length);
   const account: CareerAccount = {profile};
-  const result: PlaythroughResult = {seed: options.seed, completed: false, reachedLevel: 1, stoppedReason: '', finalPhase: 'flight', activeSeconds: 0, flightSeconds: 0, bossSeconds: 0, deaths: 0, bossDeaths: 0, rollbacks: 0, bossVictories: [], earned: {silver: 0, xp: 0}, finalProfile: profile, timeline: [], visits: []};
+  const paidGoldCredit = options.paidPhoenix ? PLANES.find(model => model.id === 'skate')!.price : 0;
+  profile.gold += paidGoldCredit;
+  const result: PlaythroughResult = {seed: options.seed, completed: false, reachedLevel: 1, stoppedReason: '', finalPhase: 'flight', activeSeconds: 0, flightSeconds: 0, bossSeconds: 0, deaths: 0, bossDeaths: 0, rollbacks: 0, bossVictories: [], earned: {silver: 0, xp: 0}, finalProfile: profile, timeline: [], visits: [], scenario: {modifierChoice: options.modifierChoice ?? 'priority', upgradePolicy: options.upgradePolicy ?? 'balanced', paidGoldCredit, controls: {...options.controls}}};
+  const controller = sampledPilot(options.controls);
   const event = (kind: string, level: number, detail: string) => {
     const row = {kind, level, seconds: result.activeSeconds, model: profile.selected, silver: profile.silver, xp: profile.xp, detail};
     result.timeline.push(row); options.onEvent?.(row);
@@ -155,13 +243,13 @@ export function runCampaign(options: PlaythroughOptions): PlaythroughResult {
     result.visits.push({level: visitLevel, phase: visitPhase, seconds, outcome, healthRemaining: Math.max(0, p.health), model: p.model, kills: visitKills, shots: visitShots, triggerPulls: visitTriggers, landedProjectiles: visitProjectiles, observedHitRate: visitShots ? visitProjectiles / visitShots : 0, hitFrames: visitHits, damageDealt: visitDamage, shotDutyFraction: seconds ? visitTriggers * .18 / seconds : 0, damage: p.damage, hp: p.hp, modifiers: visitModifiers, ...(visitPhase === 'boss' ? {firingReference: firingReference(p, ZONE[visitLevel - 1].boss!.hp)} : {})});
     visitStart = result.activeSeconds; visitKills = 0; visitShots = 0; visitTriggers = 0; visitProjectiles = 0; visitHits = 0; visitDamage = 0;
   };
-  spendEarned(profile, 1, 0, result.timeline, options.onEvent);
+  spendEarned(profile, 1, 0, result.timeline, options);
   refreshPlaneStats(battle.planes[0], planeStats(profile, true));
   while (result.activeSeconds < (options.maxActiveSeconds ?? 12 * 3600)) {
     result.reachedLevel = Math.max(result.reachedLevel, battle.level);
     if (battle.phase === 'boss-intro') {
       if (visitPhase === 'flight') finishVisit('passed');
-      spendEarned(profile, battle.level, result.activeSeconds, result.timeline, options.onEvent);
+      spendEarned(profile, battle.level, result.activeSeconds, result.timeline, options);
       refreshPlaneStats(battle.planes[0], planeStats(profile, true));
       prepareBossAttempt(account, battle); startBossFight(battle);
       visitLevel = battle.level; visitPhase = 'boss'; visitStart = result.activeSeconds;
@@ -171,7 +259,7 @@ export function runCampaign(options: PlaythroughOptions): PlaythroughResult {
     const previousLevel = battle.level, previousPhase = battle.phase, beforeShot = battle.planes[0].shot, beforeRocketClock = battle.planes[0].rocketClock ?? 10;
     const boss = previousPhase === 'boss' ? battle.planes[1] : undefined, beforeBossHp = boss?.health ?? 0;
     const projectiles = boss ? battle.bullets.filter(b => b.owner === profile.id && !b.hitTargets?.includes('boss')) : [];
-    const rewards = stepBattle(battle, {[profile.id]: campaignPilot(battle)}, DT);
+    const rewards = stepBattle(battle, {[profile.id]: controller(battle)}, DT);
     const p = battle.planes[0];
     if (beforeShot <= DT && p.shot === .18) { visitTriggers++; visitShots += 1 + (p.traits?.sideShotDamage ? 2 : 0); }
     if (beforeRocketClock < 10 && p.rocketClock === 10 && p.traits?.rocketDamage) visitShots++;
@@ -189,7 +277,7 @@ export function runCampaign(options: PlaythroughOptions): PlaythroughResult {
         account.bossFailures = undefined;
         result.bossVictories.push(reward.bossLevel);
         const offer = awardBossModifier(account, reward.bossLevel, battle.id)!;
-        const pick = modifierPriority.find(id => offer.options.includes(id))!;
+        const pick = options.modifierChoice === 'first-offer' ? offer.options[0] : modifierPriority.find(id => offer.options.includes(id))!;
         chooseModifier(account, offer.id, pick); event('modifier', reward.bossLevel, pick);
       }
     }
@@ -197,7 +285,7 @@ export function runCampaign(options: PlaythroughOptions): PlaythroughResult {
       finishVisit('passed'); event('boss-win', previousLevel, 'HP ' + Math.round(battle.planes[0].health));
       refreshPlaneStats(battle.planes[0], planeStats(profile, true)); finishBossReward(battle);
       if (previousLevel >= endLevel) { result.completed = true; result.stoppedReason = 'final boss defeated'; break; }
-      spendEarned(profile, battle.level, result.activeSeconds, result.timeline, options.onEvent);
+      spendEarned(profile, battle.level, result.activeSeconds, result.timeline, options);
       refreshPlaneStats(battle.planes[0], planeStats(profile, true));
       visitLevel = battle.level; visitPhase = 'flight'; visitStart = result.activeSeconds;
       visitModifiers = structuredClone(profile.modifiers ?? []);
@@ -206,7 +294,7 @@ export function runCampaign(options: PlaythroughOptions): PlaythroughResult {
       finishCareer(account, battle); if (battle.bossAttemptsExhausted) result.rollbacks++;
       event('death', previousLevel, (battle.bossAttemptsExhausted ? 'rollback to ' + account.restartLevel : 'retry') + ', phase ' + previousPhase);
       if (result.deaths >= (options.maxDeaths ?? 200)) { result.stoppedReason = 'death limit'; break; }
-      spendEarned(profile, account.restartLevel ?? previousLevel, result.activeSeconds, result.timeline, options.onEvent);
+      spendEarned(profile, account.restartLevel ?? previousLevel, result.activeSeconds, result.timeline, options);
       battle = createBattle('campaign-seed-' + options.seed + '-sortie-' + ++sortie, 'pve', [makePlane(profile.id, planeStats(profile, true))], account.restartLevel ?? previousLevel);
       if (account.restartBoss) { approachBoss(battle); prepareBossAttempt(account, battle); }
       visitLevel = battle.level; visitPhase = account.restartBoss ? 'boss' : 'flight'; visitStart = result.activeSeconds;
@@ -227,11 +315,13 @@ export function estimateHumanTime(runs: PlaythroughResult[]) {
   if (!complete.length) return undefined;
   const mean = (f: (r: PlaythroughResult) => number) => complete.reduce((n, r) => n + f(r), 0) / complete.length;
   const active = mean(r => r.activeSeconds), flights = mean(r => r.flightSeconds), bosses = mean(r => r.bossSeconds);
-  const decisions = mean(r => r.bossVictories.length) * 35 + mean(r => r.timeline.filter(e => e.kind === 'upgrade' || e.kind === 'aircraft').length) * 15;
+  const decisions = mean(r => r.bossVictories.length) * 35 + mean(r => r.timeline.filter(e => ['upgrade', 'aircraft', 'paid-aircraft'].includes(e.kind)).length) * 15;
   const tutorials = 120;
   const skillScenarioBossSeconds = mean(r => r.visits.filter(v => v.phase === 'boss' && v.outcome === 'passed').reduce((n, v) => n + (v.firingReference?.fortyPercentHitRateSeconds ?? v.seconds), 0));
   // Scenarios, not measured human participants. Boss aiming is slower; flights have fixed pacing.
-  return {basis: 'Scenario estimate; no human participants were timed. Excludes real-life breaks. Deterministic autopilot knows visible positions precisely and selects efficient upgrades/cards.', automatedActiveSeconds: active, flightSeconds: flights, bossSeconds: bosses,
+  return {basis: 'Scenario estimate; no human participants were timed. Excludes real-life breaks. Autopilot knows visible positions precisely; input limits and purchase/card policies are declared per run rather than claimed to reproduce human skill.', automatedActiveSeconds: active, flightSeconds: flights, bossSeconds: bosses,
+    modeledScenarios: complete.map(r => ({seed: r.seed, ...r.scenario})),
+    excludedIncompleteRuns: runs.filter(r => !r.completed).map(r => ({seed: r.seed, reachedLevel: r.reachedLevel, reason: r.stoppedReason, activeSeconds: r.activeSeconds, deaths: r.deaths, scenario: r.scenario})),
     sustainedFortyPercentAimScenario: {bossSeconds: skillScenarioBossSeconds, menusSeconds: decisions, tutorialSeconds: tutorials, totalHours: (flights + skillScenarioBossSeconds + decisions + tutorials) / 3600, qualification: 'Optimistic weapon-throughput scenario with the same earned builds and flight deaths. Assumes sustained 40% useful bullet damage, not the measured cautious autopilot firing duty. No timed human data.'},
     experienced: {activeBossMultiplier: 1.25, extraRetriesSeconds: .05 * active, menusSeconds: decisions, tutorialSeconds: tutorials, totalHours: (flights + bosses * 1.25 + .05 * active + decisions + tutorials) / 3600},
     firstTime: {activeBossMultiplier: 1.8, extraRetriesSeconds: .35 * active, menusSeconds: decisions * 1.5, tutorialSeconds: tutorials, totalHours: (flights + bosses * 1.8 + .35 * active + decisions * 1.5 + tutorials) / 3600},

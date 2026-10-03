@@ -5,7 +5,7 @@ import { combatReward } from './premium';
 export interface Controls { turn: number; horizontal?: number; fire: boolean; boost: boolean }
 export const IDLE: Controls = { turn: 0, fire: false, boost: false };
 export interface Stats { model: string; hp: number; speed: number; turn: number; damage: number; boostDuration?: number; boostRecharge?: number; cooling?: number; traits?: ModifierBonuses; rewardMultiplier?: number }
-export interface Plane extends Stats { id: string; x: number; y: number; angle: number; health: number; heat: number; overheated: boolean; energy: number; shot: number; dead: number; shield: number; score: number; bot: boolean; ram: number; boosting?: boolean; lastAttacker?: string; patrolIndex?: number; windup?: number; aimAngle?: number; rocketClock?: number; emergencyUsed?: boolean }
+export interface Plane extends Stats { id: string; x: number; y: number; angle: number; health: number; heat: number; overheated: boolean; energy: number; shot: number; dead: number; shield: number; score: number; bot: boolean; ram: number; boosting?: boolean; boostExhausted?: boolean; lastAttacker?: string; patrolIndex?: number; windup?: number; aimAngle?: number; rocketClock?: number; emergencyUsed?: boolean }
 export interface Bullet { id: number; owner: string; x: number; y: number; vx: number; vy: number; life: number; damage: number; kind?: 'rocket'; piercing?: number; hitTargets?: string[] }
 export interface Obstacle { id: number; kind: 'rock' | 'pvo' | 'fighter' | 'heavy'; x: number; y: number; radius: number; hp: number; fire: number; damage: number; height?: number; pvoModel?: PvoModel; terrainVariant?: number }
 export interface Effect { id: number; kind: 'shot' | 'hit' | 'explosion' | 'reward' | 'level' | 'boss'; x: number; y: number; label?: string }
@@ -114,7 +114,7 @@ function nextLevel(s: Battle, rewards: Reward[]) {
 export function beginBoss(s: Battle) {
   const def = ZONE[s.level - 1]; if (!def.boss) return;
   s.phase = 'boss'; s.obstacles = []; s.bullets = [];
-  const human = s.planes[0]; human.x = 230; human.y = 330; human.angle = 0; human.health = human.hp; human.heat = 0; human.overheated = false; human.energy = 1; human.shield = 2; human.rocketClock = 10;
+  const human = s.planes[0]; human.x = 230; human.y = 330; human.angle = 0; human.health = human.hp; human.heat = 0; human.overheated = false; human.energy = 1; human.boostExhausted = false; human.shield = 2; human.rocketClock = 10;
   s.planes = [human, makePlane('boss', { model: 'enemy', hp: def.boss.hp, speed: def.boss.speed, turn: def.boss.turn, damage: def.boss.damage }, true, 1)];
   s.planes[1].shot = 1.2;
   fx(s, 'boss', WIDTH / 2, 190, def.boss.name);
@@ -173,7 +173,7 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
     if (p.health <= 0) {
       if (s.mode !== 'duel' || p.dead === 0) continue;
       p.dead -= dt;
-      if (p.dead <= 0) { p.dead = 0; p.health = p.hp; p.x = p.bot || s.planes.indexOf(p) ? 980 : 220; p.y = 200 + random(s) * 200; p.angle = p.x > 600 ? Math.PI : 0; p.heat = 0; p.overheated = false; p.energy = 1; p.shield = 1.5; p.lastAttacker = undefined; }
+      if (p.dead <= 0) { p.dead = 0; p.health = p.hp; p.x = p.bot || s.planes.indexOf(p) ? 980 : 220; p.y = 200 + random(s) * 200; p.angle = p.x > 600 ? Math.PI : 0; p.heat = 0; p.overheated = false; p.energy = 1; p.boostExhausted = false; p.shield = 1.5; p.lastAttacker = undefined; }
       continue;
     }
     const boss = p.bot && p.id === 'boss' && s.phase === 'boss';
@@ -184,7 +184,9 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
     const c = p.bot ? botControls(s, p) : inputs[p.id] ?? IDLE;
     s.activity ??= {};
     if (!p.bot && (c.turn || c.horizontal || c.fire || c.boost)) s.activity[p.id] = (s.activity[p.id] ?? 0) + dt;
-    const boosting = c.boost && p.energy > .03; p.boosting = boosting;
+    if (p.energy >= 1) p.boostExhausted = false;
+    else if (p.energy <= .03) p.boostExhausted = true;
+    const boosting = c.boost && !p.boostExhausted && p.energy > .03; p.boosting = boosting;
     p.energy = clamp(p.energy + dt * (boosting ? -1 / (p.boostDuration ?? 2) : 1 / (p.boostRecharge ?? 6)), 0, 1);
     const speed = p.speed * (boosting ? 1.3 : 1);
     if (flight) {
@@ -198,7 +200,8 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
       if (p.y < 75) { p.y = 75; if (Math.sin(p.angle) < 0) p.angle = Math.abs(p.angle); }
     }
     p.shot -= dt;
-    const cooling = Math.min(1 / .6, (p.cooling ?? 1) * (p.model === 'skate' && (flight ? c.turn > 0 : p.angle > .35) ? 1.25 : 1)) * (1 + (p.traits?.cooling ?? 0));
+    const descending = flight ? c.turn > 0 : Math.sin(p.angle) > Math.sin(.35);
+    const cooling = Math.min(1 / .6, (p.cooling ?? 1) * (p.model === 'skate' && descending ? 1.25 : 1)) * (1 + (p.traits?.cooling ?? 0));
     if (s.mode === 'pve' && !p.bot) p.health = Math.min(p.hp, p.health + p.hp * (p.traits?.regeneration ?? 0) * dt);
     p.heat = Math.max(0, p.heat - dt * .5 * cooling);
     if (p.overheated && p.heat <= .1) p.overheated = false;

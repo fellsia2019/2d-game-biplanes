@@ -83,3 +83,37 @@ test('Обновление старого сохранения меняет па
   assert.equal(pilot.hp,175); assert.equal(pilot.health,87.5); assert.equal(pilot.heat,.7); assert.equal(pilot.energy,.25);
   pilot.health=0; refreshPlaneStats(pilot,{...planeStats(profile),hp:200}); assert.equal(pilot.health,0);
 });
+
+test('Все 3240 сочетаний самолётов, трёх веток и модулей покупаются и работают в симуляции',()=>{
+  const rows=report.aircraftAudit.builds, keys=new Set<string>();
+  assert.equal(rows.length,5*6*6*6*3);
+  for(const row of rows) {
+    const key=[row.model,row.module,...Object.values(row.build)].join(':'); assert.ok(!keys.has(key)); keys.add(key);
+    const pilot=makePlane('matrix',row.stats),battle=createBattle(key,'duel',[pilot]);
+    for(let frame=0;frame<10;frame++) stepBattle(battle,{matrix:{turn:0,fire:true,boost:true}},1/30);
+    for(const value of [pilot.x,pilot.y,pilot.health,pilot.energy,pilot.heat,pilot.damage,pilot.speed,pilot.turn]) assert.ok(Number.isFinite(value),key);
+    assert.equal(pilot.health,pilot.hp); assert.ok(pilot.energy<1&&pilot.energy>0); assert.ok(pilot.heat>0);
+    assert.ok(battle.bullets.some(b=>b.owner==='matrix'&&b.damage>0),key);
+  }
+});
+
+test('Каждая ступень оружия на каждом самолёте и модуле повышает реальный длительный DPS',()=>{
+  const rows=report.aircraftAudit.weaponCurves; assert.equal(rows.length,90);
+  for(const plane of PLANES) for(const module of ['', 'radiator', 'carburetor']) {
+    const curve=rows.filter(r=>r.model===plane.id&&r.module===module);
+    assert.deepEqual(curve.map(r=>r.gun),[0,1,2,3,4,5]);
+    for(let level=1;level<curve.length;level++) {
+      assert.ok(curve[level].dps>curve[level-1].dps);
+      assert.equal(curve[level].shots,curve[0].shots); assert.equal(curve[level].overheatFraction,curve[0].overheatFraction);
+    }
+  }
+});
+
+test('Карбюратор продлевает настоящий разгон всех пяти самолётов с более долгой зарядкой',()=>{
+  for(const plane of PLANES) {
+    const rows=report.aircraftAudit.boost.filter(r=>r.model===plane.id),base=rows.find(r=>r.module==='')!,carb=rows.find(r=>r.module==='carburetor')!;
+    assert.ok(rows.every(r=>r.fullCharge&&r.health===plane.hp));
+    assert.ok(base.burstSeconds>1.9&&base.burstSeconds<2.1); assert.ok(carb.burstSeconds>2.9&&carb.burstSeconds<3.1);
+    assert.ok(carb.recoverySeconds>base.recoverySeconds*1.2&&carb.recoverySeconds<base.recoverySeconds*1.3);
+  }
+});

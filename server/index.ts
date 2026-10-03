@@ -46,12 +46,19 @@ function fail(c: Client, message: string) { send(c, { type: 'error', message });
 function changed(c: Client) { dirty = true; profile(c); }
 async function financial<T>(c: Client, work: () => T, diskError = 'Не удалось сохранить покупку. Золото не списано; повторите позже.'): Promise<T> {
   const task = financialTail.then(async () => {
-    financialBusy = true; await disk.idle();
-    const backup = structuredClone(c.account!);
-    try { const result = work(); dirty = false; await disk.write(); profile(c); return result; }
+    financialBusy = true;
+    let backup: Account | undefined;
+    try {
+      await disk.idle();
+      if (c.ws.readyState !== WebSocket.OPEN) throw new Error('Сессия закрыта. Обновите ангар.');
+      backup = structuredClone(c.account!);
+      const result = work(); dirty = false; await disk.write(); profile(c); return result;
+    }
     catch (e) {
-      for (const key of Object.keys(c.account!)) if (!(key in backup)) delete (c.account! as unknown as Record<string, unknown>)[key];
-      Object.assign(c.account!, backup); dirty = true;
+      if (backup) {
+        for (const key of Object.keys(c.account!)) if (!(key in backup)) delete (c.account! as unknown as Record<string, unknown>)[key];
+        Object.assign(c.account!, backup); dirty = true;
+      }
       if ((e as NodeJS.ErrnoException).code) throw new Error(diskError);
       throw e;
     }
@@ -140,12 +147,20 @@ wss.on('connection', ws => {
       if (ws.readyState !== WebSocket.OPEN) return;
       if (!c.account) {
         if (m.type !== 'auth') return;
-        let a = typeof m.token === 'string' ? accounts.find(x => x.token === m.token) : undefined;
-        if (!a) { a = { token: randomBytes(32).toString('hex'), profile: freshProfile(randomUUID()), campaignLength: ZONE.length }; accounts.push(a); dirty = true; }
-        const old = [...clients].find(x => x !== c && x.account === a);
-        if (old) { leave(old, true); old.ws.close(1008, 'Аккаунт открыт в другой вкладке'); }
-        c.account = a; c.allowBots = a.profile.allowBots;
-        send(c, { type: 'welcome', token: a.token, you: a.profile.id, paymentsEnabled: !!paymentSecret, debugEnabled }); profile(c); return;
+        // Join the same queue as durable purchases/choices: a reconnect must
+        // never read a grant that can still roll back after a disk failure.
+        const authentication = financialTail.then(() => {
+          if (ws.readyState !== WebSocket.OPEN) return;
+          let a = typeof m.token === 'string' ? accounts.find(x => x.token === m.token) : undefined;
+          if (!a) { a = { token: randomBytes(32).toString('hex'), profile: freshProfile(randomUUID()), campaignLength: ZONE.length }; accounts.push(a); dirty = true; }
+          for (const old of clients) if (old !== c && old.account === a) {
+            leave(old, true); old.ws.close(1008, 'Аккаунт открыт в другой вкладке');
+          }
+          c.account = a; c.allowBots = a.profile.allowBots;
+          send(c, { type: 'welcome', token: a.token, you: a.profile.id, paymentsEnabled: !!paymentSecret, debugEnabled }); profile(c);
+        });
+        financialTail = authentication.catch(() => {});
+        await authentication; return;
       }
       const a = c.account, p = a.profile; resetTasks(p);
       if (m.type === 'debug') {

@@ -11,6 +11,7 @@
     "test": "tsx --test tests/*.test.ts",
     "balance": "tsx scripts/balance-report.ts",
     "campaign:playthrough": "tsx scripts/campaign-playthrough.ts",
+    "campaign:audit": "tsx scripts/campaign-audit.ts",
     "preview": "vite preview --host 127.0.0.1 --port 4186 --strictPort"
   },
   "dependencies": {

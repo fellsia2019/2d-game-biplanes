@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-03T06:57:50.959Z",
+  "generatedAt": "2026-10-03T07:59:24.555Z",
   "levels": 250,
   "timestep": 0.03333333333333333,
   "method": "Authoritative stepBattle at 30 Hz, only ordinary player controls. All level distance and boss HP completed through real movement and weapon hits. Economy starts with freshProfile: 200 silver / 0 XP / 0 gold; research and purchases use server helpers. Boss choices are drawn from actual earned offers. No debug commands, skipped fights, HP edits, immunity, premium, tasks, ads or login bonuses. Menus are instant in automation and included as explicit human-estimate assumptions.",
@@ -14429,7 +14429,13 @@
             "fortyPercentHitRateSeconds": 16.86909581646431
           }
         }
-      ]
+      ],
+      "scenario": {
+        "modifierChoice": "priority",
+        "upgradePolicy": "balanced",
+        "paidGoldCredit": 0,
+        "controls": {}
+      }
     },
     {
       "seed": 7,
@@ -28926,7 +28932,13 @@
             "fortyPercentHitRateSeconds": 16.86909581646431
           }
         }
-      ]
+      ],
+      "scenario": {
+        "modifierChoice": "priority",
+        "upgradePolicy": "balanced",
+        "paidGoldCredit": 0,
+        "controls": {}
+      }
     },
     {
       "seed": 42,
@@ -43491,14 +43503,44 @@
             "fortyPercentHitRateSeconds": 16.86909581646431
           }
         }
-      ]
+      ],
+      "scenario": {
+        "modifierChoice": "priority",
+        "upgradePolicy": "balanced",
+        "paidGoldCredit": 0,
+        "controls": {}
+      }
     }
   ],
   "humanEstimate": {
-    "basis": "Scenario estimate; no human participants were timed. Excludes real-life breaks. Deterministic autopilot knows visible positions precisely and selects efficient upgrades/cards.",
+    "basis": "Scenario estimate; no human participants were timed. Excludes real-life breaks. Autopilot knows visible positions precisely; input limits and purchase/card policies are declared per run rather than claimed to reproduce human skill.",
     "automatedActiveSeconds": 9063.500000036403,
     "flightSeconds": 7309.911111148966,
     "bossSeconds": 1753.5888888879515,
+    "modeledScenarios": [
+      {
+        "seed": 1,
+        "modifierChoice": "priority",
+        "upgradePolicy": "balanced",
+        "paidGoldCredit": 0,
+        "controls": {}
+      },
+      {
+        "seed": 7,
+        "modifierChoice": "priority",
+        "upgradePolicy": "balanced",
+        "paidGoldCredit": 0,
+        "controls": {}
+      },
+      {
+        "seed": 42,
+        "modifierChoice": "priority",
+        "upgradePolicy": "balanced",
+        "paidGoldCredit": 0,
+        "controls": {}
+      }
+    ],
+    "excludedIncompleteRuns": [],
     "sustainedFortyPercentAimScenario": {
       "bossSeconds": 306.09766459398594,
       "menusSeconds": 870,
