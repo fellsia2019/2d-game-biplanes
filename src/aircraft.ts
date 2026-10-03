@@ -1,4 +1,5 @@
 import { drawPropeller } from './aircraft-effects';
+import { bossBalance } from '../shared/data';
 type Prop = { x: number; y: number; radius: number };
 const single = (x: number, y: number, radius: number): Prop[] => [{ x, y, radius }];
 export const AIRCRAFT_ART = {
@@ -13,7 +14,7 @@ export const AIRCRAFT_ART = {
   'enemy-boss-25': { file: 'boss-hunter', props: single(.924, .572, .115) },
   'enemy-boss-50': { file: 'boss-commander', props: [{x:.655,y:.70,radius:.075},{x:.75,y:.595,radius:.075},{x:.85,y:.415,radius:.06},{x:.907,y:.333,radius:.06}] },
 };
-export const bossAircraft = (level: number) => level >= 50 ? 'enemy-boss-50' : level >= 25 ? 'enemy-boss-25' : 'enemy-boss-10';
+export const bossAircraft = (level: number) => bossBalance(level).appearance ?? (level >= 50 ? 'enemy-boss-50' : level >= 25 ? 'enemy-boss-25' : 'enemy-boss-10');
 export const aircraftAsset = (id: string) => import.meta.env.BASE_URL + 'art/approved/' + AIRCRAFT_ART[id as keyof typeof AIRCRAFT_ART].file + '-airframe.png';
 export function prepareAircraft(image: HTMLImageElement, id: string) {
   const raw = document.createElement('canvas'); raw.width = image.width; raw.height = image.height;

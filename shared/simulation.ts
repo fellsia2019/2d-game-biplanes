@@ -1,12 +1,13 @@
 import { GROUND_Y, rockPoints, pvoPoints, touchesPolygon, pvoAim, pvoModelsForLevel, type PvoModel } from './terrain';
 import { WIDTH, HEIGHT, ZONE, bossBalance, campaignReward } from './data';
 import type { ModifierBonuses } from './modifiers';
+import { combatReward } from './premium';
 export interface Controls { turn: number; horizontal?: number; fire: boolean; boost: boolean }
 export const IDLE: Controls = { turn: 0, fire: false, boost: false };
-export interface Stats { model: string; hp: number; speed: number; turn: number; damage: number; boostDuration?: number; boostRecharge?: number; cooling?: number; traits?: ModifierBonuses }
+export interface Stats { model: string; hp: number; speed: number; turn: number; damage: number; boostDuration?: number; boostRecharge?: number; cooling?: number; traits?: ModifierBonuses; rewardMultiplier?: number }
 export interface Plane extends Stats { id: string; x: number; y: number; angle: number; health: number; heat: number; overheated: boolean; energy: number; shot: number; dead: number; shield: number; score: number; bot: boolean; ram: number; boosting?: boolean; lastAttacker?: string; patrolIndex?: number; windup?: number; aimAngle?: number; rocketClock?: number; emergencyUsed?: boolean }
 export interface Bullet { id: number; owner: string; x: number; y: number; vx: number; vy: number; life: number; damage: number; kind?: 'rocket'; piercing?: number; hitTargets?: string[] }
-export interface Obstacle { id: number; kind: 'rock' | 'pvo' | 'fighter' | 'heavy'; x: number; y: number; radius: number; hp: number; fire: number; damage: number; height?: number; pvoModel?: PvoModel }
+export interface Obstacle { id: number; kind: 'rock' | 'pvo' | 'fighter' | 'heavy'; x: number; y: number; radius: number; hp: number; fire: number; damage: number; height?: number; pvoModel?: PvoModel; terrainVariant?: number }
 export interface Effect { id: number; kind: 'shot' | 'hit' | 'explosion' | 'reward' | 'level' | 'boss'; x: number; y: number; label?: string }
 export interface Reward { player: string; silver: number; xp: number; kind: 'kill' | 'level' | 'duel'; win?: boolean; bossLevel?: number }
 export interface Battle {
@@ -15,10 +16,16 @@ export interface Battle {
   spawn: number; seq: number; seed: number; paused: boolean; result: string; earned: Record<string, { silver: number; xp: number }>; activity: Record<string, number>;
   bossAttempt?: number; bossAttemptsExhausted?: boolean; restartLevel?: number;
   rewardBossLevel?: number; rewardNextPhase?: 'flight' | 'ended';
+  encounterSeed?: number;
 }
 const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
 export const angleDiff = (a: number, b: number) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 function random(s: Battle) { s.seed = (1664525 * s.seed + 1013904223) >>> 0; return s.seed / 4294967296; }
+function encounterRandom(s: Battle) {
+  if (!ZONE[s.level - 1].encounter) return random(s);
+  s.encounterSeed = (1664525 * (s.encounterSeed ?? ZONE[s.level - 1].encounter!.seed) + 1013904223) >>> 0;
+  return s.encounterSeed / 4294967296;
+}
 function fx(s: Battle, kind: Effect['kind'], x: number, y: number, label?: string) { s.effects.push({ id: ++s.seq, kind, x, y, label }); if (s.effects.length > 60) s.effects.shift(); }
 // Aircraft weapons share one muzzle and heading calculation, regardless of owner.
 function fireForward(s: Battle, owner: string, x: number, y: number, angle: number, speed: number, life: number, damage: number, piercing = 0, kind?: 'rocket') {
@@ -43,9 +50,14 @@ function botControls(s: Battle, p: Plane): Controls {
   const target = s.planes.find(x => x.id !== p.id && x.health > 0);
   if (!target) return IDLE;
   if (s.phase === 'boss' && p.id === 'boss') {
-    const route = s.level >= 50 ? [[960,150],[420,420],[960,460],[380,160],[710,300]]
-      : s.level >= 25 ? [[960,150],[720,300],[420,460],[420,150],[720,300],[960,460]]
-      : [[900,150],[600,150],[420,300],[600,460],[900,460],[1020,300]];
+    const pattern = bossBalance(s.level).pattern ?? (s.level >= 50 ? 'cross' : s.level >= 25 ? 'weave' : 'orbit');
+    const routes = {
+      cross: [[960,150],[420,420],[960,460],[380,160],[710,300]],
+      weave: [[960,150],[720,300],[420,460],[420,150],[720,300],[960,460]],
+      orbit: [[900,150],[600,150],[420,300],[600,460],[900,460],[1020,300]],
+      sweep: [[1040,160],[560,160],[560,440],[1040,440],[820,300]],
+    };
+    const route = routes[pattern];
     let index = (p.patrolIndex ?? 0) % route.length;
     if (Math.hypot(p.x - route[index][0], p.y - route[index][1]) < 60) index = (index + 1) % route.length;
     p.patrolIndex = index;
@@ -63,6 +75,8 @@ function botControls(s: Battle, p: Plane): Controls {
 function award(s: Battle, rewards: Reward[], player: string, silver: number, xp: number, kind: Reward['kind'], win?: boolean, bossLevel?: number) {
   if (!s.earned[player]) return;
   if (s.mode === 'pve') { silver = campaignReward(silver); xp = campaignReward(xp); }
+  const multiplier = s.planes.find(p => p.id === player)?.rewardMultiplier ?? 1;
+  silver = combatReward(silver, multiplier); xp = combatReward(xp, multiplier);
   s.earned[player].silver += silver; s.earned[player].xp += xp;
   rewards.push({ player, silver, xp, kind, win, ...(bossLevel ? {bossLevel} : {}) });
 }
@@ -89,6 +103,7 @@ function nextLevel(s: Battle, rewards: Reward[]) {
   if (s.level === ZONE.length) { s.phase = 'ended'; s.result = 'Рубеж пройден!'; return; }
   const fromBoss = s.phase === 'boss';
   s.level++; s.distance = 0; s.spawn = 2; s.phase = 'flight';
+  s.encounterSeed = ZONE[s.level - 1].encounter?.seed;
   if (fromBoss) s.bullets = [];
   if (fromBoss) s.bossAttempt = undefined;
   s.planes = [human];
@@ -111,6 +126,14 @@ export function startBossFight(s: Battle) {
 }
 export function finishBossReward(s: Battle) {
   if (s.phase !== 'reward') return;
+  // A pending final reward from an older, shorter route continues into new content.
+  if (s.rewardNextPhase === 'ended' && (s.rewardBossLevel ?? s.level) < ZONE.length) {
+    s.level = (s.rewardBossLevel ?? s.level) + 1; s.distance = 0; s.spawn = 2;
+    s.rewardNextPhase = 'flight'; s.result = ''; s.obstacles = []; s.bullets = [];
+    s.planes = [s.planes[0]]; normalizeCampaignPlane(s.planes[0]);
+    s.planes[0].x = CAMPAIGN_X; s.planes[0].y = HEIGHT / 2; s.planes[0].shield = 2;
+    s.bossAttempt = undefined; s.encounterSeed = ZONE[s.level - 1].encounter?.seed;
+  }
   s.phase = s.rewardNextPhase ?? 'flight'; s.rewardNextPhase = undefined; s.rewardBossLevel = undefined; s.paused = false;
 }
 function autoRocket(s: Battle, p: Plane, dt: number) {
@@ -208,12 +231,16 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
       o.fire -= dt;
     }
     if (s.spawn <= 0) {
-      s.spawn = def.spawn; const r = random(s);
+      s.spawn = def.spawn * (def.encounter?.spacingMultiplier ?? 1); const r = encounterRandom(s), encounter = def.encounter;
       const pvoModels = pvoModelsForLevel(s.level);
-      const kind: Obstacle['kind'] = r < .24 ? 'rock' : r < .48 && pvoModels.length ? 'pvo' : r > .85 && s.level >= 6 ? 'heavy' : 'fighter';
-      s.obstacles.push({ id: ++s.seq, kind, x: WIDTH + 80, y: kind === 'pvo' || kind === 'rock' ? GROUND_Y : 140 + random(s) * 340,
-        height: kind === 'rock' ? 140 + random(s) * 140 : undefined, pvoModel: kind === 'pvo' ? pvoModels[Math.floor(random(s) * pvoModels.length)] : undefined,
-        radius: kind === 'rock' ? 72 : kind === 'heavy' ? 32 : 24, hp: kind === 'rock' ? 99999 : def.enemyHp * (kind === 'heavy' ? 2 : 1), fire: 1.4, damage: def.enemyDamage });
+      const rockChance = encounter?.rockChance ?? .24, pvoChance = encounter?.pvoChance ?? .24, heavyChance = encounter?.heavyChance ?? .15;
+      const minY = encounter?.aircraftMinY ?? 140, maxY = encounter?.aircraftMaxY ?? 480;
+      const minRock = encounter?.minRockHeight ?? 140, maxRock = encounter?.maxRockHeight ?? 280;
+      const kind: Obstacle['kind'] = r < rockChance ? 'rock' : r < rockChance + pvoChance && pvoModels.length ? 'pvo' : r > 1 - heavyChance && s.level >= 6 ? 'heavy' : 'fighter';
+      s.obstacles.push({ id: ++s.seq, kind, x: WIDTH + 80, y: kind === 'pvo' || kind === 'rock' ? GROUND_Y : minY + encounterRandom(s) * (maxY - minY),
+        height: kind === 'rock' ? minRock + encounterRandom(s) * (maxRock - minRock) : undefined, pvoModel: kind === 'pvo' ? pvoModels[Math.floor(encounterRandom(s) * pvoModels.length)] : undefined,
+        radius: kind === 'rock' ? 72 : kind === 'heavy' ? 32 : 24, hp: kind === 'rock' ? 99999 : def.enemyHp * (kind === 'heavy' ? 2 : 1), fire: 1.4, damage: def.enemyDamage,
+        ...(kind === 'rock' && encounter ? {terrainVariant: Math.floor(encounterRandom(s) * 3)} : {}) });
     }
     const solid = s.obstacles.filter(o => o.hp > 0 && (o.kind === 'rock' || o.kind === 'pvo')).map(o => ({
       obstacle: o, points: o.kind === 'rock' ? rockPoints(o) : pvoPoints(o),
@@ -270,7 +297,7 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
         if (o.hp <= 0) {
           const multiplier = o.kind === 'pvo' ? 1.25 : o.kind === 'heavy' ? 1.6 : 1;
           const silver = Math.round(def.killSilver * multiplier), xp = Math.round(def.killXp * multiplier);
-          award(s, rewards, b.owner, silver, xp, 'kill'); fx(s, 'explosion', o.x, o.y); fx(s, 'reward', o.x, o.y, '+' + campaignReward(silver) + ' серебра');
+          award(s, rewards, b.owner, silver, xp, 'kill'); fx(s, 'explosion', o.x, o.y); fx(s, 'reward', o.x, o.y, '+' + combatReward(campaignReward(silver), s.planes[0].rewardMultiplier ?? 1) + ' серебра');
         }
         if (b.life <= 0) break;
       }

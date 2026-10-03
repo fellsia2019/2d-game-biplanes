@@ -1,4 +1,6 @@
 import { modifierBonuses, type OwnedModifier } from './modifiers';
+import { hasPremium, type PremiumAccess } from './premium';
+import { campaignEncounter, type EncounterPlan } from './terrain';
 export const WIDTH = 1200, HEIGHT = 675;
 export const campaignReward = (amount: number) => Math.round(amount / 2);
 export const PLANES = [
@@ -35,6 +37,7 @@ export interface Profile {
   upgrades: Record<string, Record<Upgrade, number>>;
   modules: string[]; module: string;
   modifiers?: OwnedModifier[]; modifierBosses?: number[];
+  premium?: PremiumAccess;
   daily: { key: string; activity: number; kills: number; wins: number; claimed: string[] };
   weekly: { key: string; activity: number; levels: number; duels: number; claimed: string[] };
   taskArchive: ArchivedTasks[];
@@ -83,14 +86,79 @@ export function claimTask(p: Profile, period: 'daily' | 'weekly', id: string, ke
   if (period === 'weekly' && state.claimed.length === 3) { p.silver += 500; addExperience(p, 150); }
   return true;
 }
-export const BOSS_BALANCE = {
+export type BossAppearance = 'enemy-boss-10' | 'enemy-boss-25' | 'enemy-boss-50';
+export type BossPattern = 'orbit' | 'cross' | 'weave' | 'sweep';
+export interface BossDefinition {
+  name: string; hp: number; speed: number; turn: number; damage: number; cooldown: number;
+  bulletSpeed: number; windup: number; silver: number; xp: number;
+  appearance?: BossAppearance; pattern?: BossPattern;
+}
+export interface SceneryPalette {
+  skyTop: readonly [number, number, number]; skyBottom: readonly [number, number, number];
+  farHills: number; nearHills: number; trees: number; ground: number;
+  grass: number; edge: number; stones: number; sun: number;
+}
+export interface CampaignRegion {
+  id: string; name: string; start: number; end: number; scenery?: SceneryPalette;
+}
+export const CAMPAIGN_LEVELS = 250;
+export const CAMPAIGN_REGIONS: readonly CampaignRegion[] = [
+  {id: 'azure', name: 'Лазурные острова', start: 1, end: 10},
+  {id: 'fortress', name: 'Крепость в облаках', start: 11, end: 25},
+  {id: 'storm', name: 'Грозовой фронт', start: 26, end: 50},
+  {id: 'pearl', name: 'Жемчужный пролив', start: 51, end: 75, scenery: {skyTop: [126, 175, 201], skyBottom: [210, 232, 235], farHills: 0x91b7bd, nearHills: 0x63959a, trees: 0x407477, ground: 0x968a70, grass: 0x87b597, edge: 0x4f7463, stones: 0xb5aa91, sun: 0xfff2d5}},
+  {id: 'copper', name: 'Медные каньоны', start: 76, end: 100, scenery: {skyTop: [162, 167, 203], skyBottom: [239, 213, 180], farHills: 0xc4a28f, nearHills: 0xa77e68, trees: 0x68684d, ground: 0xa47755, grass: 0xa5a365, edge: 0x716344, stones: 0xc29772, sun: 0xffdd9c}},
+  {id: 'polar', name: 'Полярный путь', start: 101, end: 125, scenery: {skyTop: [122, 168, 202], skyBottom: [224, 238, 247], farHills: 0xa9c5da, nearHills: 0x87aabd, trees: 0x5d8790, ground: 0xb5bec7, grass: 0xe0edf1, edge: 0x91a6b1, stones: 0xd0d7dd, sun: 0xfff7d9}},
+  {id: 'amber', name: 'Янтарные пустоши', start: 126, end: 150, scenery: {skyTop: [186, 179, 191], skyBottom: [250, 226, 178], farHills: 0xd3b585, nearHills: 0xb99665, trees: 0x807851, ground: 0xb79866, grass: 0xc5b273, edge: 0x897447, stones: 0xd9bb86, sun: 0xffe7ad}},
+  {id: 'sapphire', name: 'Сапфировый перевал', start: 151, end: 175, scenery: {skyTop: [121, 150, 193], skyBottom: [209, 225, 240], farHills: 0x8dabc5, nearHills: 0x688ca9, trees: 0x3d6e75, ground: 0x87939a, grass: 0x7ba798, edge: 0x526d70, stones: 0xa9b5ba, sun: 0xffedc7}},
+  {id: 'emerald', name: 'Изумрудный архипелаг', start: 176, end: 200, scenery: {skyTop: [112, 181, 196], skyBottom: [211, 236, 217], farHills: 0x90bca5, nearHills: 0x629c81, trees: 0x3a765e, ground: 0x8a8c66, grass: 0x7cba7a, edge: 0x486f50, stones: 0xada982, sun: 0xffedbb}},
+  {id: 'crimson', name: 'Багровый горизонт', start: 201, end: 225, scenery: {skyTop: [160, 143, 182], skyBottom: [235, 201, 197], farHills: 0xb796a5, nearHills: 0x977781, trees: 0x6b5963, ground: 0x94766c, grass: 0xa09279, edge: 0x705c55, stones: 0xb79a86, sun: 0xffd1a4}},
+  {id: 'summit', name: 'Небесный рубеж', start: 226, end: 250, scenery: {skyTop: [116, 144, 184], skyBottom: [221, 224, 231], farHills: 0xa0adc1, nearHills: 0x7d91a9, trees: 0x4d6c80, ground: 0x93959c, grass: 0xb1bdc5, edge: 0x687583, stones: 0xb8b8bb, sun: 0xffe4b5}},
+];
+const tailBosses = ['Шкипер Туман', 'Железный маршал', 'Полярный страж', 'Песчаный сокол', 'Горный барон', 'Адмирал Вихрь', 'Красная комета', 'Небесный властелин'];
+const tailAppearances: readonly BossAppearance[] = ['enemy-boss-10', 'enemy-boss-50', 'enemy-boss-25', 'enemy-boss-10', 'enemy-boss-50', 'enemy-boss-25', 'enemy-boss-25', 'enemy-boss-50'];
+const tailPatterns: readonly BossPattern[] = ['sweep', 'weave', 'orbit', 'cross', 'weave', 'sweep', 'cross', 'orbit'];
+export const BOSS_BALANCE: Readonly<Record<number, BossDefinition>> = {
   10: {name:'Капитан Буря',hp:700,speed:75,turn:1.8,damage:8,cooldown:1.6,bulletSpeed:300,windup:.35,silver:900,xp:180},
   25: {name:'Алый охотник',hp:1600,speed:88,turn:2,damage:17,cooldown:1.45,bulletSpeed:330,windup:.35,silver:2400,xp:400},
   50: {name:'Командор',hp:3600,speed:102,turn:2.2,damage:35,cooldown:1.3,bulletSpeed:360,windup:.35,silver:6000,xp:900},
-} as const;
-export const bossBalance = (level: number) => BOSS_BALANCE[level>=50?50:level>=25?25:10];
-export const ZONE = Array.from({ length: 50 }, (_, i) => {
-  const level = i + 1, tier = level<=10?1:level<=25?2:3;
+  ...Object.fromEntries(tailBosses.map((name, index) => {
+    const progress = (index + 1) / tailBosses.length;
+    return [75 + index * 25, {name, hp: 3600 + 2600 * progress,
+      speed: 102 + 16 * progress, turn: 2.2 + .2 * progress, damage: 35 + 20 * progress,
+      cooldown: 1.35, bulletSpeed: 360 + 50 * progress, windup: .4,
+      silver: 6500 + index * 500, xp: 1000 + index * 100,
+      appearance: tailAppearances[index], pattern: tailPatterns[index]}];
+  })),
+};
+export const BOSS_LEVELS = Object.keys(BOSS_BALANCE).map(Number).sort((a, b) => a - b);
+export function bossBalance(level: number): BossDefinition {
+  const checkpoint = BOSS_LEVELS.filter(boss => boss <= level).at(-1) ?? BOSS_LEVELS[0];
+  return BOSS_BALANCE[checkpoint];
+}
+export interface CampaignLevel {
+  level: number; name: string; tier: number; length: number; scroll: number; spawn: number;
+  enemyHp: number; enemyDamage: number; mobCooldown: number; pvoCooldown: number;
+  rewardSilver: number; rewardXp: number; killSilver: number; killXp: number;
+  boss: BossDefinition | null; regionId?: string; scenery?: SceneryPalette; encounter?: EncounterPlan;
+}
+export function campaignLevel(level: number): CampaignLevel {
+  if (!Number.isInteger(level) || level < 1 || level > CAMPAIGN_LEVELS) throw new RangeError('Уровень кампании вне маршрута');
+  if (level > 50) {
+    const regionIndex = 3 + Math.floor((level - 51) / 25), region = CAMPAIGN_REGIONS[regionIndex];
+    const progress = (level - 50) / (CAMPAIGN_LEVELS - 50), eased = progress * (2 - progress);
+    // Growth tapers toward the free aircraft's ceiling. More regions add
+    // encounter variety, not another paid aircraft requirement or longer grind.
+    return {level, name: region.name, tier: regionIndex + 1, regionId: region.id, scenery: region.scenery,
+      length: 3800 + 1400 * progress, scroll: 135 + 45 * progress, spawn: 2.2 - .2 * eased,
+      enemyHp: 224 + 176 * eased, enemyDamage: 42 + 18 * progress,
+      mobCooldown: 2 - .2 * eased, pvoCooldown: 1.9 - .15 * eased,
+      rewardSilver: 230 + Math.round(70 * progress), rewardXp: 44 + Math.round(12 * progress),
+      killSilver: 42 + Math.round(14 * progress), killXp: 12 + Math.round(4 * progress),
+      encounter: campaignEncounter(level), boss: BOSS_LEVELS.includes(level) ? bossBalance(level) : null};
+  }
+  // Preserve the original first three regions, unlock timings and balances.
+  const tier = level<=10?1:level<=25?2:3;
   const progress = tier===1?(level-1)/9:tier===2?(level-11)/14:(level-26)/24;
   const between=(a:number,b:number)=>a+(b-a)*progress;
   return {level,name:tier===1?'Лазурные острова':tier===2?'Крепость в облаках':'Грозовой фронт',tier,
@@ -103,7 +171,8 @@ export const ZONE = Array.from({ length: 50 }, (_, i) => {
     rewardSilver:[90,140,230][tier-1],rewardXp:[34,28,44][tier-1],
     killSilver:[18,28,42][tier-1],killXp:[5,8,12][tier-1],
     boss:level===10||level===25||level===50?bossBalance(level):null};
-});
+}
+export const ZONE: readonly CampaignLevel[] = Array.from({length: CAMPAIGN_LEVELS}, (_, index) => campaignLevel(index + 1));
 // Stage boundaries come from the boss catalogue, including future added bosses.
 export const CAREER_STAGES = ZONE.filter(z => z.boss).map((z, index, bosses) => ({
   number: index + 1, start: index ? bosses[index - 1].level + 1 : 1, end: z.level, name: z.name, boss: z.boss!,
@@ -114,5 +183,5 @@ export function planeStats(p: Profile, career = false) {
   const u = p.upgrades[model.id] ?? { hull: 0, engine: 0, gun: 0 };
   const module = p.modules?.includes(p.module) ? p.module : '';
   const traits = career ? modifierBonuses(p.modifiers) : undefined;
-  return { model: model.id, hp: model.hp * (1 + u.hull * .06) * (1 + (traits?.hp ?? 0)), speed: model.speed * (1 + u.engine * .02) * (1 + (traits?.speed ?? 0)), turn: model.turn * (1 + u.engine * .01) * (1 + (traits?.turn ?? 0)), damage: model.damage * (1 + u.gun * .06) * (module === 'radiator' ? .9 : 1) * (1 + (traits?.damage ?? 0)), boostDuration: (module === 'carburetor' ? 3 : 2) * (1 + (traits?.boost ?? 0)), boostRecharge: module === 'carburetor' ? 7.5 : 6, cooling: module === 'radiator' ? 1.35 : 1, traits };
+  return { model: model.id, hp: model.hp * (1 + u.hull * .06) * (1 + (traits?.hp ?? 0)), speed: model.speed * (1 + u.engine * .02) * (1 + (traits?.speed ?? 0)), turn: model.turn * (1 + u.engine * .01) * (1 + (traits?.turn ?? 0)), damage: model.damage * (1 + u.gun * .06) * (module === 'radiator' ? .9 : 1) * (1 + (traits?.damage ?? 0)), boostDuration: (module === 'carburetor' ? 3 : 2) * (1 + (traits?.boost ?? 0)), boostRecharge: module === 'carburetor' ? 7.5 : 6, cooling: module === 'radiator' ? 1.35 : 1, rewardMultiplier: hasPremium(p) ? 1.5 : 1, traits };
 }

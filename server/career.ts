@@ -8,10 +8,16 @@ export interface CareerAccount {
   bossFailures?: {level: number; count: number}; lastFinishedBattle?: string;
   modifierOffer?: ModifierOffer; lastModifierChoice?: { offerId: string; id: string };
   lastModifierVictory?: string;
+  campaignLength?: number;
 }
 export function migrateCareer(a: CareerAccount) {
   normalizeProgression(a.profile);
   a.profile.modifiers ??= []; a.profile.modifierBosses ??= [];
+  const previousLength = a.campaignLength ?? (a.profile.defeatedBosses?.includes(ZONE.length) ? ZONE.length : 50);
+  if (previousLength < ZONE.length && !a.checkpoint && a.restartLevel === 1 && !a.restartBoss && !a.bossFailures && a.profile.defeatedBosses?.includes(previousLength)) {
+    a.restartLevel = previousLength + 1;
+  }
+  a.campaignLength = ZONE.length;
   const reached = a.checkpoint?.level ?? a.restartLevel ?? 1;
   for (const level of ZONE.filter(z => z.boss && z.level < reached).map(z => z.level)) {
     if (!a.profile.defeatedBosses!.includes(level)) a.profile.defeatedBosses!.push(level);
@@ -68,9 +74,10 @@ export function chooseModifier(a: CareerAccount, offerId: string, id: string) {
   ensureModifierOffer(a);
 }
 export function awardBossModifier(a: CareerAccount, bossLevel: number, victoryId: string) {
-  if (a.lastModifierVictory === victoryId) return a.modifierOffer;
+  const victoryKey = victoryId + ':boss:' + bossLevel;
+  if (a.lastModifierVictory === victoryKey) return a.modifierOffer;
   if (a.modifierOffer) throw new Error('Сначала выберите предыдущую награду');
-  a.lastModifierVictory = victoryId;
+  a.lastModifierVictory = victoryKey;
   a.modifierOffer = makeModifierOffer(a.profile.id, bossLevel, a.profile.modifiers ?? [], victoryId);
   return a.modifierOffer;
 }

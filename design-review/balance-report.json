@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-03T06:31:26.903Z",
+  "generatedAt": "2026-10-03T06:55:00.711Z",
   "method": "30 Hz authoritative simulation, 60 seconds held fire, no aim assist. TTK uses 40% hit rate; range 30–55%. Income scenario assumes three kills per level, no ads, paid gold, tasks or login bonuses.",
   "planes": [
     {
@@ -15,7 +15,8 @@
           "damage": 10,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1
+          "cooling": 1,
+          "rewardMultiplier": 1
         },
         "shots": 206,
         "dps": 34.333333333333336,
@@ -30,7 +31,8 @@
           "damage": 13,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1
+          "cooling": 1,
+          "rewardMultiplier": 1
         },
         "shots": 206,
         "dps": 44.63333333333333,
@@ -45,7 +47,8 @@
           "damage": 11.700000000000001,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1.35
+          "cooling": 1.35,
+          "rewardMultiplier": 1
         },
         "shots": 271,
         "dps": 52.845000000000006,
@@ -65,7 +68,8 @@
           "damage": 18,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1
+          "cooling": 1,
+          "rewardMultiplier": 1
         },
         "shots": 206,
         "dps": 61.8,
@@ -80,7 +84,8 @@
           "damage": 23.400000000000002,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1
+          "cooling": 1,
+          "rewardMultiplier": 1
         },
         "shots": 206,
         "dps": 80.34,
@@ -95,7 +100,8 @@
           "damage": 21.060000000000002,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1.35
+          "cooling": 1.35,
+          "rewardMultiplier": 1
         },
         "shots": 271,
         "dps": 95.12100000000001,
@@ -115,7 +121,8 @@
           "damage": 32,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1
+          "cooling": 1,
+          "rewardMultiplier": 1
         },
         "shots": 206,
         "dps": 109.86666666666666,
@@ -130,7 +137,8 @@
           "damage": 41.6,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1
+          "cooling": 1,
+          "rewardMultiplier": 1
         },
         "shots": 206,
         "dps": 142.82666666666668,
@@ -145,7 +153,8 @@
           "damage": 37.440000000000005,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1.35
+          "cooling": 1.35,
+          "rewardMultiplier": 1
         },
         "shots": 271,
         "dps": 169.104,
@@ -165,7 +174,8 @@
           "damage": 57,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1
+          "cooling": 1,
+          "rewardMultiplier": 1
         },
         "shots": 206,
         "dps": 195.7,
@@ -180,7 +190,8 @@
           "damage": 74.10000000000001,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1
+          "cooling": 1,
+          "rewardMultiplier": 1
         },
         "shots": 206,
         "dps": 254.41000000000003,
@@ -195,7 +206,8 @@
           "damage": 66.69000000000001,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1.35
+          "cooling": 1.35,
+          "rewardMultiplier": 1
         },
         "shots": 271,
         "dps": 301.21650000000005,
@@ -215,7 +227,8 @@
           "damage": 102,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1
+          "cooling": 1,
+          "rewardMultiplier": 1
         },
         "shots": 206,
         "dps": 350.2,
@@ -230,7 +243,8 @@
           "damage": 132.6,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1
+          "cooling": 1,
+          "rewardMultiplier": 1
         },
         "shots": 206,
         "dps": 455.26,
@@ -245,7 +259,8 @@
           "damage": 119.34,
           "boostDuration": 2,
           "boostRecharge": 6,
-          "cooling": 1.35
+          "cooling": 1.35,
+          "rewardMultiplier": 1
         },
         "shots": 271,
         "dps": 539.019,

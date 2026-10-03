@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import { freshProfile, planeStats, resetTasks, ZONE } from '../shared/data';
 import { beginBoss, startBossFight, finishBossReward, createBattle, makePlane, stepBattle, forfeitDuel, IDLE, FLIGHT_RIGHT, FLIGHT_BOTTOM, normalizeCampaignPlane } from '../shared/simulation';
 const human = () => makePlane('pilot', planeStats(freshProfile('pilot')));
-test('В зоне ровно 50 уровней и боссы только на 10/25/50', () => {
-  assert.equal(ZONE.length, 50);
-  assert.deepEqual(ZONE.filter(x => x.boss).map(x => x.level), [10, 25, 50]);
+test('В зоне 250 уровней, после 50-го босс каждые 25 уровней', () => {
+  assert.equal(ZONE.length, 250);
+  assert.deepEqual(ZONE.filter(x => x.boss).map(x => x.level), [10, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250]);
   for (let i = 1; i < ZONE.length; i++) { assert.ok(ZONE[i].enemyHp > ZONE[i - 1].enemyHp); assert.ok(ZONE[i].scroll > ZONE[i - 1].scroll); }
 });
 test('Переход обычного уровня происходит во время полёта и выдаёт награду один раз', () => {
@@ -14,7 +14,7 @@ test('Переход обычного уровня происходит во в�
   assert.equal(s.level, 2); assert.equal(s.phase, 'flight'); assert.equal(reward[0].silver, 45); assert.equal(reward[0].xp, 17);
   assert.equal(stepBattle(s, { pilot: IDLE }, 1 / 30).length, 0);
 });
-for (const level of [10, 25, 50]) test('Босс ' + level + ': остановка карты, дуэль и правильный переход', () => {
+for (const level of [10, 25, 50, 75, ZONE.length]) test('Босс ' + level + ': остановка карты, дуэль и правильный переход', () => {
   const s = createBattle('boss-' + level, 'pve', [human()], level); s.distance = ZONE[level - 1].length;
   stepBattle(s, { pilot: IDLE }, 1 / 30); assert.equal(s.phase, 'boss-intro'); assert.equal(s.planes.length, 2);
   const distance = s.totalDistance;
@@ -23,9 +23,9 @@ for (const level of [10, 25, 50]) test('Босс ' + level + ': остановк
   s.planes[1].health = 0;
   const rewards = stepBattle(s, { pilot: IDLE }, 1 / 30);
   assert.equal(rewards.length, 2); assert.equal(s.phase, 'reward');
-  assert.equal(s.level, level === 50 ? 50 : level + 1);
+  assert.equal(s.level, level === ZONE.length ? ZONE.length : level + 1);
   assert.equal(stepBattle(s, { pilot: IDLE }, 1 / 30).length, 0);
-  finishBossReward(s); assert.equal(s.phase, level === 50 ? 'ended' : 'flight');
+  finishBossReward(s); assert.equal(s.phase, level === ZONE.length ? 'ended' : 'flight');
 });
 test('Точная контрольная точка восстанавливает бой без повторных наград', () => {
   const s = createBattle('checkpoint', 'pve', [human()], 10); beginBoss(s); s.planes[1].health = 83; s.earned.pilot = { silver: 333, xp: 111 }; s.paused = true;

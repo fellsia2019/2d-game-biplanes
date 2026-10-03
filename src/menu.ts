@@ -1,5 +1,6 @@
 import { GOLD_PACKS, MODULES, PLANES, Profile, Upgrade, planeStats, researchLevel, RESEARCH_XP, upgradeSilver, planeUnlocked, CAREER_STAGES, careerStage, ZONE } from '../shared/data';
 import { icon, IconName } from './icons';
+import { hasPremium, PREMIUM_PRODUCT_ID } from '../shared/premium';
 
 const money = (n: number) => Math.floor(n).toLocaleString('ru-RU');
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, x => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[x]!));
@@ -46,11 +47,13 @@ export function renderHangar(p: Profile, inspected: string) {
 
 type StoreState = { available: boolean; authorized: boolean; platformAvailable: boolean; products: { id: string; price: string }[] };
 export function renderStore(p: Profile, state: StoreState) {
+  const premium = state.products.find(product => product.id === PREMIUM_PRODUCT_ID), active = hasPremium(p);
+  const premiumCard = '<section class="premium-offer ' + (active ? 'active' : '') + '" aria-label="Премиум-доступ"><span class="premium-emblem">' + icon('trophy') + '</span><div><span class="eyebrow">ПРИВИЛЕГИИ ПИЛОТА · НАВСЕГДА</span><h2>Премиум-доступ</h2><div class="premium-perks"><span class="xp">+50% опыта</span><span class="silver">+50% серебра</span></div><p>Больше наград за бои в кампании и дуэлях. Одна покупка на весь профиль, для любого самолёта.</p><small>Бонус действует на боевые награды. Подарки, задачи и обмен сохраняют свои значения.</small></div><div class="premium-purchase">' + (active ? '<b>' + icon('check') + ' Активен навсегда</b>' : '<button class="button gold-button" data-pack="premium" ' + (!state.available || !premium ? 'disabled' : '') + '>' + (premium ? 'Купить · ' + escapeHtml(premium.price) : 'Пока недоступно') + '</button><small>Без подписки и продления</small>') + '</div></section>';
   const goldCards = GOLD_PACKS.map(pack => {
     const product = state.products.find(x => x.id === pack.id);
     return '<section class="gold-pack"><div>' + icon('gold') + '</div><h2>' + pack.gold + '</h2><small>золота</small><button class="button gold-button" data-pack="' + pack.id + '" ' + (!state.available || !product ? 'disabled' : '') + '>' + (product ? escapeHtml(product.price) : 'Недоступно') + '</button></section>';
   }).join('');
-  return '<div class="page-heading"><h1>Магазин</h1></div><h2 class="store-title">Золото</h2>' + (!state.available ? '<p class="store-notice">Покупки золота пока недоступны.</p>' : '') +
+  return '<div class="page-heading"><h1>Магазин</h1></div>' + premiumCard + '<h2 class="store-title">Золото</h2>' + (!state.available ? '<p class="store-notice">Покупки пока недоступны.</p>' : '') +
     (state.platformAvailable && !state.authorized ? '<button class="plain" data-action="authorize">Войти в Яндекс для покупок ' + icon('arrow') + '</button>' : '') +
     '<div class="store-grid">' + goldCards + '</div>' + (state.available ? '<button class="plain" data-action="recover">Восстановить покупки</button>' : '') +
     '<div class="subheading"><h2>Переплавка золота</h2></div><p class="exchange-rate">1 золото = 25 серебра или 8 опыта</p><div class="exchange-grid">' + [10, 50, 100].map(amount => '<section class="exchange-card"><b>' + icon('gold') + ' ' + amount + '</b><button class="plain" data-exchange="' + amount + '" data-currency="silver" ' + (p.gold < amount ? 'disabled' : '') + '>' + icon('arrow') + ' <span class="silver">' + icon('silver') + ' ' + money(amount * 25) + '</span>' + '</button><button class="plain" data-exchange="' + amount + '" data-currency="xp" ' + (p.gold < amount ? 'disabled' : '') + '>' + icon('arrow') + ' ' + amount * 8 + ' опыта</button></section>').join('') + '</div>';

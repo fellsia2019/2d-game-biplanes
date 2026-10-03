@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { ZONE } from '../shared/data';
 import { GROUND_Y, pvoAim } from '../shared/terrain';
 import { drawPvo, drawRock, type GroundPainter } from './ground-art';
 import type { Battle, Effect, Plane } from '../shared/simulation';
@@ -102,26 +103,28 @@ export class SkyScene extends Phaser.Scene {
   }
   private scenery(dt: number, state?: Battle) {
     const g = this.sky; g.clear();
-    for (let y = 0; y < 675; y += 8) { const t = y / 675; g.fillStyle(Phaser.Display.Color.GetColor(106 + t * 95, 183 + t * 43, 226 + t * 18)); g.fillRect(0, y, 1200, 8); }
-    g.fillStyle(0xffe7a9, .18); g.fillCircle(965, 120, 160); g.fillStyle(0xffedba, .3); g.fillCircle(965, 120, 108); g.fillStyle(0xfff8d5); g.fillCircle(965, 120, 50);
+    const palette = state?.mode === 'pve' ? ZONE[state.level - 1]?.scenery : undefined;
+    const top = palette?.skyTop ?? [106,183,226], bottom = palette?.skyBottom ?? [201,226,244];
+    for (let y = 0; y < 675; y += 8) { const t = y / 675; g.fillStyle(Phaser.Display.Color.GetColor(...top.map((value,i) => Math.round(value + (bottom[i]-value)*t)) as [number,number,number])); g.fillRect(0, y, 1200, 8); }
+    g.fillStyle(palette?.sun ?? 0xffe7a9, .18); g.fillCircle(965, 120, 160); g.fillStyle(palette?.sun ?? 0xffedba, .3); g.fillCircle(965, 120, 108); g.fillStyle(palette?.sun ?? 0xfff8d5); g.fillCircle(965, 120, 50);
     const moving = this.active && !state?.paused && state?.phase === 'flight';
     for (const c of this.clouds) { if (!this.active || moving) c.x -= c.speed * dt; if (c.x < -160) c.x = 1360; this.cloud(c.x, c.y, c.scale); }
     if (state) this.scroll = state.totalDistance;
     const land = this.landscape; land.clear();
-    for (const layer of [{ y: 490, color: 0x82b9c1, parallax: .09, h: 80 }, { y: 540, color: 0x61a79c, parallax: .18, h: 65 }]) {
+    for (const layer of [{ y: 490, color: palette?.farHills ?? 0x82b9c1, parallax: .09, h: 80 }, { y: 540, color: palette?.nearHills ?? 0x61a79c, parallax: .18, h: 65 }]) {
       const points: Phaser.Types.Math.Vector2Like[] = [{ x: -20, y: 700 }];
       for (let x = -20; x <= 1220; x += 20) points.push({ x, y: layer.y + Math.sin((x + this.scroll * layer.parallax) * .007) * layer.h + Math.sin((x + this.scroll * layer.parallax) * .017) * 18 });
       points.push({ x: 1220, y: 700 }); land.fillStyle(layer.color); land.fillPoints(points, true);
     }
     // Distant hills are scenery. The actual floor is drawn in front of unit
     // feet, embedding their roots rather than leaving a background gap.
-    for (let i = 0; i < 18; i++) { const x = i * 97 - this.scroll * .33 % 97; land.fillStyle(0x376f68); land.fillTriangle(x, GROUND_Y, x + 17, GROUND_Y - 36, x + 34, GROUND_Y); land.fillTriangle(x + 4, GROUND_Y - 16, x + 17, GROUND_Y - 49, x + 29, GROUND_Y - 16); }
+    for (let i = 0; i < 18; i++) { const x = i * 97 - this.scroll * .33 % 97; land.fillStyle(palette?.trees ?? 0x376f68); land.fillTriangle(x, GROUND_Y, x + 17, GROUND_Y - 36, x + 34, GROUND_Y); land.fillTriangle(x + 4, GROUND_Y - 16, x + 17, GROUND_Y - 49, x + 29, GROUND_Y - 16); }
     const floor = this.ground; floor.clear();
-    floor.fillStyle(0x8d7959); floor.fillRect(0, GROUND_Y, 1200, 675 - GROUND_Y);
-    floor.fillStyle(0x74b778); floor.fillRect(0, GROUND_Y, 1200, 7);
-    floor.fillStyle(0x486c48); floor.fillRect(0, GROUND_Y + 7, 1200, 3);
+    floor.fillStyle(palette?.ground ?? 0x8d7959); floor.fillRect(0, GROUND_Y, 1200, 675 - GROUND_Y);
+    floor.fillStyle(palette?.grass ?? 0x74b778); floor.fillRect(0, GROUND_Y, 1200, 7);
+    floor.fillStyle(palette?.edge ?? 0x486c48); floor.fillRect(0, GROUND_Y + 7, 1200, 3);
     floor.lineStyle(2, 0x6f6049); floor.lineBetween(0, GROUND_Y + 27, 1200, GROUND_Y + 27);
-    for (let i = 0; i < 22; i++) { const x = i * 61 - this.scroll % 61; floor.fillStyle(0xb09a72); floor.fillRect(x, GROUND_Y + 17, 16, 3); }
+    for (let i = 0; i < 22; i++) { const x = i * 61 - this.scroll % 61; floor.fillStyle(palette?.stones ?? 0xb09a72); floor.fillRect(x, GROUND_Y + 17, 16, 3); }
   }
   private drawEngine(img: Phaser.GameObjects.Image, damaged = false, boosting = false) {
     const moving = !this.state?.paused && this.state?.phase !== 'ended';

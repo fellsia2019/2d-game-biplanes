@@ -10,6 +10,7 @@ import { pvoModelsForLevel } from '../shared/terrain';
 import { migrateCareer, prepareBossAttempt, finishCareer, ensureModifierOffer, chooseModifier, awardBossModifier, type CareerAccount } from './career';
 import { AtomicStore } from './storage';
 import { PaymentAccount, verifyPurchases, redeemPurchases } from './payments';
+import { hasPremium, PREMIUM_PRODUCT_ID } from '../shared/premium';
 const port = Number(process.env.PORT ?? 5187), host = process.env.HOST ?? '127.0.0.1';
 const debugEnabled = process.env.BIPLANES_DEBUG === '1' && process.env.NODE_ENV !== 'production' && ['127.0.0.1', 'localhost', '::1'].includes(host);
 const storePath = process.env.BIPLANES_DATA ?? 'data/profiles.json';
@@ -140,7 +141,7 @@ wss.on('connection', ws => {
       if (!c.account) {
         if (m.type !== 'auth') return;
         let a = typeof m.token === 'string' ? accounts.find(x => x.token === m.token) : undefined;
-        if (!a) { a = { token: randomBytes(32).toString('hex'), profile: freshProfile(randomUUID()) }; accounts.push(a); dirty = true; }
+        if (!a) { a = { token: randomBytes(32).toString('hex'), profile: freshProfile(randomUUID()), campaignLength: ZONE.length }; accounts.push(a); dirty = true; }
         const old = [...clients].find(x => x !== c && x.account === a);
         if (old) { leave(old, true); old.ws.close(1008, 'Аккаунт открыт в другой вкладке'); }
         c.account = a; c.allowBots = a.profile.allowBots;
@@ -226,13 +227,14 @@ wss.on('connection', ws => {
       if (m.type === 'module-equip') { equipModule(p, m.id); changed(c); return; }
       if (m.type === 'exchange') { await spend(c, m, () => exchange(c.account!.profile, m.amount, m.currency)); return; }
       if (m.type === 'payment-order') {
-        if (!paymentSecret || !GOLD_PACKS.some(x => x.id === m.sku)) throw new Error('Покупки ещё не подключены');
+        if (!paymentSecret || !(GOLD_PACKS.some(x => x.id === m.sku) || m.sku === PREMIUM_PRODUCT_ID)) throw new Error('Покупки ещё не подключены');
+        if (m.sku === PREMIUM_PRODUCT_ID && hasPremium(p)) throw new Error('Премиум-доступ уже активен');
         const order = await financial(c, () => { const id = randomUUID(); (a.orders ??= {})[id] = { sku: m.sku, createdAt: Date.now() }; return { id }; });
         send(c, { type: 'reply', requestId: m.requestId, ok: true, result: order }); return;
       }
       if (m.type === 'payment-redeem') {
         const purchases = verifyPurchases(m.signature, paymentSecret);
-        const result = await financial(c, () => redeemPurchases(a, accounts, purchases));
+        const result = await financial(c, () => redeemPurchases(a, accounts, purchases), 'Не удалось сохранить покупку. Оплаченная покупка ожидает восстановления; повторите проверку покупок после восстановления связи.');
         send(c, { type: 'reply', requestId: m.requestId, ok: true, result }); return;
       }
       if (m.type === 'research' || m.type === 'upgrade') {

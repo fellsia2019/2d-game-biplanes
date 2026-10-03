@@ -1,7 +1,7 @@
 {
   "name": "biplanes",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5222 --strictPort",
@@ -10,6 +10,7 @@
     "build": "tsc --noEmit && vite build",
     "test": "tsx --test tests/*.test.ts",
     "balance": "tsx scripts/balance-report.ts",
+    "campaign:playthrough": "tsx scripts/campaign-playthrough.ts",
     "preview": "vite preview --host 127.0.0.1 --port 4186 --strictPort"
   },
   "dependencies": {

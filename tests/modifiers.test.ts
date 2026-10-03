@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { freshProfile, planeStats, CAREER_STAGES, ZONE } from '../shared/data';
+import { freshProfile, planeStats, CAREER_STAGES, ZONE, careerStage } from '../shared/data';
 import { MODIFIERS, makeModifierOffer, type ModifierId } from '../shared/modifiers';
 import { migrateCareer, ensureModifierOffer, chooseModifier, awardBossModifier, finishCareer, type CareerAccount } from '../server/career';
 import { approachBoss, createBattle, makePlane, stepBattle, startBossFight, finishBossReward, IDLE } from '../shared/simulation';
@@ -67,6 +67,15 @@ test('Тройной залп использует нос самолёта и к
   assert.ok(Math.abs(Math.atan2(s.bullets[1].vy,s.bullets[1].vx)+Math.PI/15)<1e-10);
   assert.ok(Math.abs(Math.atan2(s.bullets[2].vy,s.bullets[2].vx)-Math.PI/15)<1e-10);
 });
+test('Разные боссы одного непрерывного повторного прохождения дают отдельные награды', () => {
+  const a: CareerAccount={profile:freshProfile('replay')}; migrateCareer(a);
+  a.profile.defeatedBosses=[10,25,50]; a.profile.modifierBosses=[10,25,50];
+  const first=awardBossModifier(a,10,'same-flight')!; chooseModifier(a,first.id,first.options[0]);
+  const second=awardBossModifier(a,25,'same-flight')!;
+  assert.notEqual(first.id,second.id); assert.ok(!second.options.includes(first.options[0]));
+  chooseModifier(a,second.id,second.options[0]); assert.equal(a.profile.modifiers!.length,2);
+  assert.equal(awardBossModifier(a,25,'same-flight'),undefined);
+});
 test('Ракета предпочитает ПВО ближайшему самолёту, не наводится после запуска и не стреляет во время паузы', () => {
   const {s,pilot} = run(['auto-rocket'],11); pilot.rocketClock=0;
   s.obstacles=[{id:1,kind:'fighter',x:500,y:330,radius:24,hp:100,fire:999,damage:0},{id:2,kind:'pvo',x:950,y:626,radius:24,hp:100,fire:999,damage:0,pvoModel:'emplacement'}];
@@ -114,11 +123,11 @@ test('Критический выстрел удваивает урон, охл�
   pilot.heat=.5; stepBattle(s,{},.1); assert.equal(pilot.heat,.4375);
 });
 test('Границы этапов определяются боссами, откат сохраняет постоянные модификаторы', () => {
-  assert.deepEqual(CAREER_STAGES.map(s=>[s.start,s.end]),[[1,10],[11,25],[26,50]]);
-  for(const level of [10,25,50]) {
+  assert.deepEqual(CAREER_STAGES.slice(0,3).map(s=>[s.start,s.end]),[[1,10],[11,25],[26,50]]);
+  for(const level of [10,25,50,ZONE.length]) {
     const {p,s}=run(['reinforced-hull'],level); const a:CareerAccount={profile:p,bossFailures:{level,count:2}};
     approachBoss(s); startBossFight(s); s.planes[0].health=0; stepBattle(s,{},0); finishCareer(a,s);
-    assert.equal(a.restartLevel,level===10?1:level===25?11:26); assert.equal(p.modifiers!.length,1);
+    assert.equal(a.restartLevel,careerStage(level).start); assert.equal(p.modifiers!.length,1);
   }
 });
 test('Первый босс обучает поворотам, если игрок изучил только кампанию; обучение не требуется после дуэли', () => {
@@ -131,11 +140,11 @@ test('Первый босс обучает поворотам, если игро
   assert.equal(JSON.stringify(s),before); assert.deepEqual(practice.earned[p.id],{silver:0,xp:0});
 });
 test('Босс выдаёт половину серебра и XP и останавливает переход до выбора, в том числе на финальном уровне', () => {
-  for(const level of [10,25,50]) {
+  for(const level of [10,25,50,ZONE.length]) {
     const {s}=run([],level); approachBoss(s); startBossFight(s); s.planes[1].health=0;
     const rewards=stepBattle(s,{},0), boss=ZONE[level-1].boss!;
     assert.equal(rewards.find(r=>r.bossLevel)!.silver,boss.silver/2); assert.equal(rewards.find(r=>r.bossLevel)!.xp,boss.xp/2);
     assert.equal(s.phase,'reward'); s.paused=false; const before=JSON.stringify(s); assert.deepEqual(stepBattle(s,{},10),[]); assert.equal(JSON.stringify(s),before);
-    finishBossReward(s); assert.equal(s.phase,level===50?'ended':'flight');
+    finishBossReward(s); assert.equal(s.phase,level===ZONE.length?'ended':'flight');
   }
 });

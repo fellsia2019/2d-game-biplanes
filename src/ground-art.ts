@@ -15,9 +15,10 @@ export function canvasPainter(ctx: CanvasRenderingContext2D): GroundPainter {
     circle(x, y, radius, fill) { ctx.fillStyle = color(fill); ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill(); },
   };
 }
-export function drawRock(g: GroundPainter, o: { id: number; x: number; radius: number; height?: number }) {
+export function drawRock(g: GroundPainter, o: { id: number; x: number; radius: number; height?: number; terrainVariant?: number }) {
   const outline = rockPoints(o), points = [{ ...outline[0], y: GROUND_Y + 14 }, ...outline, { ...outline[outline.length - 1], y: GROUND_Y + 14 }], x = o.x, r = o.radius, top = GROUND_Y - (o.height ?? 190);
-  const palette = o.id % 3 === 0 ? [0xb69b6c, 0x8d7959, 0xd2bd88, 0x796d51] : o.id % 3 === 1 ? [0x6d7d83, 0x4d626b, 0x97a7ad, 0x425763] : [0x97785b, 0x776953, 0xb99a73, 0x6c6250];
+  const variant = o.terrainVariant ?? o.id % 3;
+  const palette = variant === 0 ? [0xb69b6c, 0x8d7959, 0xd2bd88, 0x796d51] : variant === 1 ? [0x6d7d83, 0x4d626b, 0x97a7ad, 0x425763] : [0x97785b, 0x776953, 0xb99a73, 0x6c6250];
   g.polygon(points, palette[0]); g.line([...points, points[0]], 3, palette[3]);
   g.polygon([{ x, y: top + 12 }, { x: x + r * .4, y: top + 50 }, { x: x + r * 1.1, y: GROUND_Y }, { x: x + r * .13, y: GROUND_Y }], palette[1]);
   g.line([{ x: x - r * .5, y: top + 75 }, { x: x + r * .45, y: top + 84 }], 5, palette[2]);
