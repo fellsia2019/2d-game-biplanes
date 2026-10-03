@@ -3,34 +3,52 @@ import { planeStats, type Profile } from '../shared/data';
 export type TutorialMode = 'pve' | 'duel';
 export const tutorialKey = (player: string, mode: TutorialMode) => `biplanes-tutorial-v1-${player}-${mode}`;
 export const needsBossLesson = (hasLearned: (mode: TutorialMode) => boolean) => !hasLearned('duel');
-export const lessonInput = (step: number): Controls => ({ turn: step === 1 ? -1 : step === 2 ? 1 : 0, fire: step === 3, boost: step === 4 });
-export function lessonMatches(step: number, input: Controls) {
-  return step === 1 ? input.turn < 0 : step === 2 ? input.turn > 0 : step === 3 ? input.fire : step === 4 ? input.boost : false;
+type LessonAction = 'up' | 'down' | 'left' | 'right' | 'fire' | 'boost';
+const actions: Record<TutorialMode, readonly LessonAction[]> = {
+  pve: ['up', 'down', 'left', 'right', 'fire', 'boost'],
+  duel: ['left', 'right', 'fire', 'boost'],
+};
+export const lessonInput = (step: number, mode: TutorialMode = 'duel'): Controls => {
+  const action = actions[mode][step - 1];
+  return {
+    turn: action === 'up' || mode === 'duel' && action === 'left' ? -1 : action === 'down' || mode === 'duel' && action === 'right' ? 1 : 0,
+    ...(mode === 'pve' ? {horizontal: action === 'left' ? -1 : action === 'right' ? 1 : 0} : {}),
+    fire: action === 'fire', boost: action === 'boost',
+  };
+};
+export function lessonMatches(step: number, input: Controls, mode: TutorialMode = 'duel') {
+  const expected = lessonInput(step, mode);
+  return expected.turn ? input.turn * expected.turn > 0 : expected.horizontal ? (input.horizontal ?? 0) * expected.horizontal > 0 : expected.fire ? input.fire : expected.boost ? input.boost : false;
 }
 export const LESSON_ACTION_SECONDS = .25;
 export class FlightLesson {
   step = 1; progress = 0; demonstrating = false;
   constructor(public mode: TutorialMode) {}
-  advance() { this.step = Math.min(5, this.step + 1); this.progress = 0; this.demonstrating = false; }
+  get total() { return actions[this.mode].length; }
+  get complete() { return this.step > this.total; }
+  get action() { return actions[this.mode][this.step - 1]; }
+  advance() { this.step = Math.min(this.total + 1, this.step + 1); this.progress = 0; this.demonstrating = false; }
   trigger(input: Controls) {
-    if (!lessonMatches(this.step, input)) return false;
+    if (!lessonMatches(this.step, input, this.mode)) return false;
     this.demonstrating = true; return true;
   }
   tick(input: Controls, dt: number) {
-    if (!lessonMatches(this.step, input)) { this.progress = 0; return false; }
+    if (!lessonMatches(this.step, input, this.mode)) { this.progress = 0; return false; }
     this.progress += Math.max(0, Math.min(.05, dt));
     if (this.progress >= LESSON_ACTION_SECONDS) { this.advance(); return true; } return false;
   }
-  get target() { return this.step === 3 ? 'fire' : this.step === 4 ? 'boost' : 'stick'; }
+  controls(input: Controls): Controls {
+    const expected = lessonInput(this.step, this.mode);
+    return {turn: expected.turn ? input.turn : 0, ...(this.mode === 'pve' ? {horizontal: expected.horizontal ? input.horizontal ?? 0 : 0} : {}), fire: expected.fire && input.fire, boost: expected.boost && input.boost};
+  }
+  get target() { return this.action === 'fire' ? 'fire' : this.action === 'boost' ? 'boost' : 'stick'; }
   copy(mobile: boolean) {
-    const vertical = this.mode === 'pve';
-    const titles = ['Учимся летать', vertical ? 'Вверх' : 'Поворот влево', vertical ? 'Вниз' : 'Поворот вправо', 'Огонь', 'Форсаж', 'Готово!'];
-    const texts = mobile ? [
-      'Попробуй управление.', 'Потяни контрол вверх.', 'Потяни контрол вниз.', 'Нажми огонь справа.', 'Нажми молнию.', 'Можно в бой!',
-    ] : [
-      'Попробуй управление.', vertical ? 'Нажми W.' : 'Нажми A.', vertical ? 'Нажми S.' : 'Нажми D.', 'Нажми Пробел.', 'Нажми Shift.', 'Можно в бой!',
-    ];
-    return { title: titles[this.step], text: texts[this.step], key: this.step === 1 ? vertical ? 'W' : 'A' : this.step === 2 ? vertical ? 'S' : 'D' : this.step === 3 ? 'Пробел' : this.step === 4 ? 'Shift' : '' };
+    if (this.complete) return {title:'Готово!', text:'Можно в бой!', key:''};
+    const campaign = this.mode === 'pve', action = this.action;
+    const titles = {up:'Вверх', down:'Вниз', left:campaign ? 'Влево' : 'Поворот влево', right:campaign ? 'Вправо' : 'Поворот вправо', fire:'Огонь', boost:'Форсаж'};
+    const keys = {up:'W', down:'S', left:'A', right:'D', fire:'Пробел', boost:'Shift'};
+    const touch = {up:'Потяни контрол вверх.', down:'Потяни контрол вниз.', left:campaign ? 'Потяни контрол влево.' : 'Потяни контрол вверх.', right:campaign ? 'Потяни контрол вправо.' : 'Потяни контрол вниз.', fire:'Нажми огонь справа.', boost:'Нажми молнию.'};
+    return {title:titles[action], text:mobile ? touch[action] : 'Нажми ' + keys[action] + '.', key:keys[action]};
   }
 }
 

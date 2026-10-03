@@ -5,7 +5,7 @@ import { createHmac } from 'node:crypto';
 import { freshProfile, campaignReward, planeStats, ZONE, claimTask, resetTasks } from '../shared/data';
 import { combatReward, hasPremium, premiumExpiresAt, normalizePremium, PREMIUM_DURATION_MS, PREMIUM_PRODUCT_ID, premiumCombatReward } from '../shared/premium';
 import { type PaymentAccount, redeemPurchases, verifyPurchases } from '../server/payments';
-import { createBattle, makePlane, stepBattle, IDLE, beginBoss, forfeitDuel, finishSortie, refreshPlaneStats, type Battle } from '../shared/simulation';
+import { createBattle, makePlane, stepBattle, IDLE, beginBoss, forfeitDuel, refreshPlaneStats, type Battle } from '../shared/simulation';
 import { exchange } from '../server/economy';
 import { operationMission, sortieReward } from '../shared/operations';
 
@@ -214,9 +214,9 @@ test('Сохранённые выплаты за цели вычитаются �
     const budget = sortieReward(level), floor = {silver:premiumCombatReward(campaignReward(budget.silver),a.profile), xp:premiumCombatReward(campaignReward(budget.xp),a.profile)};
     const topUp = complete(); assert.equal(topUp.length,1); assert.equal(topUp[0].kind,'sortie');
     assert.equal(topUp[0].silver,floor.silver-paid.silver); assert.equal(topUp[0].xp,floor.xp-paid.xp);
-    assert.deepEqual(restored.earned[a.profile.id],floor); assert.equal(restored.operation!.killSilver,paid.silver); assert.equal(restored.operation!.killXp,paid.xp);
+    assert.deepEqual(restored.earned[a.profile.id],floor); assert.equal(restored.operation!.killSilver,0); assert.equal(restored.operation!.killXp,0);
     assert.deepEqual(stepBattle(restored, {[a.profile.id]:IDLE}, 1/30),[]); assert.deepEqual(restored.earned[a.profile.id],floor);
-    finishSortie(restored); assert.equal(restored.operation!.killSilver,0); assert.equal(restored.operation!.killXp,0);
+    assert.equal(restored.phase,'flight'); assert.equal(restored.paused,false);
     const next = complete(); assert.equal(next.length,1); assert.equal(next[0].silver,floor.silver); assert.equal(next[0].xp,floor.xp);
     assert.deepEqual(restored.earned[a.profile.id],{silver:floor.silver*2,xp:floor.xp*2});
   }

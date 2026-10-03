@@ -8,6 +8,7 @@ import { RenderBuffer } from './render-state';
 import { AIRCRAFT_ART, bossAircraft, aircraftAsset, prepareAircraft, paintAircraft } from './aircraft';
 import { PVO_MODELS, pvoAsset, preparePvo } from './pvo-art';
 import { drawGoldenTrail } from './aircraft-effects';
+import { BOMBER, bomberBombLanes, bombsDropped } from '../shared/bombers';
 type Particle = { x: number; y: number; vx: number; vy: number; age: number; life: number; size: number; color: number; smoke?: boolean };
 export class SkyScene extends Phaser.Scene {
   onReady?: () => void;
@@ -200,6 +201,7 @@ export class SkyScene extends Phaser.Scene {
       this.aircraftTime += dt;
       const used = new Set<string>();
       if (this.active) { for (const p of state?.planes ?? []) if (p.health > 0) used.add(p.id === 'boss' ? bossAircraft(state?.level ?? 10) : p.model); for (const o of state?.obstacles ?? []) if (o.kind === 'fighter' || o.kind === 'heavy') used.add(o.kind === 'heavy' ? 'enemy-heavy' : 'enemy'); }
+      if (this.active && state?.bombers?.length) used.add('enemy-bomber');
       document.querySelectorAll<HTMLCanvasElement>('canvas[data-aircraft]').forEach(canvas => used.add(canvas.dataset.aircraft!));
       for (const id of used) { const art = this.art.get(id); if (!art) continue; const texture = this.textures.get(id) as Phaser.Textures.CanvasTexture; paintAircraft(texture.context, art, this.aircraftTime); texture.refresh(); }
     }
@@ -210,7 +212,7 @@ export class SkyScene extends Phaser.Scene {
       for (const item of this.queuedEffects) if (item.time <= state.time + .001 || state.phase === 'ended') this.effect(item.effect);
       this.queuedEffects = this.queuedEffects.filter(item => item.time > state.time + .001 && state.phase !== 'ended');
     }
-    const visibleIds = new Set([...(state?.planes.map(p => p.id) ?? []), ...(state?.obstacles.filter(o => o.kind === 'fighter' || o.kind === 'heavy' || o.kind === 'pvo').map(o => 'obstacle-' + o.id) ?? [])]);
+    const visibleIds = new Set([...(state?.planes.map(p => p.id) ?? []), ...(state?.bombers?.map(b => 'bomber-' + b.id) ?? []), ...(state?.obstacles.filter(o => o.kind === 'fighter' || o.kind === 'heavy' || o.kind === 'pvo').map(o => 'obstacle-' + o.id) ?? [])]);
     for (const [id, sprite] of this.sprites) if (!visibleIds.has(id)) { sprite.destroy(); this.sprites.delete(id); this.engineEnergy.delete(id); }
     if (state) {
       for (const p of state.planes) this.drawPlane(p, state.level);
@@ -220,13 +222,19 @@ export class SkyScene extends Phaser.Scene {
         else { g.fillStyle(0x19465c,.9); g.fillRoundedRect(pickup.x-20,pickup.y-18,40,36,5); g.lineStyle(3,0x8ef2bd,.9); g.strokeRoundedRect(pickup.x-20,pickup.y-18,40,36,5); g.lineStyle(5,0xb5ffdd); g.lineBetween(pickup.x-9,pickup.y,pickup.x+9,pickup.y); g.lineBetween(pickup.x,pickup.y-9,pickup.x,pickup.y+9); }
       }
       for (const bomber of state.bombers ?? []) {
-        const g = this.ink;
-        g.fillStyle(0x243c57,.95); g.fillEllipse(bomber.x,bomber.y,90,17); g.fillTriangle(bomber.x-22,bomber.y-12,bomber.x+18,bomber.y+5,bomber.x-22,bomber.y+13);
-        g.lineStyle(3,0xf0ad6e,.85); g.lineBetween(bomber.x-35,bomber.y-3,bomber.x+33,bomber.y-3);
-        if (bomber.warning > 0) for (let i=0;i<bomber.bombs;i++) {
-          const lane=bomber.dropX + (i-(bomber.bombs-1)/2)*70; g.fillStyle(0xffa64d,.13); g.fillRect(lane-39,80,78,540); g.lineStyle(3,0xffbf6c,.85);
-          for (let y=80;y<620;y+=36) g.lineBetween(lane,y,lane,y+18);
-          g.fillStyle(0xffc478,.95); g.fillTriangle(lane-12,160,lane+12,160,lane,180);
+        const g = this.ink, id = 'bomber-' + bomber.id;
+        let img = this.sprites.get(id);
+        if (!img) { img = this.add.image(bomber.x,bomber.y,'enemy-bomber').setDepth(10).setScale(.48).setFlipX(true); this.sprites.set(id,img); }
+        img.setPosition(bomber.x,bomber.y); this.drawEngine(img,(bomber.hp ?? Infinity) < ZONE[state.level-1].enemyHp * 2.5 * .35);
+        if (bomber.warning <= BOMBER.warningSeconds && bombsDropped(bomber) < bomber.bombs) {
+          // The marked carpet is fixed; it never tracks the player's movement.
+          for (const lane of bomberBombLanes(bomber)) {
+            g.fillStyle(0xffa64d,.08); g.fillRect(lane-24,bomber.y+BOMBER.bayOffset,48,GROUND_Y-bomber.y-BOMBER.bayOffset);
+            g.lineStyle(2,0xffbf6c,.65);
+            for (let y=bomber.y+BOMBER.bayOffset;y<GROUND_Y;y+=36) g.lineBetween(lane,y,lane,Math.min(y+16,GROUND_Y));
+            g.fillStyle(0xffc478,.95); g.fillTriangle(lane-9,146,lane+9,146,lane,160);
+          }
+          g.fillStyle(0xffcf85,.8); g.fillEllipse(bomber.x,bomber.y+BOMBER.bayOffset,18,7);
         }
       }
       for (const b of state.bullets) {

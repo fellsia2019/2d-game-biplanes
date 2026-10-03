@@ -8,17 +8,16 @@ import { icon } from './icons';
 import { renderLobby, renderHangar, renderStore, renderSkills } from './menu';
 import { mountCareerSlider, destroyCareerSlider } from './career-slider';
 import { chooseTutorialPosition, type TutorialPosition } from './tutorial-layout';
-import { DAILY, WEEKLY, PLANES, MODULES, pilotRank, ZONE, Profile, careerStage, bossBalance, campaignReward } from '../shared/data';
+import { DAILY, WEEKLY, PLANES, MODULES, pilotRank, ZONE, Profile, careerStage, bossBalance } from '../shared/data';
 import { bossAircraft } from './aircraft';
 import { LoadingScreen } from './loading';
 import { renderModifiers, renderModifierReward } from './modifier-cards';
 import { DebugPanel } from './debug';
 import type { ModifierOffer } from '../shared/modifiers';
-import { combatReward } from '../shared/premium';
 import { phoenixPartRequirements } from '../shared/phoenix';
 import type { Upgrade } from '../shared/data';
 import { Battle } from '../shared/simulation';
-import { operationPlan, operationMission, missionProgress, sortieReward } from '../shared/operations';
+import { operationPlan, operationMission, missionProgress } from '../shared/operations';
 const app = document.querySelector<HTMLDivElement>('#app')!, toastEl = document.querySelector<HTMLDivElement>('#toast')!;
 const scene = new SkyScene(), platform = new Platform();
 const loading = new LoadingScreen(); loading.stage('Загружаем самолёты и небо…', 0);
@@ -62,7 +61,7 @@ function clearControls() {
 }
 function beginLesson(mode: TutorialMode, replay = false) {
   if (!p || !connected || battle) return;
-  if (mode === 'pve' && bossOffer) { renderMenu(); return; }
+  if (mode === 'pve' && bossOffer && !replay) { renderMenu(); return; }
   const launch = () => send(mode === 'pve' ? { type: 'pve', resume } : { type: 'queue' });
   const done = hasLearned(mode);
   if (done && !replay) { launch(); return; }
@@ -101,9 +100,9 @@ function renderLesson() {
   if (!lesson) return;
   lessonPosition = undefined; document.body.classList.remove('lesson-rail');
   const mobile = touchDevice(), copy = lesson.copy(mobile), el = document.querySelector('#battle-overlay'); if (!el) return;
-  el.innerHTML = '<div class="tutorial-layer" role="dialog" aria-modal="true" aria-labelledby="lesson-title" tabindex="-1"><div class="tutorial-spotlight"><span class="tutorial-hand" aria-hidden="true">☝</span></div><section class="tutorial-card"><span class="eyebrow">' + lesson.step + '/4</span>' + (lessonBoss ? '<span class="boss-lesson-note">У БОССА — НОВОЕ УПРАВЛЕНИЕ</span>' : '') + '<h2 id="lesson-title">' + copy.title + '</h2><p>' + copy.text + '</p>' + (!mobile && copy.key ? '<kbd class="lesson-key">' + copy.key + '</kbd>' : '') + (lessonBoss ? '<small>Босс ждёт на паузе. Здесь вы неуязвимы.</small>' : '') + '</section></div>';
+  el.innerHTML = '<div class="tutorial-layer" role="dialog" aria-modal="true" aria-labelledby="lesson-title" tabindex="-1"><div class="tutorial-spotlight"><span class="tutorial-hand" aria-hidden="true">☝</span></div><section class="tutorial-card"><span class="eyebrow">' + lesson.step + '/' + lesson.total + '</span>' + (lessonBoss ? '<span class="boss-lesson-note">У БОССА — НОВОЕ УПРАВЛЕНИЕ</span>' : '') + '<h2 id="lesson-title">' + copy.title + '</h2><p>' + copy.text + '</p>' + (!mobile && copy.key ? '<kbd class="lesson-key">' + copy.key + '</kbd>' : '') + (lessonBoss ? '<small>Босс ждёт на паузе. Здесь вы неуязвимы.</small>' : '') + '</section></div>';
   document.querySelectorAll('.tutorial-focus').forEach(el => el.classList.remove('tutorial-focus'));
-  if (mobile && lesson.step > 0 && lesson.step < 5) document.querySelector(lesson.target === 'stick' ? '.flight-stick' : '[data-control="' + lesson.target + '"]')?.classList.add('tutorial-focus');
+  if (mobile && !lesson.complete) document.querySelector(lesson.target === 'stick' ? '.flight-stick' : '[data-control="' + lesson.target + '"]')?.classList.add('tutorial-focus');
   positionLesson();
   el.querySelector<HTMLElement>('.tutorial-layer')?.focus();
 }
@@ -180,8 +179,13 @@ function settings() {
   return '<div class="page-heading"><h1>Настройки</h1></div><section class="settings-panel"><h2>Звук</h2><div class="audio-settings">' + rows + '</div><h2>Управление</h2><button class="audio-setting" data-action="touch-setting" aria-pressed="' + forceTouch + '"><span class="setting-symbol">' + icon('turnRight') + '</span><span class="setting-copy"><b>Всегда показывать экранное управление</b><span>Круговой контрол и огонь. На телефоне включаются автоматически.</span></span><span class="audio-state">' + (forceTouch ? 'Включено' : 'Автоматически') + '</span></button><p class="muted">Настройки сохраняются на этом устройстве.</p></section>';
 }
 function help() {
-  return '<div class="help-heading"><button class="button subtle back-button" data-tab="play">' + icon('arrowLeft') + ' Назад</button><h1>Как летать</h1></div><div class="help-grid"><section class="help-card"><h2>Обучение</h2><p>Безопасный полёт с подсказками для вашего устройства.</p><button class="button" data-action="tutorial-pve">Повторить: карьера</button><button class="button subtle" data-action="tutorial-duel">Повторить: один на один</button><h2>Клавиатура</h2><p><b>Обычные уровни карьеры:</b> <kbd>W</kbd> вверх, <kbd>S</kbd> вниз; <kbd>D</kbd> вперёд, <kbd>A</kbd> назад. Самолёт летит горизонтально.</p><p><b>Дуэль и боссы:</b> <kbd>A</kbd> <kbd>' + icon('arrowLeft') + '</kbd> поворот вверх / против часовой</p><p><kbd>D</kbd> <kbd>' + icon('arrow') + '</kbd> поворот вниз / по часовой</p><p><kbd>Пробел</kbd> удерживать огонь</p><p><kbd>Shift</kbd> форсаж · <kbd>Esc</kbd> пауза</p><p>На телефоне — круговой контрол слева и огонь справа. Их можно удерживать одновременно.</p></section><section class="help-card"><h2>Кампания</h2><p>Летите вправо через 250 уровней и 11 боссов. Врагов можно уничтожать или обходить. Скалы опасны, огонь ПВО предупреждает о выстреле.</p><p>Первый этап — 1–10, затем 11–25 и 26–50. После 50-го каждый этап длится 25 уровней и завершается боссом. Перед боссом полёт останавливается: можно зайти в ангар и вернуться. При первом бое с поворотным управлением покажем безопасное обучение.</p><p>При выходе полёт сохраняется. Уровень состоит из коротких вылетов с разными задачами: перехват, разведка, снабжение, ПВО, конвой, патруль и командир звена. После гибели повторяется текущий вылет, завершённые сохраняются. Между вылетами самолёт ремонтируют. За выполненный вылет гарантирован минимальный общий доход: награды за уничтожения уже входят в него, всё сверх минимума остаётся вам. На босса — 3 попытки, затем возврат к началу текущего этапа. Победа даёт выбор постоянного модификатора: ваши модификаторы видны в меню и сохраняются на любом самолёте.</p></section><section class="help-card"><h2>Бомбардировщики и навык</h2><p>Перед сбросом бомб сверху появляется пунктирная полоса. Уйдите с неё: крупные бомбы падают медленно и не меняют направление.</p><p>После босса 10 можно купить «Фазовый проход» во вкладке «Навыки» за серебро и опыт. E или фиолетовая кнопка: 2 секунды сквозь скалы, ПВО и самолёты, восстановление 35 секунд. Бомбы, пули и земля остаются опасными.</p></section><section class="help-card"><h2>Воздушная дуэль</h2><p>Первый до трёх побед, максимум две минуты. После потери самолёта — новое появление со щитом. Выстрел снимает щит.</p><p>Поиск игрока длится 15 секунд. Если боты разрешены, можно сразу нажать «Сразу в бой с ботом» или дождаться ИИ. Бот всегда подписан.</p></section><section class="help-card"><h2>Развитие самолёта</h2><p>Прочность, скорость и огонь улучшаются во вкладке «Самолёты». Следите за перегревом и запасом форсажа.</p><p>У бесплатных самолётов три ветки по 15 улучшений. Феникс доступен со старта за золото: сначала равен Стрижу, затем развивается через 6 ступеней золотых деталей, открываемых победами над боссами. Для следующего бесплатного самолёта нужны полная прокачка предыдущего и победа над нужным боссом. Опыт расходуется на исследование улучшений, серебро — на их покупку. Получайте серебро за бой, задачи и ежедневный вход.</p></section></div>';
+  const card = (mode: TutorialMode, title: string, symbol: 'plane' | 'duel') => {
+    const action = hasLearned(mode) ? 'Повторить обучение' : 'Пройти обучение';
+    return '<button class="lesson-choice lesson-choice-' + mode + '" data-action="tutorial-' + mode + '" aria-label="' + action + ': ' + title + '"><span class="lesson-choice-art" aria-hidden="true">' + icon(symbol) + '</span><strong>' + title + '</strong><span class="lesson-choice-cta">' + action + ' ' + icon('play') + '</span></button>';
+  };
+  return '<div class="help-heading"><button class="button subtle back-button" data-tab="play">' + icon('arrowLeft') + ' Назад</button><h1>Как летать</h1></div><div class="lesson-choices">' + card('pve', 'Кампания', 'plane') + card('duel', 'Дуэль', 'duel') + '</div>';
 }
+
 function renderMenu(preserveScroll = false) {
   destroyCareerSlider(); document.body.classList.remove('lesson-rail');
   debug?.update(p, battle, !!lesson);
@@ -234,27 +238,19 @@ function updateHud() {
   bar('level-bar', battle.mode === 'pve' ? (operation?.seconds ?? 0) / mission.seconds : battle.time / 120);
   const skillButton = document.querySelector<HTMLButtonElement>('[data-control="skill"]'); if (skillButton) { skillButton.hidden = !me.phaseSkill; skillButton.disabled = !!me.phaseCooldown && !me.phaseSeconds; skillButton.textContent = me.phaseSeconds ? 'ФАЗА ' + me.phaseSeconds.toFixed(1) : me.phaseCooldown ? Math.ceil(me.phaseCooldown) + 'с' : 'ФАЗА · E'; }
   const boss = document.getElementById('boss-hud'); if (boss) boss.innerHTML = battle.phase === 'boss' ? '<div class="boss-meter"><i style="width:' + Math.max(0, enemy!.health / enemy!.hp * 100) + '%"></i></div><span>' + Math.max(0, Math.ceil(enemy!.health)) + ' / ' + Math.round(enemy!.hp) + '</span>' : '';
-  const phase = ['boss-intro', 'reward', 'sortie-reward'].includes(battle.phase) ? battle.phase + ':' + (bossOffer?.id ?? '') : battle.paused ? 'paused' : battle.phase;
+  const phase = ['boss-intro', 'reward'].includes(battle.phase) ? battle.phase + ':' + (bossOffer?.id ?? '') : battle.paused ? 'paused' : battle.phase;
   if (phase !== lastPhase) { lastPhase = phase; renderOverlay(); }
   if (battle.phase === 'ended' && !finished) { finished = true; clearControls(); platform.gameplay(false); scene.audio.play('reward'); }
 }
 function renderOverlay() {
   if (!battle) return;
-  const careerModal = battle.phase === 'boss-intro' || battle.phase === 'reward' || battle.phase === 'sortie-reward' || battle.mode === 'pve' && battle.phase === 'ended';
+  const careerModal = battle.phase === 'boss-intro' || battle.phase === 'reward' || battle.mode === 'pve' && battle.phase === 'ended';
   const el = document.getElementById(careerModal ? 'career-overlay' : 'battle-overlay'); if (!el) return;
   const other = document.getElementById(careerModal ? 'battle-overlay' : 'career-overlay'); if (other) other.innerHTML = '';
   if (lesson && !battle.paused) { renderLesson(); return; }
-  if (battle.phase === 'sortie-reward') {
-    const completed = battle.operation!.completed, next = operationMission(battle.level, completed);
-    const budget=sortieReward(battle.level), multiplier=battle.planes[0].rewardMultiplier ?? 1;
-    const silver=Math.max(battle.operation?.killSilver ?? 0,combatReward(campaignReward(budget.silver),multiplier));
-    const xp=Math.max(battle.operation?.killXp ?? 0,combatReward(campaignReward(budget.xp),multiplier));
-    el.innerHTML = '<div class="shade career-shade"><section class="result-panel sortie-summary" role="dialog" aria-modal="true"><span class="eyebrow">ВЫЛЕТ ВЫПОЛНЕН · ' + completed + '/' + operationPlan(battle.level).sorties + '</span><h1>Следующий вылет: ' + next.title + '</h1><p>' + next.brief + '</p><small>Доход этого вылета: ' + money(silver) + ' серебра · ' + money(xp) + ' опыта. Награды за уничтожения уже учтены.</small><small>Завершённые вылеты сохранены. Перед следующим самолёт полностью отремонтируют.</small><button class="button" data-action="sortie-next">Следующий вылет</button><button class="plain" data-action="boss-hangar">В ангар · улучшить самолёт</button></section></div>';
-    return;
-  }
   if (battle.phase === 'boss-intro') {
     const boss = bossBalance(battle.level), stage = careerStage(battle.level);
-    el.innerHTML = '<div class="shade career-shade"><section class="boss-intro-panel" role="dialog" aria-modal="true" aria-labelledby="boss-title"><div class="boss-intro-art"><span class="boss-stage-tag">ЭТАП ' + stage.number + ' · УРОВЕНЬ ' + battle.level + '</span><canvas data-aircraft="' + bossAircraft(battle.level) + '" width="400" height="200" role="img" aria-label="Самолёт босса ' + boss.name + '"></canvas><span class="boss-intro-seal">' + icon('target') + '</span></div><div class="boss-intro-copy"><span class="collection-kicker">ВЫ ДОШЛИ ДО БОССА</span><h1 id="boss-title">' + boss.name + '</h1><p>Полёт на паузе. Подготовьте самолёт в ангаре или вступите в бой сейчас.</p><div class="boss-intro-specs"><span>' + icon('armor') + '<b>' + boss.hp + '</b> HP</span><span>' + icon('cards') + 'Модификатор за победу</span></div><p class="boss-attempt-note">Попытка ' + (battle.bossAttempt ?? 1) + ' из 3. После трёх поражений — возврат к уровню ' + stage.start + '. Ваши модификаторы сохранятся.</p><div class="boss-intro-actions"><button class="button" data-action="boss-start">В бой ' + icon('duel') + '</button><button class="button subtle" data-action="boss-hangar">' + icon('hangar') + ' В ангар</button></div><small>Возвращение из ангара не тратит попытку.</small></div></section></div>';
+    el.innerHTML = '<div class="shade career-shade"><section class="boss-intro-panel" role="dialog" aria-modal="true" aria-labelledby="boss-title"><div class="boss-intro-art"><span class="boss-stage-tag">ЭТАП ' + stage.number + ' · УРОВЕНЬ ' + battle.level + '</span><canvas data-aircraft="' + bossAircraft(battle.level) + '" width="400" height="200" role="img" aria-label="Самолёт босса ' + boss.name + '"></canvas><span class="boss-intro-seal">' + icon('target') + '</span></div><div class="boss-intro-copy"><span class="collection-kicker">ВЫ ДОШЛИ ДО БОССА</span><h1 id="boss-title">' + boss.name + '</h1><p>Полёт на паузе. Подготовьте самолёт в ангаре или вступите в бой сейчас. У босса управление изменится: A/D поворачивают нос, самолёт летит по курсу. На телефоне джойстик задаёт направление.</p><div class="boss-intro-specs"><span>' + icon('armor') + '<b>' + boss.hp + '</b> HP</span><span>' + icon('cards') + 'Модификатор за победу</span></div><p class="boss-attempt-note">Попытка ' + (battle.bossAttempt ?? 1) + ' из 3. После трёх поражений — возврат к уровню ' + stage.start + '. Ваши модификаторы сохранятся.</p><div class="boss-intro-actions"><button class="button" data-action="boss-start">В бой ' + icon('duel') + '</button><button class="button subtle" data-action="boss-hangar">' + icon('hangar') + ' В ангар</button></div><small>Возвращение из ангара не тратит попытку.</small></div></section></div>';
     return;
   }
   if (battle.phase === 'reward') { el.innerHTML = p && bossOffer ? renderModifierReward(p, bossOffer) : '<div class="shade"><p>Сохраняем победу…</p></div>'; return; }
@@ -275,7 +271,7 @@ function setPause(reason: string, value: boolean) {
   if (onlineDuel) return;
   if (lesson) { battle.paused = pauseReasons.size > 0; scene.accept(structuredClone(battle), you); renderOverlay(); return; }
   send({ type: 'pause', paused: pauseReasons.size > 0 });
-  platform.gameplay(pauseReasons.size === 0 && !['boss-intro', 'reward', 'sortie-reward'].includes(battle.phase));
+  platform.gameplay(pauseReasons.size === 0 && !['boss-intro', 'reward'].includes(battle.phase));
 }
 function home(destination = 'play') { const training = !!lesson; if (!training || lessonBoss) send({type:'leave'}); lesson = undefined; afterLesson = undefined; lessonBoss = undefined; tab = destination; if (destination === 'fleet') inspectedPlane = p?.selected ?? ''; battle = undefined; finished = false; pauseReasons.clear(); clearControls(); syncOrientation(); renderMenu(); }
 document.addEventListener('click', e => {
@@ -313,7 +309,6 @@ document.addEventListener('click', e => {
   if (target.dataset.claim) send({ type: 'claim', id: target.dataset.claim, period: target.dataset.period, key: target.dataset.key });
   switch (target.dataset.action) {
     case 'boss-start': startBossWithLesson(); break;
-    case 'sortie-next': target.setAttribute('disabled',''); void rpc('sortie-next', {paused:pauseReasons.size > 0}).catch(error => { target.removeAttribute('disabled'); toast(error.message); }); break;
     case 'boss-hangar': home('fleet'); break;
     case 'boss-return': send({type:'pve',resume:true}); break;
     case 'queue': beginLesson('duel'); break;
@@ -353,7 +348,7 @@ document.addEventListener('keydown', e => {
     }
   }
   if (!battle || battle.phase === 'ended') return;
-  if (battle.phase === 'boss-intro' || battle.phase === 'reward' || battle.phase === 'sortie-reward') return;
+  if (battle.phase === 'boss-intro' || battle.phase === 'reward') return;
   if (lesson && e.code === 'Tab' && !battle.paused) { e.preventDefault(); return; }
   if (['KeyW', 'KeyS', 'KeyA', 'KeyD', 'KeyE', 'Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
   if (e.code === 'Escape' && !e.repeat) setPause('manual', !pauseReasons.has('manual'));
@@ -377,7 +372,7 @@ function moveStick(e: PointerEvent) {
   const r = stick.getBoundingClientRect(), radius = r.width / 2;
   const x = (e.clientX - r.left - radius) / radius, y = (e.clientY - r.top - r.height / 2) / radius, length = Math.max(1, Math.hypot(x, y));
   stickX = x / length; stickY = y / length;
-  if (lesson && !battle?.paused && !pauseReasons.size && Math.abs(stickY) >= .2) lesson.trigger({ turn: Math.sign(stickY), fire: false, boost: false });
+  if (lesson && !battle?.paused && !pauseReasons.size) lesson.trigger({ turn: Math.abs(stickY) >= .2 ? Math.sign(stickY) : 0, horizontal: joystickHorizontal(stickX), fire: false, boost: false });
   stick.querySelector<HTMLElement>('.stick-knob')!.style.transform = `translate(${stickX * radius * .55}px,${stickY * radius * .55}px)`;
 }
 document.addEventListener('pointermove', moveStick);
@@ -390,7 +385,7 @@ document.addEventListener('visibilitychange', () => setPause('hidden', document.
 document.addEventListener('contextmenu', e => e.preventDefault());
 setInterval(() => {
   if (queueStarted) { const seconds = Math.floor((Date.now() - queueStarted) / 1000); const counter = document.getElementById('queue-seconds'), hint = document.getElementById('queue-hint'); if (counter) counter.textContent = '' + seconds; if (hint) hint.textContent = seconds < 15 ? 'Ищем пилота близкого ранга' : p?.allowBots ? 'Готовим бой с ботом…' : 'Продолжаем искать игрока'; }
-  if (!battle || ['ended', 'boss-intro', 'reward', 'sortie-reward'].includes(battle.phase) || battle.paused || pauseReasons.size) return;
+  if (!battle || ['ended', 'boss-intro', 'reward'].includes(battle.phase) || battle.paused || pauseReasons.size) return;
   if (!lesson) { send({ type: 'input', ...currentControls() }); skillPulseFrames = Math.max(0, skillPulseFrames - 1); }
 }, 1000 / 30);
 function currentControls() {
@@ -407,14 +402,14 @@ let lessonFrame = performance.now();
 function tickLesson(now: number) {
   const dt = Math.min(.04, (now - lessonFrame) / 1000); lessonFrame = now;
   if (lesson && battle && !battle.paused && !pauseReasons.size && !document.hidden) {
-    const raw = lesson.demonstrating ? lessonInput(lesson.step) : currentControls();
-    const input = { turn: lesson.step === 1 || lesson.step === 2 ? raw.turn : 0, fire: lesson.step === 3 && raw.fire, boost: lesson.step === 4 && raw.boost };
+    const raw = lesson.demonstrating ? lessonInput(lesson.step, lesson.mode) : currentControls();
+    const input = lesson.controls(raw);
     // Freeze between instructions; no obstacles, damage, economy or online opponent.
-    if (lesson.step > 0 && lesson.step < 5) stepTrainingBattle(battle, you, input, dt);
+    if (!lesson.complete) stepTrainingBattle(battle, you, input, dt);
     const progressInput = stickPointer !== undefined && !lesson.demonstrating && (lesson.step === 1 || lesson.step === 2) ? { ...input, turn: Math.abs(stickY) >= .2 ? Math.sign(stickY) : 0 } : input;
     if (lesson.tick(progressInput, dt)) {
       clearControls();
-      if (lesson.step === 5) { finishLesson(); requestAnimationFrame(tickLesson); return; }
+      if (lesson.complete) { finishLesson(); requestAnimationFrame(tickLesson); return; }
       renderLesson();
     }
 
@@ -453,8 +448,8 @@ function connect() {
     }
     if (m.type === 'queued') { queueStarted = Date.now(); renderQueue(); }
     if (m.type === 'cancelled') { queueStarted = 0; renderMenu(); }
-    if (m.type === 'start') { battle = m.battle; you = m.you; queueStarted = 0; finished = false; lastPhase = ''; pauseReasons.clear(); if (debug?.isOpen) { pauseReasons.add('debug'); send({type:'pause',paused:true}); } clearControls(); renderBattle(); scene.accept(battle!, you); platform.gameplay(!battle!.paused && !['ended', 'boss-intro', 'reward', 'sortie-reward'].includes(battle!.phase)); syncOrientation(); }
-    if (m.type === 'state' && battle?.id === m.battle.id) { battle = m.battle; scene.accept(battle!, you); updateHud(); platform.gameplay(!battle!.paused && !['ended', 'boss-intro', 'reward', 'sortie-reward'].includes(battle!.phase)); }
+    if (m.type === 'start') { battle = m.battle; you = m.you; queueStarted = 0; finished = false; lastPhase = ''; pauseReasons.clear(); if (debug?.isOpen) { pauseReasons.add('debug'); send({type:'pause',paused:true}); } clearControls(); renderBattle(); scene.accept(battle!, you); platform.gameplay(!battle!.paused && !['ended', 'boss-intro', 'reward'].includes(battle!.phase)); syncOrientation(); }
+    if (m.type === 'state' && battle?.id === m.battle.id) { battle = m.battle; scene.accept(battle!, you); updateHud(); platform.gameplay(!battle!.paused && !['ended', 'boss-intro', 'reward'].includes(battle!.phase)); }
     if (m.type === 'error') toast(m.message);
   };
   ws.onclose = e => {

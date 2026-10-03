@@ -128,6 +128,7 @@ function enterPve(c: Client, resume: boolean) {
   if (battle.phase === 'flight') normalizeCampaignPlane(battle.planes[0]);
   if (!saved && a.restartBoss) approachBoss(battle);
   if (saved && battle.phase === 'boss') battle.phase = 'boss-intro';
+  if (battle.phase === 'sortie-reward') finishSortie(battle);
   if (battle.phase === 'reward') finishBossReward(battle);
   prepareBossAttempt(a, battle);
   battle.paused = battle.phase === 'boss-intro' || battle.phase === 'sortie-reward'; battles.add(battle); assign(c, battle); a.checkpoint = battle; dirty = true;

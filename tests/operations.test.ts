@@ -7,6 +7,7 @@ import {buyPlane, researchUpgrade, buyUpgrade} from '../server/economy';
 import {buySkill} from '../server/skills';
 import {finishCareer, type CareerAccount} from '../server/career';
 import {RenderBuffer} from '../src/render-state';
+import {GROUND_Y} from '../shared/terrain';
 const dt = 1/30;
 function flight(level=1, skill=false) {
   const p=freshProfile('pilot'); p.skills={phase:skill};
@@ -31,14 +32,64 @@ test('Boost or distance cannot skip time and objectives; pause freezes the objec
   assert.equal(stepBattle(s,{pilot:IDLE},dt).filter(r=>r.kind==='sortie').length,1); assert.equal(s.level,2);
   assert.equal(stepBattle(s,{pilot:IDLE},dt).filter(r=>r.kind==='sortie').length,0);
 });
-test('Sortie reward pauses once, clears hazards, and continuation repairs without losing completed objectives',()=>{
+test('Ordinary sorties continue without a briefing, repair once and preserve the flight position',()=>{
   const s=flight(4); const m=operationMission(4);
   Object.assign(s.operation!,{seconds:m.seconds,kills:m.targetKills,specialKills:m.targetSpecial,collected:m.targetPickups});
   s.planes[0].health=40; s.bombers=[{id:30,x:1000,y:38,dropX:900,warning:1,bombs:1}];
-  const rewards=stepBattle(s,{pilot:IDLE},dt); assert.equal(s.phase,'sortie-reward'); assert.equal(s.operation!.completed,1); assert.equal(rewards.length,1);
-  const seconds=s.time;tick(s,4);assert.equal(s.time,seconds);
-  finishSortie(s); assert.equal(s.planes[0].health,s.planes[0].hp); assert.equal(s.operation!.completed,1); assert.equal(s.operation!.seconds,0);
-  assert.deepEqual(s.bombers,[]); assert.equal(s.bomberClock,18); assert.throws(()=>finishSortie(s));
+  s.planes[0].x=410;s.planes[0].y=210;
+  const rewards=stepBattle(s,{pilot:IDLE},dt); assert.equal(s.phase,'flight'); assert.equal(s.paused,false); assert.equal(s.operation!.completed,1); assert.equal(rewards.length,1);
+  assert.equal(s.planes[0].health,s.planes[0].hp); assert.equal(s.operation!.seconds,0);
+  assert.equal(s.planes[0].x,410);assert.equal(s.planes[0].y,210);
+  assert.equal(s.bombers![0].id,30); assert.ok(s.bombers![0].x<1000); assert.equal(s.bomberClock,10000-dt); assert.throws(()=>finishSortie(s));
+  const seconds=s.time;assert.deepEqual(stepBattle(s,{pilot:IDLE},dt),[]);assert.ok(s.time>seconds);
+});
+for(const [level,lastSortie] of [[4,false],[7,true]] as const)test(`The world continues moving across ${lastSortie?'an operation':'a sortie'} boundary without deleting scenery, aircraft or projectiles`,()=>{
+  const s=flight(level),p=s.planes[0];
+  if(lastSortie)restoreOperationProgress(s,operationPlan(level).sorties-1);
+  const mission=operationMission(level,s.operation!.completed);
+  Object.assign(s.operation!,{seconds:mission.seconds,kills:mission.targetKills,specialKills:mission.targetSpecial,collected:mission.targetPickups});
+  s.obstacles=[{id:40,kind:'rock',x:700,y:GROUND_Y,radius:72,height:140,hp:99999,fire:100,damage:0},{id:41,kind:'fighter',x:850,y:230,radius:24,hp:100,fire:100,damage:0}];
+  s.bullets=[{id:42,owner:'enemy',x:950,y:130,vx:-30,vy:0,life:10,damage:0}];
+  s.pickups=[{id:43,x:600,y:155,kind:'recon'}];
+  s.bombers=[{id:44,x:1000,y:80,warning:5,dropX:300,bombs:1,dropped:0,hp:100}];
+  const before=structuredClone(s);stepBattle(s,{pilot:IDLE},dt);
+  assert.equal(s.phase,'flight');assert.equal(s.level,lastSortie?level+1:level);
+  assert.equal(s.operation!.completed,lastSortie?0:1);
+  assert.deepEqual(s.obstacles.map(o=>o.id),[40,41]);assert.equal(s.bullets[0].id,42);assert.equal(s.pickups![0].id,43);assert.equal(s.bombers![0].id,44);
+  assert.ok(s.obstacles[0].x<before.obstacles[0].x);assert.ok(s.bullets[0].life<before.bullets[0].life);
+  assert.equal(s.pickups![0].retired,true);assert.equal(p.x,before.planes[0].x);assert.equal(p.y,before.planes[0].y);
+  const buffer=new RenderBuffer();buffer.push(before,0);buffer.push(s,33);const rendered=buffer.sample(150)!;
+  assert.deepEqual(rendered.obstacles.map(o=>o.id),[40,41]);assert.equal(rendered.bombers![0].id,44);
+  s.spawn=9999;s.bomberClock=9999;
+  tick(s,.5);assert.ok(s.obstacles[0].x<before.obstacles[0].x);assert.equal(s.bullets[0].id,42);
+  s.obstacles.forEach(o=>o.x=-129);s.bombers![0].x=-119;s.pickups![0].x=-49;s.bullets[0].life=dt/2;
+  tick(s,dt);assert.deepEqual(s.obstacles,[]);assert.deepEqual(s.bombers,[]);assert.deepEqual(s.pickups,[]);assert.deepEqual(s.bullets,[]);
+});
+test('A container carried into the next supply operation still repairs but cannot satisfy its new objective',()=>{
+  const s=flight(3),p=s.planes[0];Object.assign(s.operation!,{seconds:45,collected:2});
+  s.pickups=[{id:40,x:900,y:155,kind:'supply'}];stepBattle(s,{pilot:IDLE},dt);
+  assert.equal(s.level,4);assert.equal(operationMission(4).kind,'supply');assert.equal(s.pickups![0].retired,true);
+  p.health=60;s.pickups![0].x=p.x+1;s.pickups![0].y=p.y;stepBattle(s,{pilot:IDLE},dt);
+  assert.equal(p.health,85);assert.equal(s.operation!.collected,0);assert.deepEqual(s.pickups,[]);
+});
+test('A phase already passing through a rock stays active across a sortie boundary',()=>{
+  const s=flight(4,true),p=s.planes[0],mission=operationMission(4);
+  Object.assign(s.operation!,{seconds:mission.seconds,collected:mission.targetPickups});
+  p.x=700;p.y=500;p.phaseSeconds=1;
+  s.obstacles=[{id:40,kind:'rock',x:700,y:GROUND_Y,radius:72,height:250,hp:99999,fire:100,damage:0}];
+  stepBattle(s,{pilot:IDLE},dt);assert.equal(s.operation!.completed,1);assert.equal(p.phaseSeconds,1-dt);
+  stepBattle(s,{pilot:IDLE},dt);assert.equal(s.phase,'flight');assert.equal(p.health,p.hp);assert.equal(s.obstacles[0].id,40);
+});
+test('Operation 3 flows into 4; only the completed boss operation opens the preparation screen',()=>{
+  for(const level of [3,4,10]) {
+    const s=flight(level);restoreOperationProgress(s,operationPlan(level).sorties-1);
+    const mission=operationMission(level,s.operation!.completed);
+    Object.assign(s.operation!,{seconds:mission.seconds,kills:mission.targetKills,specialKills:mission.targetSpecial,collected:mission.targetPickups});
+    const rewards=stepBattle(s,{pilot:IDLE},dt);
+    assert.equal(rewards.filter(r=>r.kind==='sortie').length,1);
+    assert.equal(s.phase,level===10?'boss-intro':'flight');assert.equal(s.paused,level===10);
+    assert.equal(s.level,level===10?10:level+1);
+  }
 });
 test('Recon collection follows visible geometry, and supply restores a bounded 25% HP once',()=>{
   for(const level of [2,3]){
@@ -67,16 +118,6 @@ test('Ordinary defeat and restart preserve completed sorties, resetting the fail
   const retry=flight(account.restartLevel);restoreOperationProgress(retry,account.operationCheckpoint!.completed);
   assert.equal(retry.operation!.completed,3);assert.equal(retry.operation!.seconds,0);
   assert.throws(()=>restoreOperationProgress(retry,6));assert.throws(()=>restoreOperationProgress(retry,-1));assert.throws(()=>restoreOperationProgress(retry,.5));
-});
-for(const [level,count,bombs] of [[7,1,1],[30,2,1],[100,2,2],[160,3,3]])test(`Bombers ${level}: ${count} visible warnings, ${bombs} fixed slow bombs each`,()=>{
-  const s=flight(level);assert.ok(!['recon','supply'].includes(operationMission(level).kind));s.bomberClock=0;
-  tick(s,dt); assert.equal(s.bombers!.length,count);assert.equal(s.bullets.filter(b=>b.kind==='bomb').length,0);
-  const lane=s.bombers![0].dropX,initialX=s.bombers![0].x;s.planes[0].x=1050;
-  tick(s,1);assert.equal(s.bullets.filter(b=>b.kind==='bomb').length,0);assert.ok(s.bombers![0].x<initialX);
-  tick(s,1.2+(count-1)*.6);
-  const falling=s.bullets.filter(b=>b.kind==='bomb');assert.equal(falling.length,count*bombs);
-  assert.ok(falling.every(b=>b.vx===0&&b.vy<=120&&b.life>0));
-  assert.ok(falling.some(b=>Math.abs(b.x-lane)<=70));
 });
 test('Recon has quiet skies, and boss transitions remove any pending bombers',()=>{
   const s=flight(2);s.bomberClock=0;tick(s,20);assert.deepEqual(s.bombers,[]);

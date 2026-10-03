@@ -6,6 +6,7 @@ import { PHOENIX_PART_LEVELS, PHOENIX_PART_STAGES, phoenixPartRequirements, type
 import { angleDiff, approachBoss, createBattle, finishBossReward, finishSortie, restoreOperationProgress, makePlane, refreshPlaneStats, startBossFight, stepBattle, type Battle, type Controls, type Plane, type Stats } from '../shared/simulation';
 import { operationMission, operationPlan, campaignMinimumSeconds, type MissionKind } from '../shared/operations';
 import { GROUND_Y, rockPoints, touchesPolygon } from '../shared/terrain';
+import { BOMBER, bomberBombLanes } from '../shared/bombers';
 import { awardBossModifier, chooseModifier, finishCareer, prepareBossAttempt, type CareerAccount } from '../server/career';
 import { buyPlane, buyUpgrade, researchUpgrade, buyPhoenixPart } from '../server/economy';
 import type { ModifierId, OwnedModifier } from '../shared/modifiers';
@@ -37,7 +38,7 @@ function flightPilot(s: Battle, p: Plane): Controls {
     .sort((a, b) => a.x - b.x)[0];
   const pickup = s.pickups?.filter(o => o.x > p.x - 30 && o.x < 1200).sort((a, b) => a.x - b.x)[0];
   let desiredY = mission.targetPickups && pickup ? pickup.y : target ? mission.kind === 'strike' ? GROUND_Y - 55 : clamp(target.y, 110, 400) : mission.kind === 'strike' ? GROUND_Y - 55 : 220;
-  const columns = (s.bombers ?? []).filter(b => b.warning > 0).flatMap(b => Array.from({length: b.bombs}, (_, n) => b.dropX + (n - (b.bombs - 1) / 2) * 70));
+  const columns = (s.bombers ?? []).filter(b => b.warning <= BOMBER.warningSeconds).flatMap(bomberBombLanes);
   columns.push(...s.bullets.filter(b => b.kind === 'bomb' && b.y < p.y + 65).map(b => b.x));
   const desiredX = columns.length ? [220, 360, 500, 640, 780, 920, 1060].map(x => ({x, score: (x - p.x) ** 2 / 20000 + columns.reduce((n, col) => n + (Math.abs(x - col) < 100 ? (100 - Math.abs(x - col)) * 20 : 0), 0)})).sort((a, b) => a.score - b.score)[0].x : 220;
   const horizontal = Math.abs(desiredX - p.x) < 12 ? 0 : Math.sign(desiredX - p.x);
@@ -65,6 +66,9 @@ function flightPilot(s: Battle, p: Plane): Controls {
         } else if (o.kind === 'pvo') {
           if (Math.abs(x - pilotX) < 85 && y > GROUND_Y - 100) cost += 2000;
         } else if (Math.hypot(x - pilotX, o.y - y) < o.radius + 65) cost += 800 * (horizon - t + .1);
+      }
+      for (const bomber of s.bombers ?? []) {
+        if (Math.abs(bomber.x - BOMBER.speed * t - pilotX) < BOMBER.halfWidth + 45 && Math.abs(bomber.y - y) < BOMBER.halfHeight + 35) cost += 2000;
       }
       for (const b of s.bullets) {
         if (b.owner === p.id || b.life < t) continue;
@@ -365,6 +369,13 @@ export function runCampaign(options: PlaythroughOptions): PlaythroughResult {
     };
     if (sortieCompleted) {
       recordMission('passed'); finishVisit('passed'); event('sortie', previousLevel, (operationIndex + 1) + '/' + operationPlan(previousLevel).sorties + ' ' + mission!.kind);
+      // Model an optional hangar visit, rather than a mandatory mission briefing.
+      if (battle.phase === 'flight') {
+        spendEarned(profile,battle.level,result.activeSeconds,result.timeline,options);
+        refreshPlaneStats(battle.planes[0],planeStats(profile,true));
+        visitLevel=battle.level;visitPhase='flight';visitStart=result.activeSeconds;
+        visitModifiers=structuredClone(profile.modifiers ?? []);
+      }
     }
     if (battle.phase === 'reward') {
       finishVisit('passed'); event('boss-win', previousLevel, 'HP ' + Math.round(battle.planes[0].health));

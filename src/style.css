@@ -110,6 +110,18 @@ p { line-height: 1.5; } small { display: block; }
 .audio-state { display: flex; flex-direction: column; align-items: flex-end; gap: 9px; color: #a8eed6; font-size: 16px; } .toggle-track { width: 48px; height: 28px; border-radius: 20px; background: #75d4b9; padding: 4px; } .toggle-track::after { content: ''; display: block; width: 20px; height: 20px; border-radius: 50%; background: #143b37; margin-left: 20px; transition: margin .15s; }
 .audio-off { background: #233143; border-color: #435c72; } .audio-off .setting-symbol, .audio-off .audio-state { color: #a2b6c8; } .audio-off .toggle-track { background: #4d647b; } .audio-off .toggle-track::after { background: #d2dfeb; margin-left: 0; }
 .help-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.lesson-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.lesson-choice { --lesson-accent: #9bdccb; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; min-height: 250px; padding: 26px 16px 0; overflow: hidden; color: #f1f7fa; background: linear-gradient(150deg, #284a48, #182a37 75%); border: 1px solid #87c6ba75; border-radius: 16px; cursor: pointer; text-align: center; }
+.lesson-choice-duel { --lesson-accent: #ffd080; background: linear-gradient(150deg, #504132, #202b38 75%); border-color: #ffd08075; }
+.lesson-choice-art { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; color: var(--lesson-accent); background: #101d294d; }
+.lesson-choice-art .icon { width: 52px; height: 52px; }
+.lesson-choice > strong { font-size: 28px; }
+.lesson-choice-cta { display: flex; align-items: center; justify-content: center; gap: 10px; align-self: stretch; margin: auto -16px 0; padding: 18px 12px; background: #0d192657; color: var(--lesson-accent); font-size: 18px; font-weight: 700; }
+.lesson-choice-cta .icon { width: 22px; height: 22px; flex: 0 0 auto; }
+.lesson-choice:hover { filter: brightness(1.1); }
+.lesson-choice:focus-visible { outline: 3px solid var(--lesson-accent); outline-offset: 3px; }
+@media (max-height: 500px) { .lesson-choice { min-height: 166px; gap: 10px; padding-top: 14px; }.lesson-choice-art { width: 50px; height: 50px; }.lesson-choice-art .icon { width: 34px; height: 34px; }.lesson-choice > strong { font-size: 24px; }.lesson-choice-cta { padding: 12px; font-size: 16px; } }
+@container (max-width: 480px) { .lesson-choices { gap: 10px; }.lesson-choice { min-height: 185px; padding-inline: 10px; }.lesson-choice-cta { margin-inline: -10px; flex-wrap: wrap; font-size: 16px; }.lesson-choice > strong { font-size: 22px; } }
 .help-card { border: 1px solid #32495e; border-radius: 11px; background: #1a2839; padding: 19px; }
 .help-card h2 { font-size: 19px; margin-bottom: 16px; } .help-card p { font-size: 16px; margin-bottom: 12px; color: #a5bed2; }
 kbd { display: inline-flex; align-items: center; vertical-align: middle; font-family: inherit; font-size: 16px; border: 1px solid #45617a; border-bottom: 3px solid #45617a; border-radius: 5px; padding: 3px 7px; margin-right: 3px; color: #cce1ef; background: #233950; } kbd .icon { width: 13px; height: 13px; }
@@ -405,3 +417,16 @@ body.lesson-rail { --frame-width: min(800px, calc(100vw - 32px), calc((100dvh - 
   .mission-status { font-size: 9px; }
 }
 @media (max-height: 500px) { .career-route-heading { margin-bottom: 6px; }.career-route .career-stage { padding: 8px 12px; }.settings-panel > h2:not(:first-child) { display: block; margin-top: 20px; }.settings-panel>h2 { font-size: 18px; }.screen-settings .audio-settings { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) and (max-height: 360px) {
+  .screen-help .menu-nav { display: none; }
+  .screen-help .menu-content { padding: 6px 12px; }
+  .screen-help .help-heading { position: static; margin: -6px -12px 6px; padding: 6px 12px; gap: 12px; }
+  .screen-help .help-heading h1 { font-size: 20px; }
+  .screen-help .back-button { min-height: 34px; padding: 6px 10px; }
+  .screen-help .lesson-choice { min-height: 132px; gap: 6px; padding-top: 8px; }
+  .screen-help .lesson-choice-art { width: 34px; height: 34px; }
+  .screen-help .lesson-choice-art .icon { width: 25px; height: 25px; }
+  .screen-help .lesson-choice > strong { font-size: 20px; }
+  .screen-help .lesson-choice-cta { flex-wrap: nowrap; padding: 8px; gap: 6px; }
+  .screen-help .lesson-choice-cta .icon { width: 18px; height: 18px; }
+}

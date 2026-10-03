@@ -10,6 +10,7 @@ export const AIRCRAFT_ART = {
   skate: { file: 'feniks', props: single(.93, .523, .14) },
   enemy: { file: 'career-scout', props: single(.888, .577, .12) },
   'enemy-heavy': { file: 'career-heavy', props: [{ x: .758, y: .697, radius: .10 }, { x: .795, y: .342, radius: .085 }] },
+  'enemy-bomber': { file: 'career-bomber', props: [{x:.645,y:.72,radius:.075},{x:.756,y:.607,radius:.075},{x:.861,y:.42,radius:.06},{x:.932,y:.349,radius:.06}] },
   'enemy-boss-10': { file: 'boss-storm', props: single(.914, .568, .13) },
   'enemy-boss-25': { file: 'boss-hunter', props: single(.924, .572, .115) },
   'enemy-boss-50': { file: 'boss-commander', props: [{x:.655,y:.70,radius:.075},{x:.75,y:.595,radius:.075},{x:.85,y:.415,radius:.06},{x:.907,y:.333,radius:.06}] },

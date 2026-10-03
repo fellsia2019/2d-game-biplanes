@@ -247,7 +247,7 @@ test('Owned phase works in career input, stays disabled in online duels, and can
   try {
     const peer=await server.connect(); await peer.auth(); await peer.message('pve',{resume:true},'start');
     await assert.rejects(peer.rpc('skill-buy',{id:'phase',nonce:randomUUID()}),/вернитесь в ангар/);
-    await peer.rpc('sortie-next'); peer.send({type:'input',turn:0,fire:false,boost:false,skill:true});
+    peer.send({type:'input',turn:0,fire:false,boost:false,skill:true});
     const active=(await peer.wait(m=>m.type==='state'&&m.battle.planes[0].phaseSeconds>0)).battle;
     assert.equal(active.planes[0].phaseSkill,true); assert.ok(active.planes[0].phaseCooldown>30);
     await peer.message('leave');
@@ -262,47 +262,47 @@ test('Owned phase works in career input, stays disabled in online duels, and can
   } finally { await server.cleanup(); }
 });
 
-test('Sortie continuation saves the intermission first, repairs once and never rewards a duplicate command', { timeout: 15000 }, async () => {
+test('An old saved sortie resumes automatically, repairs once and never credits its completed mission again', { timeout: 15000 }, async () => {
   const server=await fixture([sortieSeed()]);
   try {
     const peer=await server.connect(), profile=(await peer.auth()).profile;
-    const before=(await peer.message('pve',{resume:true},'start')).battle;
-    assert.equal(before.phase,'sortie-reward'); assert.equal(before.operation.completed,1); assert.equal(before.planes[0].health,40);
-    const gate=randomUUID(), continuing=peer.rpc('sortie-next',{paused:true,auditHoldWrite:gate});
-    await server.signal(m=>m.type==='write-held'&&m.id===gate);
-    assert.equal(peer.last('start').battle.phase,'sortie-reward');
-    assert.ok(!server.signals.some(m=>m.type==='outgoing'&&m.gateHeld&&m.message.battle?.phase==='flight'));
-    server.release(gate); await continuing;
-    const durable=(await server.signal(m=>m.type==='write-committed'&&m.id===gate)).accounts.find((a:any)=>a.token===TOKEN);
-    assert.equal(durable.checkpoint.phase,'sortie-reward'); assert.equal(durable.checkpoint.operation.completed,1); assert.deepEqual(wallet(durable.profile),wallet(profile));
-    assert.equal(durable.checkpoint.operation.killSilver,40); assert.equal(durable.checkpoint.operation.killXp,10);
-    const next=peer.last('state').battle; assert.equal(next.phase,'flight'); assert.equal(next.paused,true);
-    assert.equal(next.operation.completed,1); assert.equal(next.operation.seconds,0);
-    assert.equal(next.operation.killSilver,0); assert.equal(next.operation.killXp,0);
+    const next=(await peer.message('pve',{resume:true},'start')).battle;
+    assert.equal(next.phase,'flight'); assert.equal(next.paused,false); assert.equal(next.operation.completed,1);
+    assert.equal(next.operation.seconds,0); assert.equal(next.operation.killSilver,0); assert.equal(next.operation.killXp,0);
     assert.equal(next.planes[0].health,next.planes[0].hp); assert.equal(next.planes[0].energy,1); assert.equal(next.planes[0].heat,0);
-    assert.deepEqual(next.earned,before.earned); await assert.rejects(peer.rpc('sortie-next'),/Сначала завершите вылет/);
-    const after=(await peer.message('leave')).profile; assert.deepEqual(wallet(after),wallet(profile));
-    assert.deepEqual(after.daily,profile.daily); assert.deepEqual(after.weekly,profile.weekly);
-    const reloaded=await server.connect(); await reloaded.auth(); const resumed=(await reloaded.message('pve',{resume:true},'start')).battle;
-    assert.equal(resumed.id,next.id); assert.equal(resumed.operation.completed,1); assert.deepEqual(resumed.earned,before.earned);
+    await assert.rejects(peer.rpc('sortie-next'),/Сначала завершите вылет/);
+    const after=(await peer.message('leave')).profile;
+    assert.deepEqual(wallet(after),wallet(profile)); assert.deepEqual(after.daily,profile.daily); assert.deepEqual(after.weekly,profile.weekly);
+    const reloaded=await server.connect(); await reloaded.auth();
+    const resumed=(await reloaded.message('pve',{resume:true},'start')).battle;
+    assert.equal(resumed.phase,'flight'); assert.equal(resumed.paused,false); assert.equal(resumed.operation.completed,1);
+    assert.equal(resumed.id,next.id); assert.deepEqual(resumed.earned,next.earned);
   } finally { await server.cleanup(); }
 });
 
-for (const fail of [true,false]) test(`Disconnect during sortie persistence (${fail?'IO failure':'successful IO'}) retains the intermission and credits no duplicate reward`, { timeout:15000 }, async()=>{
-  const server=await fixture([sortieSeed()]);
+test('A live ordinary mission continues, credits once and survives leaving and reconnecting without a briefing', { timeout:15000 }, async()=>{
+  const account=sortieSeed(), checkpoint=account.checkpoint!;
+  checkpoint.phase='flight'; checkpoint.paused=false; checkpoint.operation!.completed=0;
+  checkpoint.operation!.seconds=operationMission(4).seconds-.02;
+  checkpoint.operation!.killSilver=0; checkpoint.operation!.killXp=0;
+  checkpoint.spawn=9999; checkpoint.bomberClock=9999;
+  const server=await fixture([account]);
   try {
     const first=await server.connect(), before=(await first.auth()).profile;
-    const start=(await first.message('pve',{resume:true},'start')).battle, gate=randomUUID();
-    first.send({type:'sortie-next',paused:true,requestId:randomUUID(),auditHoldWrite:gate});
-    await server.signal(m=>m.type==='write-held'&&m.id===gate); first.ws.terminate();
-    const second=await server.connect(), authenticating=second.auth(); await server.signal(m=>m.type==='auth-seen'&&m.connection===2);
-    server.release(gate,fail); const recovered=await authenticating;
-    assert.deepEqual(wallet(recovered.profile),wallet(before)); assert.equal(recovered.operationCompleted,1);
+    await first.message('pve',{resume:true},'start');
+    const continued=(await first.wait(m=>m.type==='state'&&m.battle.operation?.completed===1)).battle;
+    assert.equal(continued.phase,'flight'); assert.equal(continued.paused,false);
+    assert.equal(continued.planes[0].health,continued.planes[0].hp);
+    assert.ok(!first.messages.some(m=>m.battle?.phase==='sortie-reward'));
+    const credited=(await first.message('leave')).profile;
+    assert.equal(credited.silver,before.silver+SORTIE_REWARD.silver/2); assert.equal(credited.xp,before.xp+SORTIE_REWARD.xp/2);
+    assert.equal(credited.daily.activity,before.daily.activity+1); assert.equal(credited.weekly.activity,before.weekly.activity+1);
+    const second=await server.connect(), recovered=(await second.auth()).profile;
+    assert.deepEqual(wallet(recovered),wallet(credited));
     const resumed=(await second.message('pve',{resume:true},'start')).battle;
-    assert.equal(resumed.phase,'sortie-reward'); assert.equal(resumed.paused,true); assert.equal(resumed.operation.completed,1);
-    assert.equal(resumed.planes[0].health,40); assert.deepEqual(resumed.earned,start.earned);
-    await second.rpc('sortie-next',{paused:true}); const continued=second.last('state').battle;
-    assert.equal(continued.phase,'flight'); assert.equal(continued.operation.completed,1); assert.equal(continued.planes[0].health,continued.planes[0].hp);
-    const final=(await second.message('leave')).profile; assert.deepEqual(wallet(final),wallet(before)); assert.deepEqual(final.daily,before.daily);
+    assert.equal(resumed.phase,'flight'); assert.equal(resumed.paused,false); assert.equal(resumed.operation.completed,1);
+    await assert.rejects(second.rpc('sortie-next'),/Сначала завершите вылет/);
+    const final=(await second.message('leave')).profile;
+    assert.deepEqual(wallet(final),wallet(credited)); assert.deepEqual(final.daily,credited.daily);
   } finally { await server.cleanup(); }
 });

@@ -1,0 +1,9 @@
+{
+  "tool": "built-in image_gen",
+  "references": [
+    "career-heavy-airframe.png",
+    "boss-commander-airframe.png"
+  ],
+  "file": "career-bomber-airframe.png",
+  "prompt": "Use case: stylized-concept. Asset type: one production-ready aircraft airframe sprite for the existing Biplanes 2D game. Input images are STYLE REFERENCES ONLY: match their polished colorful painted vintage aircraft game illustration, smooth dimensional shading, crisp dark outlines, readable metal panels, believable proportions and slight top view of the near wing. Subject: a distinct bulky four-engine 1940s carpet bomber, muted olive green and warm cream/orange recognition bands, broad long wings, rounded glazed navigator nose, raised cockpit, large twin tail fins, closed underbelly bomb bay. Face RIGHT in horizontal flight, nearly side view with the same perspective as reference aircraft. Exactly four separated radial engine nacelles with bare stationary hubs, two near and two far. Entire aircraft fully visible and centered, generous transparent margins, long horizontal silhouette. This must feel like the same art set as both reference aircraft while remaining clearly distinct from the charcoal/gold boss. No visible propeller blades, no blur discs: propellers animate separately in game. No bombs outside body, no text, no insignia, no background, no ground shadow, no watermark, no scene, no jets, no geometric placeholder. Genuinely transparent background with preserved alpha."
+}
