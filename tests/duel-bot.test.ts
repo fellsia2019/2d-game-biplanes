@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PLANES, freshProfile, planeStats } from '../shared/data';
+import { MAX_UPGRADE_LEVEL, PLANES, freshProfile, planeStats } from '../shared/data';
 import { duelBotStats } from '../server/duel-bot';
 
 test('Стартовый самолёт встречает случайно Сокол или Стриж, без дорогих и золотых моделей', () => {
@@ -10,7 +10,7 @@ test('Стартовый самолёт встречает случайно Со
 });
 
 test('Для каждого самолёта и уровня улучшений бот остаётся в пределах 10% силы игрока', () => {
-  for (const model of PLANES) for (const upgrades of [0, 5, 20]) {
+  for (const model of PLANES) for (const upgrades of [0, 5, MAX_UPGRADE_LEVEL, MAX_UPGRADE_LEVEL + 5]) {
     const profile = freshProfile('pilot'); profile.selected = model.id;
     profile.upgrades[model.id] = { hull: upgrades, engine: upgrades, gun: upgrades };
     profile.modules = ['radiator', 'carburetor']; profile.module = upgrades ? 'radiator' : 'carburetor';

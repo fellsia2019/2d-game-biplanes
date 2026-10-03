@@ -64,7 +64,7 @@ class AuditServer {
     profile.defeatedBosses = [10]; profile.modifierBosses = [10]; profile.modifiers = [{ id: 'reinforced-hull', level: 1 }];
     setup?.(profile);
     const battle = createBattle('runtime-audit-boss', 'pve', [makePlane(profile.id, planeStats(profile, true))], 25);
-    approachBoss(battle); battle.planes[0].health = battle.planes[0].hp / 2; battle.planes[1].health = 800;
+    approachBoss(battle); battle.planes[0].health = battle.planes[0].hp / 2; battle.planes[1].health /= 2;
     await writeFile(this.store, JSON.stringify([{ token: 'runtime-audit-token', profile, checkpoint: battle, restartLevel: 25, restartBoss: true, campaignLength: 250 }]));
     const root = process.cwd(), boot = join(this.dir, 'boot.mjs');
     // Instrument only this child process. An IPC gate controls persistence;
@@ -265,7 +265,7 @@ test('Возврат к сохранённому боссу применяет �
       assert.equal(start.id, 'runtime-audit-boss'); assert.equal(start.phase, 'boss-intro'); assert.equal(start.bossAttempt, 1);
       assert.equal(actual.model, model.id); assert.equal(actual.hp, expected.hp); assert.equal(actual.damage, expected.damage);
       assert.equal(actual.cooling, 1.35); assert.equal(actual.rewardMultiplier, 1.5); assert.deepEqual(actual.traits, expected.traits);
-      assert.ok(Math.abs(actual.health / actual.hp - .5) < 1e-9); assert.equal(start.planes[1].health, 800);
+      assert.ok(Math.abs(actual.health / actual.hp - .5) < 1e-9); assert.equal(start.planes[1].health / start.planes[1].hp, .5);
       await peer.message('leave');
     }
   } finally { await server.cleanup(); }

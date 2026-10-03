@@ -38,7 +38,7 @@ test('Неизвестный заказ/товар остаётся необра
   assert.equal(a.profile.gold, 0); assert.deepEqual(result.consume, []); assert.deepEqual(result.pending, ['gold300']);
 });
 test('Платный самолёт и модули покупаются за золото, экипировка имеет один слот', () => {
-  const p = freshProfile('pilot'); p.gold = 1000; p.defeatedBosses = [50];
+  const p = freshProfile('pilot'); p.gold = 1000; p.defeatedBosses = [200];
   buyPlane(p, 'skate'); assert.equal(p.gold, 700); assert.equal(p.selected, 'skate');
   buyPlane(p, 'skate'); assert.equal(p.gold, 700);
   buyModule(p, 'carburetor'); assert.equal(p.gold, 580); assert.equal(planeStats(p).boostDuration, 3); assert.equal(planeStats(p).boostRecharge, 7.5);

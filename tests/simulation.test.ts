@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { freshProfile, planeStats, resetTasks, ZONE } from '../shared/data';
 import { beginBoss, startBossFight, finishBossReward, createBattle, makePlane, stepBattle, forfeitDuel, IDLE, FLIGHT_RIGHT, FLIGHT_BOTTOM, normalizeCampaignPlane } from '../shared/simulation';
+import { SORTIE_REWARD } from '../shared/operations';
+import { campaignReward } from '../shared/data';
+import { readyLastSortie } from './fixtures';
 const human = () => makePlane('pilot', planeStats(freshProfile('pilot')));
 test('В зоне 250 уровней, после 50-го босс каждые 25 уровней', () => {
   assert.equal(ZONE.length, 250);
@@ -9,13 +12,16 @@ test('В зоне 250 уровней, после 50-го босс каждые 2
   for (let i = 1; i < ZONE.length; i++) { assert.ok(ZONE[i].enemyHp > ZONE[i - 1].enemyHp); assert.ok(ZONE[i].scroll > ZONE[i - 1].scroll); }
 });
 test('Переход обычного уровня происходит во время полёта и выдаёт награду один раз', () => {
-  const s = createBattle('run', 'pve', [human()]); s.distance = ZONE[0].length;
+  const s = createBattle('run', 'pve', [human()]); s.distance = ZONE[0].length; readyLastSortie(s);
   const reward = stepBattle(s, { pilot: IDLE }, 1 / 30);
-  assert.equal(s.level, 2); assert.equal(s.phase, 'flight'); assert.equal(reward[0].silver, 45); assert.equal(reward[0].xp, 17);
+  assert.equal(s.level, 2); assert.equal(s.phase, 'flight'); assert.equal(reward.length,2);
+  assert.equal(reward.find(r=>r.kind==='level')!.silver,90); assert.equal(reward.find(r=>r.kind==='level')!.xp,40);
+  assert.equal(reward.find(r=>r.kind==='sortie')!.silver,campaignReward(SORTIE_REWARD.silver));
+  assert.equal(reward.find(r=>r.kind==='sortie')!.xp,campaignReward(SORTIE_REWARD.xp));
   assert.equal(stepBattle(s, { pilot: IDLE }, 1 / 30).length, 0);
 });
 for (const level of [10, 25, 50, 75, ZONE.length]) test('Босс ' + level + ': остановка карты, дуэль и правильный переход', () => {
-  const s = createBattle('boss-' + level, 'pve', [human()], level); s.distance = ZONE[level - 1].length;
+  const s = createBattle('boss-' + level, 'pve', [human()], level); s.distance = ZONE[level - 1].length; readyLastSortie(s);
   stepBattle(s, { pilot: IDLE }, 1 / 30); assert.equal(s.phase, 'boss-intro'); assert.equal(s.planes.length, 2);
   const distance = s.totalDistance;
   stepBattle(s, { pilot: IDLE }, 1 / 30); assert.equal(s.totalDistance, distance);
@@ -110,7 +116,7 @@ test('После босса возвращаются вертикальные п
   finishBossReward(s);
   assert.equal(s.phase, 'flight'); assert.equal(p.x, 220); assert.equal(p.y, 675 / 2); assert.equal(p.angle, 0);
   stepBattle(s, { pilot: { turn: -1, fire: false, boost: false } }, .1); const y = p.y;
-  s.distance = ZONE[10].length; stepBattle(s, { pilot: IDLE }, 1 / 30);
+  s.distance = ZONE[10].length; readyLastSortie(s); stepBattle(s, { pilot: IDLE }, 1 / 30);
   assert.equal(s.level, 12); assert.equal(p.y, y); assert.equal(p.x, 220); assert.equal(p.angle, 0);
 });
 
@@ -120,13 +126,13 @@ test('Карьера: D продвигает, A возвращает, отпус
   assert.equal(p.x, 220 + p.speed * .5); assert.equal(p.angle, 0); assert.equal(p.y, 675/2);
   const x = p.x; stepBattle(s, {pilot: IDLE}, .1); assert.equal(p.x, x);
   const restored = JSON.parse(JSON.stringify(s)); normalizeCampaignPlane(restored.planes[0]); assert.equal(restored.planes[0].x, x);
-  s.distance = ZONE[0].length; stepBattle(s, {pilot: IDLE}, 0); assert.equal(p.x, x);
+  s.distance = ZONE[0].length; readyLastSortie(s); stepBattle(s, {pilot: IDLE}, 0); assert.equal(p.x, x);
   stepBattle(s, {pilot: {...IDLE, horizontal: -1}}, 1); assert.equal(p.x, 220);
   p.x = FLIGHT_RIGHT - 1; stepBattle(s, {pilot: {...IDLE, horizontal: 1, boost: true}}, .1); assert.equal(p.x, FLIGHT_RIGHT);
 });
 test('Столкновение на границе уровня не превращается в победу или восстановление у босса', () => {
   for (const level of [1, 10]) {
-    const s = createBattle('fatal-boundary', 'pve', [human()], level); s.distance = ZONE[level-1].length; s.spawn = 100;
+    const s = createBattle('fatal-boundary', 'pve', [human()], level); s.distance = ZONE[level-1].length; s.spawn = 100; readyLastSortie(s);
     s.planes[0].y = 500; s.obstacles = [{id: 1, kind: 'rock', x: 220, y: 626, radius: 72, height: 200, hp: 99999, fire: 100, damage: 0}];
     assert.deepEqual(stepBattle(s, {pilot: IDLE}, 0), []); assert.equal(s.phase, 'ended'); assert.equal(s.level, level); assert.equal(s.planes[0].health, 0);
   }

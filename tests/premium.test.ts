@@ -1,11 +1,13 @@
 import test from 'node:test';
+import { readyLastSortie } from './fixtures';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import { freshProfile, campaignReward, planeStats, ZONE, claimTask, resetTasks } from '../shared/data';
 import { combatReward, hasPremium, PREMIUM_PRODUCT_ID, premiumCombatReward } from '../shared/premium';
 import { type PaymentAccount, redeemPurchases, verifyPurchases } from '../server/payments';
-import { createBattle, makePlane, stepBattle, IDLE, beginBoss, forfeitDuel } from '../shared/simulation';
+import { createBattle, makePlane, stepBattle, IDLE, beginBoss, forfeitDuel, finishSortie, refreshPlaneStats, type Battle } from '../shared/simulation';
 import { exchange } from '../server/economy';
+import { operationMission, sortieReward } from '../shared/operations';
 
 const now = 1770000000000, secret = 'premium-unit-tests-only';
 const purchase = { productID: PREMIUM_PRODUCT_ID, purchaseToken: 'premium-receipt-1', developerPayload: 'premium-order-1' };
@@ -113,12 +115,14 @@ test('Премиум даёт +50% только через расчёт боев
   assert.equal(hasPremium({ premium: { active: true, purchasedAt: 0 } }), false);
 });
 
-test('Боевой движок начисляет премиум после уменьшения кампании, включая босса и HUD', () => {
-  for (const level of [1, 10]) {
+test('Боевой движок начисляет премиум после уменьшения кампании, включая все гарантии вылетов, босса и HUD', () => {
+  const floors = new Map([[1, [180, 60]], [26, [510, 150]], [101, [810, 240]], [201, [1110, 345]]]);
+  for (const level of [...floors.keys(), 10]) {
     const run = (premium: boolean) => {
       const a = account(); if (premium) redeemPurchases(a, [a], [purchase], now);
       const state = createBattle('premium-battle', 'pve', [makePlane(a.profile.id, planeStats(a.profile, true))], level);
       state.distance = ZONE[level - 1].length; state.spawn = 9999;
+      if (level !== 10) readyLastSortie(state);
       if (level === 10) { beginBoss(state); state.planes[1].health = 0; }
       const rewards = stepBattle(state, { [a.profile.id]: IDLE }, 0);
       return { state, rewards };
@@ -130,8 +134,49 @@ test('Боевой движок начисляет премиум после у�
     }
     assert.equal(paid.state.earned.a.silver, paid.rewards.reduce((sum, r) => sum + r.silver, 0));
     assert.equal(paid.state.earned.a.xp, paid.rewards.reduce((sum, r) => sum + r.xp, 0));
-    if (level === 1) { assert.equal(paid.rewards[0].silver, 68); assert.equal(paid.rewards[0].xp, 26); }
+    if (level !== 10) {
+      assert.equal(paid.rewards.find(r=>r.kind==='level')!.silver,135); assert.equal(paid.rewards.find(r=>r.kind==='level')!.xp,60);
+      const [silver, xp] = floors.get(level)!;
+      assert.equal(paid.rewards.find(r=>r.kind==='sortie')!.silver,silver); assert.equal(paid.rewards.find(r=>r.kind==='sortie')!.xp,xp);
+    }
     else assert.ok(paid.rewards.some(r => r.bossLevel === 10));
+  }
+});
+
+test('Сохранённые выплаты за цели вычитаются из премиум-гарантии ровно один раз, новый вылет начинает свой учёт', () => {
+  for (const level of [14, 30, 102, 202]) for (const premiumBeforeKills of [true, false]) {
+    const a = account(); if (premiumBeforeKills) redeemPurchases(a, [a], [purchase], now);
+    const state = createBattle('premium-ledger-' + level, 'pve', [makePlane(a.profile.id, planeStats(a.profile, true))], level);
+    state.spawn = 9999; state.bomberClock = 9999;
+    state.obstacles = [
+      {id:10, kind:'fighter', x:500, y:330, radius:24, hp:1, fire:100, damage:1},
+      {id:11, kind:'heavy', x:750, y:340, radius:32, hp:1, fire:100, damage:1},
+    ];
+    state.bullets = state.obstacles.map(o => ({id:o.id+10, owner:a.profile.id, x:o.x, y:o.y, vx:0, vy:0, life:1, damage:10}));
+    const kills = stepBattle(state, {[a.profile.id]:IDLE}, 0);
+    assert.equal(kills.length, 2); assert.ok(kills.every(r => r.kind === 'kill'));
+    for (const [i, factor] of [1, 1.6].entries()) {
+      assert.equal(kills[i].silver, premiumCombatReward(campaignReward(Math.round(ZONE[level-1].killSilver*factor)), a.profile));
+      assert.equal(kills[i].xp, premiumCombatReward(campaignReward(Math.round(ZONE[level-1].killXp*factor)), a.profile));
+    }
+    const paid = kills.reduce((sum,r) => ({silver:sum.silver+r.silver, xp:sum.xp+r.xp}), {silver:0,xp:0});
+    assert.equal(state.operation!.killSilver,paid.silver); assert.equal(state.operation!.killXp,paid.xp);
+    const restored: Battle = JSON.parse(JSON.stringify(state));
+    if (!premiumBeforeKills) redeemPurchases(a, [a], [purchase], now);
+    refreshPlaneStats(restored.planes[0], planeStats(a.profile, true));
+    const complete = () => {
+      const mission = operationMission(level, restored.operation!.completed);
+      Object.assign(restored.operation!, {seconds:mission.seconds, kills:Math.max(restored.operation!.kills,mission.targetKills), specialKills:mission.targetSpecial, collected:mission.targetPickups});
+      return stepBattle(restored, {[a.profile.id]:IDLE}, 0);
+    };
+    const budget = sortieReward(level), floor = {silver:premiumCombatReward(campaignReward(budget.silver),a.profile), xp:premiumCombatReward(campaignReward(budget.xp),a.profile)};
+    const topUp = complete(); assert.equal(topUp.length,1); assert.equal(topUp[0].kind,'sortie');
+    assert.equal(topUp[0].silver,floor.silver-paid.silver); assert.equal(topUp[0].xp,floor.xp-paid.xp);
+    assert.deepEqual(restored.earned[a.profile.id],floor); assert.equal(restored.operation!.killSilver,paid.silver); assert.equal(restored.operation!.killXp,paid.xp);
+    assert.deepEqual(stepBattle(restored, {[a.profile.id]:IDLE}, 1/30),[]); assert.deepEqual(restored.earned[a.profile.id],floor);
+    finishSortie(restored); assert.equal(restored.operation!.killSilver,0); assert.equal(restored.operation!.killXp,0);
+    const next = complete(); assert.equal(next.length,1); assert.equal(next[0].silver,floor.silver); assert.equal(next[0].xp,floor.xp);
+    assert.deepEqual(restored.earned[a.profile.id],{silver:floor.silver*2,xp:floor.xp*2});
   }
 });
 

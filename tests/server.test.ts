@@ -7,7 +7,7 @@ import { resolve, join } from 'node:path';
 import { WebSocket } from 'ws';
 import { randomUUID, createHmac } from 'node:crypto';
 import { createBattle, makePlane, beginBoss } from '../shared/simulation';
-import { freshProfile, resetTasks, planeStats } from '../shared/data';
+import { MAX_UPGRADE_LEVEL, PLANES, bossBalance, freshProfile, resetTasks, planeStats, researchXp, upgradeSilver } from '../shared/data';
 class Peer {
   ws: WebSocket; messages: any[] = []; waiters: { predicate: (m: any) => boolean; resolve: (m: any) => void }[] = [];
   constructor() {
@@ -28,7 +28,11 @@ class Peer {
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 test('Сервер: онлайн 1×1, кошелёк, сохранение, очередь 15 секунд и отмена', { timeout: 50000 }, async () => {
   const dir = await mkdtemp(join(tmpdir(), 'biplanes-test-'));
-  const shopProfile = freshProfile('shop-pilot'); shopProfile.silver = 5000; shopProfile.xp = 500; shopProfile.defeatedBosses = [10]; resetTasks(shopProfile); shopProfile.daily.kills = 5;
+  const shopProfile = freshProfile('shop-pilot'); shopProfile.silver = 5000; shopProfile.xp = 500; shopProfile.defeatedBosses = [25];
+  shopProfile.upgrades.universal = {hull: MAX_UPGRADE_LEVEL, engine: MAX_UPGRADE_LEVEL, gun: MAX_UPGRADE_LEVEL};
+  shopProfile.research!.universal = {...shopProfile.upgrades.universal}; resetTasks(shopProfile); shopProfile.daily.kills = 5;
+  const swift = PLANES.find(model => model.id === 'swift')!, silverAfterUpgrade = 5000-swift.price-upgradeSilver(1,'swift');
+  const xpAfterResearch = 500-researchXp(1,'swift'), silverAfterClaim = silverAfterUpgrade+100;
   const pastTaskKey = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
   shopProfile.taskArchive.push({ period: 'daily', key: pastTaskKey, completed: ['activity'], claimed: [], expiresAt: Date.now() + 86400000 });
   const lossProfile = freshProfile('limit-pilot'), winProfile = freshProfile('winner-pilot');
@@ -50,28 +54,28 @@ test('Сервер: онлайн 1×1, кошелёк, сохранение, о�
     const shopAuth = await shop.auth('shop-test-token'); await bossPeer.auth('boss-test-token');
     await shop.rpc('modifier-choose', {offerId:shopAuth.state.bossOffer.id,id:shopAuth.state.bossOffer.options[0]});
     const bought = shop.wait(m => m.type === 'profile'); shop.send({ type: 'buy', id: 'swift' }); const boughtProfile = (await bought).profile;
-    assert.equal(boughtProfile.silver, 3800); assert.equal(boughtProfile.selected, 'swift');
+    assert.equal(boughtProfile.silver, 5000-swift.price); assert.equal(boughtProfile.selected, 'swift');
     const missingResearch = shop.wait(m => m.type === 'error'); shop.send({type:'upgrade', branch:'hull', level:1}); await missingResearch;
     const researched = shop.wait(m => m.type === 'profile'); const researchNonce = randomUUID();
     shop.send({type:'research', branch:'hull', level:1, nonce:researchNonce});
-    assert.equal((await researched).profile.xp,460);
+    assert.equal((await researched).profile.xp,xpAfterResearch);
     const duplicateResearch = shop.wait(m => m.type === 'profile'); shop.send({type:'research', branch:'hull', level:1, nonce:researchNonce});
-    assert.equal((await duplicateResearch).profile.xp,460);
+    assert.equal((await duplicateResearch).profile.xp,xpAfterResearch);
     const upgraded = shop.wait(m => m.type === 'profile'); shop.send({ type: 'upgrade', branch: 'hull', level:1 }); const upgradedProfile = (await upgraded).profile;
-    assert.equal(upgradedProfile.silver, 3700); assert.equal(upgradedProfile.upgrades.swift.hull, 1);
-    const claimed = shop.wait(m => m.type === 'profile'); shop.send({ type: 'claim', period: 'daily', id: 'kills' }); assert.equal((await claimed).profile.silver, 3800);
+    assert.equal(upgradedProfile.silver, silverAfterUpgrade); assert.equal(upgradedProfile.upgrades.swift.hull, 1);
+    const claimed = shop.wait(m => m.type === 'profile'); shop.send({ type: 'claim', period: 'daily', id: 'kills' }); assert.equal((await claimed).profile.silver, silverAfterClaim);
     shop.send({ type: 'claim', period: 'daily', id: 'kills' });
     const upgradedRun = shop.wait(m => m.type === 'start'); shop.send({ type: 'pve' }); const upgradedState = (await upgradedRun).battle;
-    assert.equal(upgradedState.planes[0].model, 'swift'); assert.ok(Math.abs(upgradedState.planes[0].hp - 185.5) < .001);
+    assert.equal(upgradedState.planes[0].model, 'swift'); assert.equal(upgradedState.planes[0].hp,planeStats(upgradedProfile,true).hp);
     const forward = shop.wait(m => m.type === 'state' && m.battle.planes[0].x > 240);
     shop.send({type: 'input', turn: 0, horizontal: 1, fire: false, boost: false});
     const advanced = (await forward).battle.planes[0]; assert.equal(advanced.angle, 0);
     const backward = shop.wait(m => m.type === 'state' && m.battle.planes[0].x === 220);
     shop.send({type: 'input', turn: 0, horizontal: -1, fire: false, boost: false}); await backward;
     shop.send({type: 'input', turn: 0, horizontal: 'invalid', fire: false, boost: false});
-    const shopMenu = shop.wait(m => m.type === 'profile'); shop.send({ type: 'leave' }); assert.equal((await shopMenu).profile.silver, 3800);
+    const shopMenu = shop.wait(m => m.type === 'profile'); shop.send({ type: 'leave' }); assert.equal((await shopMenu).profile.silver, silverAfterClaim);
     const bossRetry = bossPeer.wait(m => m.type === 'start'); bossPeer.send({ type: 'pve' }); const retryState = (await bossRetry).battle;
-    assert.equal(retryState.phase, 'boss-intro'); assert.equal(retryState.paused,true); assert.equal(retryState.level, 10); assert.equal(retryState.planes[1].health, 700);
+    assert.equal(retryState.phase, 'boss-intro'); assert.equal(retryState.paused,true); assert.equal(retryState.level, 10); assert.equal(retryState.planes[1].health, bossBalance(10).hp);
     const bossMenu = bossPeer.wait(m => m.type === 'profile'); bossPeer.send({ type: 'leave' }); await bossMenu;
     const limit = new Peer(), winner = new Peer(); peers.push(limit,winner); await Promise.all([limit.open(),winner.open()]);
     await limit.auth('limit-test-token'); await winner.auth('winner-test-token');
@@ -109,9 +113,9 @@ test('Сервер: онлайн 1×1, кошелёк, сохранение, о�
     await rmdir(storeFile); await rename(storeFile + '.backup', storeFile);
     const retriedSpend = shop.wait(m => m.type === 'profile'); shop.send({ type: 'exchange', nonce: retryNonce, amount: 10, currency: 'xp' }); assert.equal((await retriedSpend).profile.gold, 120);
     const oldReward = shop.wait(m => m.type === 'profile'); shop.send({ type: 'claim', period: 'daily', id: 'activity', key: pastTaskKey });
-    assert.equal((await oldReward).profile.silver, 5150);
+    assert.equal((await oldReward).profile.silver, silverAfterClaim+1250+100);
     shop.send({ type: 'claim', period: 'daily', id: 'activity', key: pastTaskKey });
-    const afterDuplicate = shop.wait(m => m.type === 'profile'); shop.send({ type: 'leave' }); assert.equal((await afterDuplicate).profile.silver, 5150);
+    const afterDuplicate = shop.wait(m => m.type === 'profile'); shop.send({ type: 'leave' }); assert.equal((await afterDuplicate).profile.silver, silverAfterClaim+1250+100);
     const a = new Peer(), b = new Peer(); peers.push(a, b); await Promise.all([a.open(), b.open()]);
     const account = await a.auth(); await b.auth();
     // Duplicate claims and arbitrary client wallet messages must never mint gold.

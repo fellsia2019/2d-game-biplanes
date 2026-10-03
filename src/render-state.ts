@@ -14,6 +14,8 @@ function frameBetween(a: Battle, b: Battle, t: number): Battle {
   const planes = new Map(b.planes.map(p => [p.id, p]));
   const obstacles = new Map(b.obstacles.map(o => [o.id, o]));
   const bullets = new Map(b.bullets.map(p => [p.id, p]));
+  const pickups = new Map((b.pickups ?? []).map(p => [p.id, p]));
+  const bombers = new Map((b.bombers ?? []).map(p => [p.id, p]));
   return { ...a, time: mix(a.time, b.time, t), totalDistance: mix(a.totalDistance, b.totalDistance, t),
     planes: a.planes.map(p => {
       const q = planes.get(p.id); if (!q || p.health <= 0 || q.health <= 0) return p;
@@ -22,6 +24,8 @@ function frameBetween(a: Battle, b: Battle, t: number): Battle {
     }),
     obstacles: a.obstacles.map(o => { const q = obstacles.get(o.id); return q ? { ...o, x: mix(o.x, q.x, t), y: mix(o.y, q.y, t), fire: mix(o.fire, q.fire, t) } : o; }),
     bullets: a.bullets.map(p => { const q = bullets.get(p.id); return q ? { ...p, x: mix(p.x, q.x, t), y: mix(p.y, q.y, t) } : p; }),
+    pickups: a.pickups?.map(p => { const q = pickups.get(p.id); return q ? {...p, x:mix(p.x,q.x,t), y:mix(p.y,q.y,t)} : p; }),
+    bombers: a.bombers?.map(p => { const q = bombers.get(p.id); return q ? {...p, x:mix(p.x,q.x,t), warning:mix(p.warning,q.warning,t)} : p; }),
   };
 }
 
@@ -59,6 +63,8 @@ export class RenderBuffer {
     return { ...latest, time: extrapolated.time, totalDistance: extrapolated.totalDistance,
       planes: latest.planes.map(p => { const q = extrapolated.planes.find(q => q.id === p.id); return q ? { ...p, x: latest.mode === 'pve' && latest.phase === 'flight' ? Math.max(FLIGHT_LEFT, Math.min(FLIGHT_RIGHT, q.x)) : q.x, y: latest.mode === 'pve' && latest.phase === 'flight' ? Math.max(FLIGHT_TOP, Math.min(FLIGHT_BOTTOM, q.y)) : q.y, angle: q.angle } : p; }),
       obstacles: latest.obstacles.map(o => { const q = extrapolated.obstacles.find(q => q.id === o.id); return q ? { ...o, x: q.x, y: q.y } : o; }),
+      pickups: latest.pickups?.map(p => {const q=extrapolated.pickups?.find(q=>q.id===p.id);return q?{...p,x:q.x,y:q.y}:p;}),
+      bombers: latest.bombers?.map(p => {const q=extrapolated.bombers?.find(q=>q.id===p.id);return q?{...p,x:q.x,warning:q.warning}:p;}),
       bullets: latest.bullets.map(p => { const q = extrapolated.bullets.find(q => q.id === p.id); return q ? { ...p, x: q.x, y: q.y } : p; }) };
   }
 }

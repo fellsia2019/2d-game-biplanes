@@ -45,7 +45,7 @@ test('Debug: ресурсы сохраняются, +1 идёт через ур�
     let menu=peer.wait(m=>m.type==='profile');peer.send({type:'leave'});assert.equal((await menu).bossGateLevel,10);
     peer.send({type:'research',branch:'hull',level:1,nonce:randomUUID()});await peer.wait(m=>m.type==='profile');
     peer.send({type:'upgrade',branch:'hull',level:1,nonce:randomUUID()});await peer.wait(m=>m.type==='profile');
-    start=peer.wait(m=>m.type==='start');peer.send({type:'pve',resume:true});const returned=(await start).battle;assert.equal(returned.id,intro.id);assert.equal(returned.phase,'boss-intro');assert.equal(returned.planes[0].hp,106);assert.equal(returned.bossAttempt,1);
+    start=peer.wait(m=>m.type==='start');peer.send({type:'pve',resume:true});const returned=(await start).battle;assert.equal(returned.id,intro.id);assert.equal(returned.phase,'boss-intro');assert.equal(returned.planes[0].hp,102);assert.equal(returned.bossAttempt,1);
     await peer.call('debug',{action:'win-boss'});const offer=peer.last('profile').bossOffer;assert.equal(offer.options.length,3);assert.equal(peer.last('state').battle.phase,'reward');
     const token=auth.welcome.token;
     menu=peer.wait(m=>m.type==='profile');peer.send({type:'leave'});assert.deepEqual((await menu).bossOffer,offer);

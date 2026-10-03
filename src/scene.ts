@@ -167,7 +167,9 @@ export class SkyScene extends Phaser.Scene {
     if (p.health <= 0) return;
     img.setPosition(p.x, p.y).setRotation(p.angle);
     img.setFlipY(Math.cos(p.angle) < 0);
+    img.setAlpha(p.phaseSeconds ? .45 : 1);
     const g = this.ink, x = img.x, y = img.y;
+    if (p.phaseSeconds) { g.lineStyle(3,0x9f8cff,.9); g.strokeCircle(x,y,55 + Math.sin(this.time.now*.018)*5); }
     if (p.shield > 0) { const radius = p.id === 'boss' ? 70 : 60; g.lineStyle(2, 0xd5f9ff, .7); g.strokeCircle(x, y, radius + Math.sin(this.time.now * .006) * 2); g.fillStyle(0xb8edff, .1); g.fillCircle(x, y, radius - 2); }
     const boss = p.id === 'boss', barWidth = boss ? 80 : 46, barY = boss ? -48 : -32;
     g.fillStyle(0x263c4c, .8); g.fillRoundedRect(x-barWidth/2,y+barY,barWidth,boss?6:5,2);
@@ -212,8 +214,24 @@ export class SkyScene extends Phaser.Scene {
     for (const [id, sprite] of this.sprites) if (!visibleIds.has(id)) { sprite.destroy(); this.sprites.delete(id); this.engineEnergy.delete(id); }
     if (state) {
       for (const p of state.planes) this.drawPlane(p, state.level);
+      for (const pickup of state.pickups ?? []) {
+        const g = this.ink, pulse = Math.sin(this.time.now * .004 + pickup.id) * 3;
+        if (pickup.kind === 'recon') { g.lineStyle(4,0x90f6e5,.9); g.strokeCircle(pickup.x,pickup.y,26+pulse); g.lineStyle(2,0xe7fffb,.65); g.strokeCircle(pickup.x,pickup.y,18); }
+        else { g.fillStyle(0x19465c,.9); g.fillRoundedRect(pickup.x-20,pickup.y-18,40,36,5); g.lineStyle(3,0x8ef2bd,.9); g.strokeRoundedRect(pickup.x-20,pickup.y-18,40,36,5); g.lineStyle(5,0xb5ffdd); g.lineBetween(pickup.x-9,pickup.y,pickup.x+9,pickup.y); g.lineBetween(pickup.x,pickup.y-9,pickup.x,pickup.y+9); }
+      }
+      for (const bomber of state.bombers ?? []) {
+        const g = this.ink;
+        g.fillStyle(0x243c57,.95); g.fillEllipse(bomber.x,bomber.y,90,17); g.fillTriangle(bomber.x-22,bomber.y-12,bomber.x+18,bomber.y+5,bomber.x-22,bomber.y+13);
+        g.lineStyle(3,0xf0ad6e,.85); g.lineBetween(bomber.x-35,bomber.y-3,bomber.x+33,bomber.y-3);
+        if (bomber.warning > 0) for (let i=0;i<bomber.bombs;i++) {
+          const lane=bomber.dropX + (i-(bomber.bombs-1)/2)*70; g.fillStyle(0xffa64d,.13); g.fillRect(lane-39,80,78,540); g.lineStyle(3,0xffbf6c,.85);
+          for (let y=80;y<620;y+=36) g.lineBetween(lane,y,lane,y+18);
+          g.fillStyle(0xffc478,.95); g.fillTriangle(lane-12,160,lane+12,160,lane,180);
+        }
+      }
       for (const b of state.bullets) {
-        if (b.kind === 'rocket') {
+        if (b.kind === 'bomb') { this.ink.fillStyle(0xffe0a4); this.ink.fillEllipse(b.x,b.y,18,32); this.ink.lineStyle(3,0x593821); this.ink.strokeEllipse(b.x,b.y,18,32); this.ink.fillStyle(0xee7353); this.ink.fillTriangle(b.x-11,b.y-20,b.x+11,b.y-20,b.x,b.y-9); }
+        else if (b.kind === 'rocket') {
           const angle = Math.atan2(b.vy, b.vx), c = Math.cos(angle), sn = Math.sin(angle);
           this.ink.lineStyle(5, 0xffa950, .7); this.ink.lineBetween(b.x - c * 9, b.y - sn * 9, b.x - c * 30, b.y - sn * 30);
           this.ink.lineStyle(7, 0xe0f2ed); this.ink.lineBetween(b.x - c * 8, b.y - sn * 8, b.x + c * 6, b.y + sn * 6);
@@ -239,6 +257,7 @@ export class SkyScene extends Phaser.Scene {
           const id = 'obstacle-' + o.id, texture = o.kind === 'heavy' ? 'enemy-heavy' : 'enemy'; visibleIds.add(id);
           let img = this.sprites.get(id); if (!img) { img = this.add.image(o.x, o.y, texture).setDepth(10).setScale(o.kind === 'heavy' ? .35 : .27).setFlipX(true); this.sprites.set(id, img); } img.setPosition(o.x, o.y);
           this.drawEngine(img, o.hp < 12);
+          if (o.elite) { g.lineStyle(3,0xffcd78); g.strokeCircle(o.x,o.y,45); g.fillStyle(0xffcd78); g.fillTriangle(o.x-7,o.y-55,o.x+7,o.y-55,o.x,o.y-46); }
         }
       }
     }

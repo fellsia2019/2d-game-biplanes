@@ -75,6 +75,10 @@ p { line-height: 1.5; } small { display: block; }
 .improvement { display: grid; grid-template-columns: 28px minmax(0, 1fr) 48px 192px; gap: 8px 12px; align-items: center; padding: 18px; border-radius: 11px; border: 1px solid #354e64; background: #1a2b3c; } .improvement>div:nth-child(2) { grid-column: 2; } .improvement h3 { font-size: 18px; } .improvement small { font-size: 16px; margin-top: 5px; color: #a4b7c9; }
 .improvement-icon { color: #89c9bd; display: flex; } .improvement-icon .icon { width: 23px; height: 23px; } .upgrade-level { font-size: 16px; color: #a5bece; }
 .upgrade-steps { display: flex; grid-column: 2/4; width: 100%; gap: 4px; margin: 4px 0; } .upgrade-steps i { display: block; height: 6px; flex: 1; border-radius: 2px; background: #354e61; } .upgrade-steps .filled { background: #81d7b7; }
+.skill-card { margin-top:22px; border:1px solid #77689d; border-radius:12px; padding:18px; background:linear-gradient(135deg,#302846,#192d3e); display:grid; gap:12px; }
+.skill-card p,.skill-card small { color:#bdc7de; line-height:1.5; }.skill-owned { color:#c7b7ff!important; }.sortie-summary small { color:#a9bfcc; line-height:1.5; margin:16px 0; }
+.in-flight .touch-controls { display:flex; }.touch-controls .skill-control { width:54px; height:54px; border-color:#aa90ed; background:#47365ddb; font-size:10px; font-weight:800; }
+.skill-control[hidden] { display:none!important; } body:not(.touch-flight) .touch-controls .flight-stick,body:not(.touch-flight) .touch-controls .boost-control,body:not(.touch-flight) .touch-controls .fire-control { display:none; }
 .improvement .button { grid-column: 4; grid-row: 1/4; width: 100%; padding-left: 5px; padding-right: 5px; font-size: 16px; } .upgrade-price { grid-column: 2/4; width: 100%; font-size: 16px; color: #a9bccd; } .upgrade-price .icon { width: 16px; height: 16px; }
 .equipment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .equipment-card { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 16px; background: #252b39; border: 1px solid #746149; border-radius: 11px; } .equipment-card.equipped { border-color: #83cfb4; background: #1e3938; } .equipment-icon { display: flex; color: #e5bf79; } .equipment-icon .icon { width: 28px; height: 28px; } .equipment-card>div { flex: 1; } .equipment-card h3 { font-size: 16px; } .equipment-card p { font-size: 16px; color: #c0b8a7; margin-top: 5px; } .equipment-card .button { width: 100%; }
 .locked-improvements { font-size: 16px; color: #9eb4c9; padding: 18px 0; }
@@ -133,7 +137,7 @@ kbd { display: inline-flex; align-items: center; vertical-align: middle; font-fa
 .meter { height: 4px; border-radius: 3px; background: #ffffff29; overflow: hidden; } .meter i { height: 100%; display: block; transition: width .08s linear; }
 .hp i { background: #92e5c0; } .heat i { background: #ffc45f; } .energy i { background: #86dbe9; }
 .battle-title { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; background: #12273bd9; padding: 9px 12px; border-radius: 9px; border: 1px solid #95b8cc44; width: 248px; }
-.battle-title b { font-size: 16px; display: block; } .battle-title small { font-size: 16px; letter-spacing: .5px; margin-top: 4px; color: #bcd3df; }
+.battle-title b { font-size: 14px; display: block; } .battle-title small { display:block; font-size: 12px; line-height:1.3; margin-top: 4px; color: #bcd3df; }
 .hud-actions { display: flex; gap: 6px; }
 .hud-button { display: grid; place-items: center; pointer-events: auto; background: #12273bdd; color: #e1f3fc; border: 1px solid #95b8cc55; border-radius: 9px; width: 42px; height: 42px; }
 .hud-button .icon { width: 18px; height: 18px; }

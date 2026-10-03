@@ -1,0 +1,192 @@
+{
+  "version": "v0.8-short-turn-control-sensitivity",
+  "qualification": "Executed earned career with final prices and the earlier short-turn controller. Three real boss50 deaths and one real rollback inflate income; this is an input-model sensitivity case, not the final default cadence or timed human play.",
+  "seed": 7,
+  "completed": true,
+  "finalPhase": "ended",
+  "activeSeconds": 172755.26666952757,
+  "deaths": 3,
+  "bossDeaths": 3,
+  "rollbacks": 1,
+  "controls": {},
+  "audit": {
+    "passed": true,
+    "errors": [],
+    "missionAttempts": 1877,
+    "successfulMissions": 1877,
+    "distinctMissionKinds": [
+      "intercept",
+      "recon",
+      "supply",
+      "squadron",
+      "convoy",
+      "patrol",
+      "strike"
+    ],
+    "bossVictories": [
+      10,
+      25,
+      50,
+      75,
+      100,
+      125,
+      150,
+      175,
+      200,
+      225,
+      250
+    ],
+    "minimumFlightSeconds": 155295,
+    "wallet": {
+      "silver": 155397,
+      "xp": 60945,
+      "gold": 0
+    },
+    "aircraftEconomy": [
+      {
+        "id": "universal",
+        "name": "Сокол",
+        "currency": "silver",
+        "unlockBoss": 0,
+        "nativeMinimumSeconds": 0,
+        "acquired": true,
+        "acquiredAtSeconds": 0,
+        "acquiredAtLevel": 1,
+        "fullyUpgradedAtSeconds": 2757.8333333314827,
+        "fullyUpgradedAtLevel": 14,
+        "startSilver": 200,
+        "startXp": 0,
+        "endSeconds": 7274.100000037399,
+        "endSilver": 11715,
+        "endXp": 4509,
+        "upgradeSpending": {
+          "silver": 7620,
+          "xp": 2400
+        },
+        "earnedWhileOwned": {
+          "silver": 19135,
+          "xp": 6909
+        },
+        "upgradeCadence": {
+          "purchases": 45,
+          "distinctStops": 19,
+          "firstAtSeconds": 224.9999999999898,
+          "lastAtSeconds": 2757.8333333314827,
+          "medianPurchaseGapSeconds": 0,
+          "longestPurchaseGapSeconds": 180.00000000011678,
+          "medianStopGapSeconds": 179.9999999998363,
+          "longestStopGapSeconds": 180.00000000011678
+        },
+        "progressionPlateauSeconds": 4516.266666705917
+      },
+      {
+        "id": "swift",
+        "name": "Стриж",
+        "currency": "silver",
+        "unlockBoss": 25,
+        "nativeMinimumSeconds": 6795,
+        "acquired": true,
+        "acquiredAtSeconds": 7274.100000037399,
+        "acquiredAtLevel": 26,
+        "fullyUpgradedAtSeconds": 44276.43333285733,
+        "fullyUpgradedAtLevel": 67,
+        "startSilver": 9215,
+        "startXp": 4509,
+        "endSeconds": 63095.566665916806,
+        "endSilver": 77436,
+        "endXp": 29931,
+        "upgradeSpending": {
+          "silver": 137160,
+          "xp": 43200
+        },
+        "earnedWhileOwned": {
+          "silver": 205381,
+          "xp": 68622
+        },
+        "upgradeCadence": {
+          "purchases": 45,
+          "distinctStops": 40,
+          "firstAtSeconds": 7274.100000037399,
+          "lastAtSeconds": 44276.43333285733,
+          "medianPurchaseGapSeconds": 944.9999999862484,
+          "longestPurchaseGapSeconds": 1586.999999976906,
+          "medianStopGapSeconds": 989.9999999855936,
+          "longestStopGapSeconds": 1586.999999976906
+        },
+        "progressionPlateauSeconds": 18819.13333305948
+      },
+      {
+        "id": "yantar",
+        "name": "Янтарь",
+        "currency": "silver",
+        "unlockBoss": 100,
+        "nativeMinimumSeconds": 47295,
+        "acquired": true,
+        "acquiredAtSeconds": 63095.566665916806,
+        "acquiredAtLevel": 101,
+        "fullyUpgradedAtSeconds": 114267.46667580919,
+        "fullyUpgradedAtLevel": 171,
+        "startSilver": 65436,
+        "startXp": 29931,
+        "endSeconds": 136252.86667802645,
+        "endSilver": 142319,
+        "endXp": 52664,
+        "upgradeSpending": {
+          "silver": 381000,
+          "xp": 120000
+        },
+        "earnedWhileOwned": {
+          "silver": 457883,
+          "xp": 142733
+        },
+        "upgradeCadence": {
+          "purchases": 45,
+          "distinctStops": 32,
+          "firstAtSeconds": 63095.566665916806,
+          "lastAtSeconds": 114267.46667580919,
+          "medianPurchaseGapSeconds": 1440.0000002933666,
+          "longestPurchaseGapSeconds": 2160.00000044005,
+          "medianStopGapSeconds": 1620.0000003300374,
+          "longestStopGapSeconds": 2160.00000044005
+        },
+        "progressionPlateauSeconds": 21985.400002217255
+      },
+      {
+        "id": "bastion",
+        "name": "Рубин",
+        "currency": "silver",
+        "unlockBoss": 200,
+        "nativeMinimumSeconds": 119295,
+        "acquired": true,
+        "acquiredAtSeconds": 136252.86667802645,
+        "acquiredAtLevel": 201,
+        "fullyUpgradedAtSeconds": 156188.33334005153,
+        "fullyUpgradedAtLevel": 228,
+        "startSilver": 112319,
+        "startXp": 52664,
+        "endSeconds": 172755.26666952757,
+        "endSilver": 155397,
+        "endXp": 60945,
+        "upgradeSpending": {
+          "silver": 289560,
+          "xp": 91200
+        },
+        "earnedWhileOwned": {
+          "silver": 332638,
+          "xp": 99481
+        },
+        "upgradeCadence": {
+          "purchases": 45,
+          "distinctStops": 22,
+          "firstAtSeconds": 136252.86667802645,
+          "lastAtSeconds": 156188.33334005153,
+          "medianPurchaseGapSeconds": 0,
+          "longestPurchaseGapSeconds": 1169.9999997275881,
+          "medianStopGapSeconds": 989.9999997694977,
+          "longestStopGapSeconds": 1169.9999997275881
+        },
+        "progressionPlateauSeconds": 16566.933329476044
+      }
+    ]
+  }
+}

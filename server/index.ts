@@ -3,7 +3,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { mkdir, readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { Profile, freshProfile, resetTasks, claimTask, planeStats, bossBalance, GOLD_PACKS, pilotRank, addExperience, ZONE } from '../shared/data';
-import { Battle, Controls, IDLE, Reward, createBattle, makePlane, stepBattle, forfeitDuel, approachBoss, startBossFight, finishBossReward, normalizeCampaignPlane, refreshPlaneStats } from '../shared/simulation';
+import { Battle, Controls, IDLE, Reward, createBattle, makePlane, stepBattle, forfeitDuel, approachBoss, startBossFight, finishBossReward, finishSortie, restoreOperationProgress, normalizeCampaignPlane, refreshPlaneStats } from '../shared/simulation';
 import { buyPlane, buyModule, equipModule, exchange, researchUpgrade, buyUpgrade } from './economy';
 import { duelBotStats } from './duel-bot';
 import { pvoModelsForLevel } from '../shared/terrain';
@@ -11,6 +11,7 @@ import { migrateCareer, prepareBossAttempt, finishCareer, ensureModifierOffer, c
 import { AtomicStore } from './storage';
 import { PaymentAccount, verifyPurchases, redeemPurchases } from './payments';
 import { hasPremium, PREMIUM_PRODUCT_ID } from '../shared/premium';
+import { buySkill } from './skills';
 const port = Number(process.env.PORT ?? 5187), host = process.env.HOST ?? '127.0.0.1';
 const debugEnabled = process.env.BIPLANES_DEBUG === '1' && process.env.NODE_ENV !== 'production' && ['127.0.0.1', 'localhost', '::1'].includes(host);
 const storePath = process.env.BIPLANES_DATA ?? 'data/profiles.json';
@@ -40,7 +41,7 @@ function profile(c: Client) {
   const a = c.account!; resetTasks(a.profile);
   const previous = a.modifierOffer, bossOffer = ensureModifierOffer(a); if (previous !== bossOffer) dirty = true;
   send(c, { type: 'profile', profile: a.profile, resume: !!a.checkpoint, restartLevel: a.restartLevel ?? 1,
-    bossOffer, bossGateLevel: a.checkpoint?.phase === 'boss-intro' ? a.checkpoint.level : a.restartBoss ? a.restartLevel : undefined });
+    bossOffer, operationCompleted:a.checkpoint?.operation?.completed ?? a.operationCheckpoint?.completed ?? 0, bossGateLevel: a.checkpoint?.phase === 'boss-intro' ? a.checkpoint.level : a.restartBoss ? a.restartLevel : undefined });
 }
 function fail(c: Client, message: string) { send(c, { type: 'error', message }); }
 function changed(c: Client) { dirty = true; profile(c); }
@@ -84,7 +85,7 @@ function applyRewards(rewards: Reward[], participants: Client[]) {
       c.account!.bossFailures = undefined; awardBossModifier(c.account!, r.bossLevel, c.battle!.id);
     }
     if (r.kind === 'kill') p.daily.kills++;
-    if (r.kind === 'level' || r.kind === 'duel') { p.daily.activity++; p.weekly.activity++; if (r.win) p.daily.wins++; }
+    if (r.kind === 'sortie' || r.kind === 'duel') { p.daily.activity++; p.weekly.activity++; if (r.win) p.daily.wins++; }
     if (r.kind === 'level') p.weekly.levels++;
     if (r.kind === 'duel') p.weekly.duels++;
     changed(c);
@@ -101,8 +102,12 @@ function enterPve(c: Client, resume: boolean) {
   if (c.battle && c.battle.phase !== 'ended') return fail(c, 'Сначала завершите текущий бой');
   const a = c.account!, p = a.profile;
   if (ensureModifierOffer(a)) { profile(c); return; }
-  const saved = a.checkpoint && (resume || ['boss', 'boss-intro', 'reward'].includes(a.checkpoint.phase));
+  const saved = a.checkpoint && (resume || ['boss', 'boss-intro', 'reward', 'sortie-reward'].includes(a.checkpoint.phase));
   const battle = saved ? structuredClone(a.checkpoint!) : createBattle(randomUUID(), 'pve', [makePlane(p.id, planeStats(p, true))], a.restartLevel ?? 1);
+  if (!saved) {
+    const progress = a.operationCheckpoint?.level === battle.level ? a.operationCheckpoint.completed : a.checkpoint?.level === battle.level ? a.checkpoint.operation?.completed : 0;
+    if (progress) restoreOperationProgress(battle, progress);
+  }
   if (saved) {
     refreshPlaneStats(battle.planes[0], planeStats(p, true));
     const boss = battle.planes.find(q=>q.id==='boss');
@@ -119,7 +124,7 @@ function enterPve(c: Client, resume: boolean) {
   if (saved && battle.phase === 'boss') battle.phase = 'boss-intro';
   if (battle.phase === 'reward') finishBossReward(battle);
   prepareBossAttempt(a, battle);
-  battle.paused = battle.phase === 'boss-intro'; battles.add(battle); assign(c, battle); a.checkpoint = battle; dirty = true;
+  battle.paused = battle.phase === 'boss-intro' || battle.phase === 'sortie-reward'; battles.add(battle); assign(c, battle); a.checkpoint = battle; dirty = true;
 }
 function leave(c: Client, disconnected = false) {
   c.queued = 0; c.input = { ...IDLE };
@@ -181,7 +186,7 @@ wss.on('connection', ws => {
             if (next > ZONE.length) throw new Error('Это последний доступный уровень');
             battles.delete(current);
             const nextBattle = createBattle(randomUUID(), 'pve', [makePlane(p.id, planeStats(p, true))], next);
-            nextBattle.paused = m.paused === true; a.bossFailures = undefined;
+            nextBattle.paused = m.paused === true; a.bossFailures = undefined; a.operationCheckpoint = undefined;
             if (ZONE[next - 1].boss) approachBoss(nextBattle);
             prepareBossAttempt(a, nextBattle); battles.add(nextBattle); assign(c, nextBattle);
             a.restartLevel = next; a.restartBoss = nextBattle.phase === 'boss-intro'; a.checkpoint = structuredClone(nextBattle); dirty = true;
@@ -199,12 +204,20 @@ wss.on('connection', ws => {
         if (m.requestId) send(c, {type:'reply', requestId:m.requestId, ok:true, result:{done:true}});
         return;
       }
-      if (m.type === 'input') { c.input = { horizontal: typeof m.horizontal === 'number' && Number.isFinite(m.horizontal) ? Math.sign(m.horizontal) : 0, turn: typeof m.turn === 'number' && Number.isFinite(m.turn) ? Math.sign(m.turn) : 0, fire: m.fire === true, boost: m.boost === true }; return; }
+      if (m.type === 'input') { c.input = { horizontal: typeof m.horizontal === 'number' && Number.isFinite(m.horizontal) ? Math.sign(m.horizontal) : 0, turn: typeof m.turn === 'number' && Number.isFinite(m.turn) ? Math.sign(m.turn) : 0, fire: m.fire === true, boost: m.boost === true, skill:m.skill === true }; return; }
       if (m.type === 'leave') { leave(c); profile(c); return; }
       if (m.type === 'boss-start') {
         if (!c.battle || c.battle.mode !== 'pve') throw new Error('Сначала вернитесь к боссу');
         startBossFight(c.battle); c.battle.paused = m.paused === true; c.input = {...IDLE};
         a.checkpoint = structuredClone(c.battle); dirty = true; send(c, {type:'state', battle:c.battle}); return;
+      }
+      if (m.type === 'sortie-next') {
+        const current = c.battle;
+        if (!current || current.phase !== 'sortie-reward') throw new Error('Сначала завершите вылет');
+        await financial(c, () => { a.checkpoint = structuredClone(current); return true; }, 'Не удалось сохранить вылет. Повторите продолжение.');
+        if (c.ws.readyState !== WebSocket.OPEN || c.battle !== current) return;
+        finishSortie(current); current.paused = m.paused === true; c.input = {...IDLE}; a.checkpoint = structuredClone(current); dirty = true;
+        send(c, {type:'state', battle:current}); if (m.requestId) send(c, {type:'reply', requestId:m.requestId, ok:true, result:{continued:true}}); return;
       }
       if (m.type === 'modifier-choose') {
         if (typeof m.offerId !== 'string' || typeof m.id !== 'string') throw new Error('Выберите карточку');
@@ -221,7 +234,7 @@ wss.on('connection', ws => {
       if (m.type === 'pause' && c.battle) {
         const hasHumanOpponent = c.battle.mode === 'duel' && c.battle.planes.every(x => !x.bot);
         if (hasHumanOpponent) { fail(c, 'Онлайн-дуэль продолжается. Возвращайтесь в бой.'); return; }
-        c.battle.paused = ['boss-intro', 'reward'].includes(c.battle.phase) || m.paused === true; c.input = { ...IDLE }; dirty = true; return;
+        c.battle.paused = ['boss-intro', 'reward', 'sortie-reward'].includes(c.battle.phase) || m.paused === true; c.input = { ...IDLE }; dirty = true; return;
       }
       if (m.type === 'bots') { c.allowBots = p.allowBots = m.allowed === true; dirty = true; return; }
       if (m.type === 'refresh') { dirty = true; profile(c); return; }
@@ -239,6 +252,7 @@ wss.on('connection', ws => {
         await spend(c, m, () => buyPlane(c.account!.profile, m.id)); return;
       }
       if (m.type === 'module-buy') { await spend(c, m, () => buyModule(c.account!.profile, m.id)); return; }
+      if (m.type === 'skill-buy') { await spend(c, m, () => buySkill(c.account!.profile, m.id)); return; }
       if (m.type === 'module-equip') { equipModule(p, m.id); changed(c); return; }
       if (m.type === 'exchange') { await spend(c, m, () => exchange(c.account!.profile, m.amount, m.currency)); return; }
       if (m.type === 'payment-order') {

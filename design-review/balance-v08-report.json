@@ -1,0 +1,6813 @@
+{
+  "generatedAt": "2026-10-03T10:42:01.637Z",
+  "version": "v0.8",
+  "method": "Authoritative 60s weapon fixtures and all 61440 legal funded aircraft/module/upgrade checkouts. Economy models guaranteed TOTAL sortie earnings, including already paid kills, plus only above-floor bonuses. Goals-only/6/8/10 kill scenarios carry banks between aircraft and include one optional phase skill. Native mission duration is a hard minimum; human timing and earned affordability require the separate actual campaign report.",
+  "planes": [
+    {
+      "id": "universal",
+      "name": "Сокол",
+      "price": 0,
+      "base": {
+        "stats": {
+          "model": "universal",
+          "hp": 100,
+          "speed": 185,
+          "turn": 2.6,
+          "damage": 10,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 34.333333333333336,
+        "overheatFraction": 0.35333333333333333
+      },
+      "max": {
+        "stats": {
+          "model": "universal",
+          "hp": 130,
+          "speed": 203.50000000000003,
+          "turn": 2.7300000000000004,
+          "damage": 13,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 44.63333333333333,
+        "overheatFraction": 0.35333333333333333
+      },
+      "radiator": {
+        "stats": {
+          "model": "universal",
+          "hp": 130,
+          "speed": 203.50000000000003,
+          "turn": 2.7300000000000004,
+          "damage": 11.700000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 52.845000000000006,
+        "overheatFraction": 0.11388888888888889
+      }
+    },
+    {
+      "id": "swift",
+      "name": "Стриж",
+      "price": 2500,
+      "base": {
+        "stats": {
+          "model": "swift",
+          "hp": 175,
+          "speed": 210,
+          "turn": 3.1,
+          "damage": 18,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 61.8,
+        "overheatFraction": 0.35333333333333333
+      },
+      "max": {
+        "stats": {
+          "model": "swift",
+          "hp": 227.5,
+          "speed": 231.00000000000003,
+          "turn": 3.2550000000000003,
+          "damage": 23.400000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 80.34,
+        "overheatFraction": 0.35333333333333333
+      },
+      "radiator": {
+        "stats": {
+          "model": "swift",
+          "hp": 227.5,
+          "speed": 231.00000000000003,
+          "turn": 3.2550000000000003,
+          "damage": 21.060000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 95.12100000000001,
+        "overheatFraction": 0.11388888888888889
+      }
+    },
+    {
+      "id": "yantar",
+      "name": "Янтарь",
+      "price": 12000,
+      "base": {
+        "stats": {
+          "model": "yantar",
+          "hp": 305,
+          "speed": 238,
+          "turn": 3.7,
+          "damage": 32,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 109.86666666666666,
+        "overheatFraction": 0.35333333333333333
+      },
+      "max": {
+        "stats": {
+          "model": "yantar",
+          "hp": 396.5,
+          "speed": 261.8,
+          "turn": 3.8850000000000002,
+          "damage": 41.6,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 142.82666666666668,
+        "overheatFraction": 0.35333333333333333
+      },
+      "radiator": {
+        "stats": {
+          "model": "yantar",
+          "hp": 396.5,
+          "speed": 261.8,
+          "turn": 3.8850000000000002,
+          "damage": 37.440000000000005,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 169.104,
+        "overheatFraction": 0.11388888888888889
+      }
+    },
+    {
+      "id": "bastion",
+      "name": "Рубин",
+      "price": 30000,
+      "base": {
+        "stats": {
+          "model": "bastion",
+          "hp": 535,
+          "speed": 268,
+          "turn": 4.4,
+          "damage": 57,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 195.7,
+        "overheatFraction": 0.35333333333333333
+      },
+      "max": {
+        "stats": {
+          "model": "bastion",
+          "hp": 695.5,
+          "speed": 294.8,
+          "turn": 4.620000000000001,
+          "damage": 74.10000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 254.41000000000003,
+        "overheatFraction": 0.35333333333333333
+      },
+      "radiator": {
+        "stats": {
+          "model": "bastion",
+          "hp": 695.5,
+          "speed": 294.8,
+          "turn": 4.620000000000001,
+          "damage": 66.69000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 301.21650000000005,
+        "overheatFraction": 0.11388888888888889
+      }
+    },
+    {
+      "id": "skate",
+      "name": "Феникс",
+      "price": 300,
+      "base": {
+        "stats": {
+          "model": "skate",
+          "hp": 935,
+          "speed": 300,
+          "turn": 5.2,
+          "damage": 102,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 350.2,
+        "overheatFraction": 0.35333333333333333
+      },
+      "max": {
+        "stats": {
+          "model": "skate",
+          "hp": 1215.5,
+          "speed": 330,
+          "turn": 5.460000000000001,
+          "damage": 132.6,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 455.26,
+        "overheatFraction": 0.35333333333333333
+      },
+      "radiator": {
+        "stats": {
+          "model": "skate",
+          "hp": 1215.5,
+          "speed": 330,
+          "turn": 5.460000000000001,
+          "damage": 119.34,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 539.019,
+        "overheatFraction": 0.11388888888888889
+      }
+    }
+  ],
+  "transitions": [
+    {
+      "from": "Сокол",
+      "to": "Стриж",
+      "hpGain": 0.34615384615384626,
+      "dpsGain": 0.16945784842463785,
+      "speedGain": 0.03194103194103182,
+      "turnGain": 0.1355311355311355
+    },
+    {
+      "from": "Стриж",
+      "to": "Янтарь",
+      "hpGain": 0.34065934065934056,
+      "dpsGain": 0.15502009720951881,
+      "speedGain": 0.030303030303030276,
+      "turnGain": 0.13671274961597546
+    },
+    {
+      "from": "Янтарь",
+      "to": "Рубин",
+      "hpGain": 0.34930643127364447,
+      "dpsGain": 0.15727599583688123,
+      "speedGain": 0.023682200152788324,
+      "turnGain": 0.13256113256113267
+    },
+    {
+      "from": "Рубин",
+      "to": "Феникс",
+      "hpGain": 0.3443565780014377,
+      "dpsGain": 0.16261891363852876,
+      "speedGain": 0.01763907734056991,
+      "turnGain": 0.1255411255411254
+    }
+  ],
+  "economy": [
+    {
+      "first": 1,
+      "last": 25,
+      "model": "universal",
+      "next": "swift",
+      "sorties": 77,
+      "nativeSeconds": 6795,
+      "guaranteedSilver": 12490,
+      "guaranteedXp": 4250,
+      "build": {
+        "hull": 15,
+        "engine": 15,
+        "gun": 15
+      },
+      "buildSilver": 7620,
+      "buildXp": 2400,
+      "planePrice": 2500,
+      "incomeCases": [
+        {
+          "killsPerSortie": 2,
+          "quietKillsPerSortie": 1,
+          "killsSilver": 1701,
+          "killsXp": 567,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 189,
+          "silverAfterFullBuildAndPlane": 2570,
+          "xpAfterFullBuild": 1850
+        },
+        {
+          "killsPerSortie": 4,
+          "quietKillsPerSortie": 2,
+          "killsSilver": 2358,
+          "killsXp": 786,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 262,
+          "silverAfterFullBuildAndPlane": 2570,
+          "xpAfterFullBuild": 1850
+        },
+        {
+          "killsPerSortie": 6,
+          "quietKillsPerSortie": 3,
+          "killsSilver": 3537,
+          "killsXp": 1179,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 393,
+          "silverAfterFullBuildAndPlane": 2570,
+          "xpAfterFullBuild": 1850
+        },
+        {
+          "killsPerSortie": 8,
+          "quietKillsPerSortie": 4,
+          "killsSilver": 4716,
+          "killsXp": 1572,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 524,
+          "silverAfterFullBuildAndPlane": 2570,
+          "xpAfterFullBuild": 1850
+        }
+      ]
+    },
+    {
+      "first": 26,
+      "last": 100,
+      "model": "swift",
+      "next": "yantar",
+      "sorties": 450,
+      "nativeSeconds": 40500,
+      "guaranteedSilver": 165350,
+      "guaranteedXp": 48825,
+      "build": {
+        "hull": 15,
+        "engine": 15,
+        "gun": 15
+      },
+      "buildSilver": 137160,
+      "buildXp": 43200,
+      "planePrice": 12000,
+      "incomeCases": [
+        {
+          "killsPerSortie": 2,
+          "quietKillsPerSortie": 1,
+          "killsSilver": 18914,
+          "killsXp": 5404,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 1351,
+          "silverAfterFullBuildAndPlane": 16190,
+          "xpAfterFullBuild": 5625
+        },
+        {
+          "killsPerSortie": 4,
+          "quietKillsPerSortie": 2,
+          "killsSilver": 25200,
+          "killsXp": 7200,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 1800,
+          "silverAfterFullBuildAndPlane": 16190,
+          "xpAfterFullBuild": 5625
+        },
+        {
+          "killsPerSortie": 6,
+          "quietKillsPerSortie": 3,
+          "killsSilver": 32382,
+          "killsXp": 9252,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 2313,
+          "silverAfterFullBuildAndPlane": 16190,
+          "xpAfterFullBuild": 5625
+        },
+        {
+          "killsPerSortie": 8,
+          "quietKillsPerSortie": 4,
+          "killsSilver": 43176,
+          "killsXp": 12336,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 3084,
+          "silverAfterFullBuildAndPlane": 16190,
+          "xpAfterFullBuild": 5625
+        }
+      ]
+    },
+    {
+      "first": 101,
+      "last": 200,
+      "model": "yantar",
+      "next": "bastion",
+      "sorties": 800,
+      "nativeSeconds": 72000,
+      "guaranteedSilver": 457900,
+      "guaranteedXp": 134175,
+      "build": {
+        "hull": 15,
+        "engine": 15,
+        "gun": 15
+      },
+      "buildSilver": 381000,
+      "buildXp": 120000,
+      "planePrice": 30000,
+      "incomeCases": [
+        {
+          "killsPerSortie": 2,
+          "quietKillsPerSortie": 1,
+          "killsSilver": 50421,
+          "killsXp": 14406,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 2401,
+          "silverAfterFullBuildAndPlane": 46900,
+          "xpAfterFullBuild": 14175
+        },
+        {
+          "killsPerSortie": 4,
+          "quietKillsPerSortie": 2,
+          "killsSilver": 67200,
+          "killsXp": 19200,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 3200,
+          "silverAfterFullBuildAndPlane": 46900,
+          "xpAfterFullBuild": 14175
+        },
+        {
+          "killsPerSortie": 6,
+          "quietKillsPerSortie": 3,
+          "killsSilver": 86373,
+          "killsXp": 24678,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 4113,
+          "silverAfterFullBuildAndPlane": 46900,
+          "xpAfterFullBuild": 14175
+        },
+        {
+          "killsPerSortie": 8,
+          "quietKillsPerSortie": 4,
+          "killsSilver": 115164,
+          "killsXp": 32904,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 5484,
+          "silverAfterFullBuildAndPlane": 46900,
+          "xpAfterFullBuild": 14175
+        }
+      ]
+    },
+    {
+      "first": 201,
+      "last": 250,
+      "model": "bastion",
+      "sorties": 400,
+      "nativeSeconds": 36000,
+      "guaranteedSilver": 314500,
+      "guaranteedXp": 95700,
+      "build": {
+        "hull": 15,
+        "engine": 15,
+        "gun": 15
+      },
+      "buildSilver": 289560,
+      "buildXp": 91200,
+      "planePrice": 0,
+      "incomeCases": [
+        {
+          "killsPerSortie": 2,
+          "quietKillsPerSortie": 1,
+          "killsSilver": 33572,
+          "killsXp": 9592,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 1199,
+          "silverAfterFullBuildAndPlane": 24940,
+          "xpAfterFullBuild": 4500
+        },
+        {
+          "killsPerSortie": 4,
+          "quietKillsPerSortie": 2,
+          "killsSilver": 44800,
+          "killsXp": 12800,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 1600,
+          "silverAfterFullBuildAndPlane": 24940,
+          "xpAfterFullBuild": 4500
+        },
+        {
+          "killsPerSortie": 6,
+          "quietKillsPerSortie": 3,
+          "killsSilver": 57624,
+          "killsXp": 16464,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 2058,
+          "silverAfterFullBuildAndPlane": 24940,
+          "xpAfterFullBuild": 4500
+        },
+        {
+          "killsPerSortie": 8,
+          "quietKillsPerSortie": 4,
+          "killsSilver": 76832,
+          "killsXp": 21952,
+          "bonusSilver": 0,
+          "bonusXp": 0,
+          "killCount": 2744,
+          "silverAfterFullBuildAndPlane": 24940,
+          "xpAfterFullBuild": 4500
+        }
+      ]
+    }
+  ],
+  "careerBudgetCases": [
+    {
+      "name": "goals-only",
+      "combatKills": 0,
+      "quietKills": 0,
+      "qualification": "Successful missions with their actual minimum objectives enforced. Quiet missions have a separate kill assumption. Kill credits count toward the guaranteed sortie total; only amounts above it increase income. Banks carry across aircraft stages. One optional permanent phase skill is budgeted, although the actual free controller does not require it.",
+      "stages": [
+        {
+          "model": "universal",
+          "first": 1,
+          "last": 25,
+          "start": {
+            "silver": 200,
+            "xp": 0
+          },
+          "earned": {
+            "silver": 12490,
+            "xp": 4250
+          },
+          "killCount": 155,
+          "fullUpgradeCost": {
+            "silver": 7620,
+            "xp": 2400
+          },
+          "nextPlanePrice": 2500,
+          "optionalPhaseSkill": {
+            "silver": 1200,
+            "xp": 300
+          },
+          "end": {
+            "silver": 1370,
+            "xp": 1550
+          },
+          "affordable": true
+        },
+        {
+          "model": "swift",
+          "first": 26,
+          "last": 100,
+          "start": {
+            "silver": 1370,
+            "xp": 1550
+          },
+          "earned": {
+            "silver": 165350,
+            "xp": 48825
+          },
+          "killCount": 1158,
+          "fullUpgradeCost": {
+            "silver": 137160,
+            "xp": 43200
+          },
+          "nextPlanePrice": 12000,
+          "optionalPhaseSkill": {
+            "silver": 0,
+            "xp": 0
+          },
+          "end": {
+            "silver": 17560,
+            "xp": 7175
+          },
+          "affordable": true
+        },
+        {
+          "model": "yantar",
+          "first": 101,
+          "last": 200,
+          "start": {
+            "silver": 17560,
+            "xp": 7175
+          },
+          "earned": {
+            "silver": 457900,
+            "xp": 134175
+          },
+          "killCount": 2058,
+          "fullUpgradeCost": {
+            "silver": 381000,
+            "xp": 120000
+          },
+          "nextPlanePrice": 30000,
+          "optionalPhaseSkill": {
+            "silver": 0,
+            "xp": 0
+          },
+          "end": {
+            "silver": 64460,
+            "xp": 21350
+          },
+          "affordable": true
+        },
+        {
+          "model": "bastion",
+          "first": 201,
+          "last": 250,
+          "start": {
+            "silver": 64460,
+            "xp": 21350
+          },
+          "earned": {
+            "silver": 314500,
+            "xp": 95700
+          },
+          "killCount": 1028,
+          "fullUpgradeCost": {
+            "silver": 289560,
+            "xp": 91200
+          },
+          "nextPlanePrice": 0,
+          "optionalPhaseSkill": {
+            "silver": 0,
+            "xp": 0
+          },
+          "end": {
+            "silver": 89400,
+            "xp": 25850
+          },
+          "affordable": true
+        }
+      ],
+      "affordable": true
+    },
+    {
+      "name": "novice6",
+      "combatKills": 6,
+      "quietKills": 2,
+      "qualification": "Successful missions with their actual minimum objectives enforced. Quiet missions have a separate kill assumption. Kill credits count toward the guaranteed sortie total; only amounts above it increase income. Banks carry across aircraft stages. One optional permanent phase skill is budgeted, although the actual free controller does not require it.",
+      "stages": [
+        {
+          "model": "universal",
+          "first": 1,
+          "last": 25,
+          "start": {
+            "silver": 200,
+            "xp": 0
+          },
+          "earned": {
+            "silver": 12490,
+            "xp": 4250
+          },
+          "killCount": 370,
+          "fullUpgradeCost": {
+            "silver": 7620,
+            "xp": 2400
+          },
+          "nextPlanePrice": 2500,
+          "optionalPhaseSkill": {
+            "silver": 1200,
+            "xp": 300
+          },
+          "end": {
+            "silver": 1370,
+            "xp": 1550
+          },
+          "affordable": true
+        },
+        {
+          "model": "swift",
+          "first": 26,
+          "last": 100,
+          "start": {
+            "silver": 1370,
+            "xp": 1550
+          },
+          "earned": {
+            "silver": 165350,
+            "xp": 48825
+          },
+          "killCount": 2184,
+          "fullUpgradeCost": {
+            "silver": 137160,
+            "xp": 43200
+          },
+          "nextPlanePrice": 12000,
+          "optionalPhaseSkill": {
+            "silver": 0,
+            "xp": 0
+          },
+          "end": {
+            "silver": 17560,
+            "xp": 7175
+          },
+          "affordable": true
+        },
+        {
+          "model": "yantar",
+          "first": 101,
+          "last": 200,
+          "start": {
+            "silver": 17560,
+            "xp": 7175
+          },
+          "earned": {
+            "silver": 457900,
+            "xp": 134175
+          },
+          "killCount": 3884,
+          "fullUpgradeCost": {
+            "silver": 381000,
+            "xp": 120000
+          },
+          "nextPlanePrice": 30000,
+          "optionalPhaseSkill": {
+            "silver": 0,
+            "xp": 0
+          },
+          "end": {
+            "silver": 64460,
+            "xp": 21350
+          },
+          "affordable": true
+        },
+        {
+          "model": "bastion",
+          "first": 201,
+          "last": 250,
+          "start": {
+            "silver": 64460,
+            "xp": 21350
+          },
+          "earned": {
+            "silver": 314500,
+            "xp": 95700
+          },
+          "killCount": 1944,
+          "fullUpgradeCost": {
+            "silver": 289560,
+            "xp": 91200
+          },
+          "nextPlanePrice": 0,
+          "optionalPhaseSkill": {
+            "silver": 0,
+            "xp": 0
+          },
+          "end": {
+            "silver": 89400,
+            "xp": 25850
+          },
+          "affordable": true
+        }
+      ],
+      "affordable": true
+    },
+    {
+      "name": "novice8",
+      "combatKills": 8,
+      "quietKills": 3,
+      "qualification": "Successful missions with their actual minimum objectives enforced. Quiet missions have a separate kill assumption. Kill credits count toward the guaranteed sortie total; only amounts above it increase income. Banks carry across aircraft stages. One optional permanent phase skill is budgeted, although the actual free controller does not require it.",
+      "stages": [
+        {
+          "model": "universal",
+          "first": 1,
+          "last": 25,
+          "start": {
+            "silver": 200,
+            "xp": 0
+          },
+          "earned": {
+            "silver": 12490,
+            "xp": 4250
+          },
+          "killCount": 501,
+          "fullUpgradeCost": {
+            "silver": 7620,
+            "xp": 2400
+          },
+          "nextPlanePrice": 2500,
+          "optionalPhaseSkill": {
+            "silver": 1200,
+            "xp": 300
+          },
+          "end": {
+            "silver": 1370,
+            "xp": 1550
+          },
+          "affordable": true
+        },
+        {
+          "model": "swift",
+          "first": 26,
+          "last": 100,
+          "start": {
+            "silver": 1370,
+            "xp": 1550
+          },
+          "earned": {
+            "silver": 165350,
+            "xp": 48825
+          },
+          "killCount": 2955,
+          "fullUpgradeCost": {
+            "silver": 137160,
+            "xp": 43200
+          },
+          "nextPlanePrice": 12000,
+          "optionalPhaseSkill": {
+            "silver": 0,
+            "xp": 0
+          },
+          "end": {
+            "silver": 17560,
+            "xp": 7175
+          },
+          "affordable": true
+        },
+        {
+          "model": "yantar",
+          "first": 101,
+          "last": 200,
+          "start": {
+            "silver": 17560,
+            "xp": 7175
+          },
+          "earned": {
+            "silver": 457900,
+            "xp": 134175
+          },
+          "killCount": 5255,
+          "fullUpgradeCost": {
+            "silver": 381000,
+            "xp": 120000
+          },
+          "nextPlanePrice": 30000,
+          "optionalPhaseSkill": {
+            "silver": 0,
+            "xp": 0
+          },
+          "end": {
+            "silver": 64460,
+            "xp": 21350
+          },
+          "affordable": true
+        },
+        {
+          "model": "bastion",
+          "first": 201,
+          "last": 250,
+          "start": {
+            "silver": 64460,
+            "xp": 21350
+          },
+          "earned": {
+            "silver": 314500,
+            "xp": 95700
+          },
+          "killCount": 2630,
+          "fullUpgradeCost": {
+            "silver": 289560,
+            "xp": 91200
+          },
+          "nextPlanePrice": 0,
+          "optionalPhaseSkill": {
+            "silver": 0,
+            "xp": 0
+          },
+          "end": {
+            "silver": 89400,
+            "xp": 25850
+          },
+          "affordable": true
+        }
+      ],
+      "affordable": true
+    },
+    {
+      "name": "competent10",
+      "combatKills": 10,
+      "quietKills": 4,
+      "qualification": "Successful missions with their actual minimum objectives enforced. Quiet missions have a separate kill assumption. Kill credits count toward the guaranteed sortie total; only amounts above it increase income. Banks carry across aircraft stages. One optional permanent phase skill is budgeted, although the actual free controller does not require it.",
+      "stages": [
+        {
+          "model": "universal",
+          "first": 1,
+          "last": 25,
+          "start": {
+            "silver": 200,
+            "xp": 0
+          },
+          "earned": {
+            "silver": 12490,
+            "xp": 4250
+          },
+          "killCount": 632,
+          "fullUpgradeCost": {
+            "silver": 7620,
+            "xp": 2400
+          },
+          "nextPlanePrice": 2500,
+          "optionalPhaseSkill": {
+            "silver": 1200,
+            "xp": 300
+          },
+          "end": {
+            "silver": 1370,
+            "xp": 1550
+          },
+          "affordable": true
+        },
+        {
+          "model": "swift",
+          "first": 26,
+          "last": 100,
+          "start": {
+            "silver": 1370,
+            "xp": 1550
+          },
+          "earned": {
+            "silver": 165350,
+            "xp": 48825
+          },
+          "killCount": 3726,
+          "fullUpgradeCost": {
+            "silver": 137160,
+            "xp": 43200
+          },
+          "nextPlanePrice": 12000,
+          "optionalPhaseSkill": {
+            "silver": 0,
+            "xp": 0
+          },
+          "end": {
+            "silver": 17560,
+            "xp": 7175
+          },
+          "affordable": true
+        },
+        {
+          "model": "yantar",
+          "first": 101,
+          "last": 200,
+          "start": {
+            "silver": 17560,
+            "xp": 7175
+          },
+          "earned": {
+            "silver": 457900,
+            "xp": 134175
+          },
+          "killCount": 6626,
+          "fullUpgradeCost": {
+            "silver": 381000,
+            "xp": 120000
+          },
+          "nextPlanePrice": 30000,
+          "optionalPhaseSkill": {
+            "silver": 0,
+            "xp": 0
+          },
+          "end": {
+            "silver": 64460,
+            "xp": 21350
+          },
+          "affordable": true
+        },
+        {
+          "model": "bastion",
+          "first": 201,
+          "last": 250,
+          "start": {
+            "silver": 64460,
+            "xp": 21350
+          },
+          "earned": {
+            "silver": 314500,
+            "xp": 95700
+          },
+          "killCount": 3316,
+          "fullUpgradeCost": {
+            "silver": 289560,
+            "xp": 91200
+          },
+          "nextPlanePrice": 0,
+          "optionalPhaseSkill": {
+            "silver": 0,
+            "xp": 0
+          },
+          "end": {
+            "silver": 89400,
+            "xp": 25850
+          },
+          "affordable": true
+        }
+      ],
+      "affordable": true
+    }
+  ],
+  "nativeDuration": {
+    "campaignSeconds": 155295,
+    "aircraft": [
+      {
+        "id": "universal",
+        "unlockBoss": 0,
+        "minimumSeconds": 0
+      },
+      {
+        "id": "swift",
+        "unlockBoss": 25,
+        "minimumSeconds": 6795
+      },
+      {
+        "id": "yantar",
+        "unlockBoss": 100,
+        "minimumSeconds": 47295
+      },
+      {
+        "id": "bastion",
+        "unlockBoss": 200,
+        "minimumSeconds": 119295
+      },
+      {
+        "id": "skate",
+        "unlockBoss": 200,
+        "minimumSeconds": 119295
+      }
+    ]
+  },
+  "aircraftAudit": {
+    "method": "Every aircraft/0..15 hull/0..15 engine/0..15 gun/module combination passes real economy checkout and 10 authoritative combat frames. Previous free aircraft are legally purchased/full-upgraded in funded fixtures. Weapon curves use real 60s heat cycles; boost uses real depletion/recharge. This is not earned campaign progression or timed humans. Costs include required preceding aircraft; the huge matrix is verified in memory and reported as counts plus corner samples.",
+    "combinations": 61440,
+    "simulated": 61440,
+    "counts": {
+      "universal": 12288,
+      "swift": 12288,
+      "yantar": 12288,
+      "bastion": 12288,
+      "skate": 12288
+    },
+    "errors": [],
+    "weaponCurves": [
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 0,
+        "stats": {
+          "model": "universal",
+          "hp": 100,
+          "speed": 185,
+          "turn": 2.6,
+          "damage": 10,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 34.333333333333336,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 1,
+        "stats": {
+          "model": "universal",
+          "hp": 102,
+          "speed": 186.23333333333332,
+          "turn": 2.608666666666667,
+          "damage": 10.2,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 35.019999999999996,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 2,
+        "stats": {
+          "model": "universal",
+          "hp": 104,
+          "speed": 187.46666666666667,
+          "turn": 2.6173333333333333,
+          "damage": 10.4,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 35.70666666666667,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 3,
+        "stats": {
+          "model": "universal",
+          "hp": 106,
+          "speed": 188.70000000000002,
+          "turn": 2.6260000000000003,
+          "damage": 10.600000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 36.39333333333334,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 4,
+        "stats": {
+          "model": "universal",
+          "hp": 108,
+          "speed": 189.93333333333334,
+          "turn": 2.634666666666667,
+          "damage": 10.8,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 37.080000000000005,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 5,
+        "stats": {
+          "model": "universal",
+          "hp": 110.00000000000001,
+          "speed": 191.16666666666669,
+          "turn": 2.643333333333333,
+          "damage": 11,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 37.766666666666666,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 6,
+        "stats": {
+          "model": "universal",
+          "hp": 112.00000000000001,
+          "speed": 192.4,
+          "turn": 2.652,
+          "damage": 11.200000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 38.45333333333334,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 7,
+        "stats": {
+          "model": "universal",
+          "hp": 114.00000000000001,
+          "speed": 193.63333333333333,
+          "turn": 2.660666666666667,
+          "damage": 11.400000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 39.14000000000001,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 8,
+        "stats": {
+          "model": "universal",
+          "hp": 115.99999999999999,
+          "speed": 194.86666666666665,
+          "turn": 2.6693333333333333,
+          "damage": 11.6,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 39.82666666666667,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 9,
+        "stats": {
+          "model": "universal",
+          "hp": 118,
+          "speed": 196.10000000000002,
+          "turn": 2.6780000000000004,
+          "damage": 11.799999999999999,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 40.51333333333333,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 10,
+        "stats": {
+          "model": "universal",
+          "hp": 120,
+          "speed": 197.33333333333334,
+          "turn": 2.686666666666667,
+          "damage": 12,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 41.2,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 11,
+        "stats": {
+          "model": "universal",
+          "hp": 122,
+          "speed": 198.56666666666666,
+          "turn": 2.695333333333333,
+          "damage": 12.2,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 41.88666666666666,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 12,
+        "stats": {
+          "model": "universal",
+          "hp": 124,
+          "speed": 199.8,
+          "turn": 2.704,
+          "damage": 12.4,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 42.57333333333334,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 13,
+        "stats": {
+          "model": "universal",
+          "hp": 126,
+          "speed": 201.03333333333333,
+          "turn": 2.7126666666666672,
+          "damage": 12.6,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 43.26,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 14,
+        "stats": {
+          "model": "universal",
+          "hp": 128,
+          "speed": 202.26666666666665,
+          "turn": 2.7213333333333334,
+          "damage": 12.8,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 43.94666666666667,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "gun": 15,
+        "stats": {
+          "model": "universal",
+          "hp": 130,
+          "speed": 203.50000000000003,
+          "turn": 2.7300000000000004,
+          "damage": 13,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 44.63333333333333,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 0,
+        "stats": {
+          "model": "universal",
+          "hp": 100,
+          "speed": 185,
+          "turn": 2.6,
+          "damage": 10,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 34.333333333333336,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 1,
+        "stats": {
+          "model": "universal",
+          "hp": 102,
+          "speed": 186.23333333333332,
+          "turn": 2.608666666666667,
+          "damage": 10.2,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 35.019999999999996,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 2,
+        "stats": {
+          "model": "universal",
+          "hp": 104,
+          "speed": 187.46666666666667,
+          "turn": 2.6173333333333333,
+          "damage": 10.4,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 35.70666666666667,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 3,
+        "stats": {
+          "model": "universal",
+          "hp": 106,
+          "speed": 188.70000000000002,
+          "turn": 2.6260000000000003,
+          "damage": 10.600000000000001,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 36.39333333333334,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 4,
+        "stats": {
+          "model": "universal",
+          "hp": 108,
+          "speed": 189.93333333333334,
+          "turn": 2.634666666666667,
+          "damage": 10.8,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 37.080000000000005,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 5,
+        "stats": {
+          "model": "universal",
+          "hp": 110.00000000000001,
+          "speed": 191.16666666666669,
+          "turn": 2.643333333333333,
+          "damage": 11,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 37.766666666666666,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 6,
+        "stats": {
+          "model": "universal",
+          "hp": 112.00000000000001,
+          "speed": 192.4,
+          "turn": 2.652,
+          "damage": 11.200000000000001,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 38.45333333333334,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 7,
+        "stats": {
+          "model": "universal",
+          "hp": 114.00000000000001,
+          "speed": 193.63333333333333,
+          "turn": 2.660666666666667,
+          "damage": 11.400000000000002,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 39.14000000000001,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 8,
+        "stats": {
+          "model": "universal",
+          "hp": 115.99999999999999,
+          "speed": 194.86666666666665,
+          "turn": 2.6693333333333333,
+          "damage": 11.6,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 39.82666666666667,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 9,
+        "stats": {
+          "model": "universal",
+          "hp": 118,
+          "speed": 196.10000000000002,
+          "turn": 2.6780000000000004,
+          "damage": 11.799999999999999,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 40.51333333333333,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 10,
+        "stats": {
+          "model": "universal",
+          "hp": 120,
+          "speed": 197.33333333333334,
+          "turn": 2.686666666666667,
+          "damage": 12,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 41.2,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 11,
+        "stats": {
+          "model": "universal",
+          "hp": 122,
+          "speed": 198.56666666666666,
+          "turn": 2.695333333333333,
+          "damage": 12.2,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 41.88666666666666,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 12,
+        "stats": {
+          "model": "universal",
+          "hp": 124,
+          "speed": 199.8,
+          "turn": 2.704,
+          "damage": 12.4,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 42.57333333333334,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 13,
+        "stats": {
+          "model": "universal",
+          "hp": 126,
+          "speed": 201.03333333333333,
+          "turn": 2.7126666666666672,
+          "damage": 12.6,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 43.26,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 14,
+        "stats": {
+          "model": "universal",
+          "hp": 128,
+          "speed": 202.26666666666665,
+          "turn": 2.7213333333333334,
+          "damage": 12.8,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 43.94666666666667,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "gun": 15,
+        "stats": {
+          "model": "universal",
+          "hp": 130,
+          "speed": 203.50000000000003,
+          "turn": 2.7300000000000004,
+          "damage": 13,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 44.63333333333333,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 0,
+        "stats": {
+          "model": "universal",
+          "hp": 100,
+          "speed": 185,
+          "turn": 2.6,
+          "damage": 9,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 40.65,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 1,
+        "stats": {
+          "model": "universal",
+          "hp": 102,
+          "speed": 186.23333333333332,
+          "turn": 2.608666666666667,
+          "damage": 9.18,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 41.462999999999994,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 2,
+        "stats": {
+          "model": "universal",
+          "hp": 104,
+          "speed": 187.46666666666667,
+          "turn": 2.6173333333333333,
+          "damage": 9.360000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 42.276,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 3,
+        "stats": {
+          "model": "universal",
+          "hp": 106,
+          "speed": 188.70000000000002,
+          "turn": 2.6260000000000003,
+          "damage": 9.540000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 43.089000000000006,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 4,
+        "stats": {
+          "model": "universal",
+          "hp": 108,
+          "speed": 189.93333333333334,
+          "turn": 2.634666666666667,
+          "damage": 9.72,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 43.90200000000001,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 5,
+        "stats": {
+          "model": "universal",
+          "hp": 110.00000000000001,
+          "speed": 191.16666666666669,
+          "turn": 2.643333333333333,
+          "damage": 9.9,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 44.715,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 6,
+        "stats": {
+          "model": "universal",
+          "hp": 112.00000000000001,
+          "speed": 192.4,
+          "turn": 2.652,
+          "damage": 10.080000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 45.528000000000006,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 7,
+        "stats": {
+          "model": "universal",
+          "hp": 114.00000000000001,
+          "speed": 193.63333333333333,
+          "turn": 2.660666666666667,
+          "damage": 10.260000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 46.34100000000001,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 8,
+        "stats": {
+          "model": "universal",
+          "hp": 115.99999999999999,
+          "speed": 194.86666666666665,
+          "turn": 2.6693333333333333,
+          "damage": 10.44,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 47.153999999999996,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 9,
+        "stats": {
+          "model": "universal",
+          "hp": 118,
+          "speed": 196.10000000000002,
+          "turn": 2.6780000000000004,
+          "damage": 10.62,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 47.967,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 10,
+        "stats": {
+          "model": "universal",
+          "hp": 120,
+          "speed": 197.33333333333334,
+          "turn": 2.686666666666667,
+          "damage": 10.8,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 48.78,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 11,
+        "stats": {
+          "model": "universal",
+          "hp": 122,
+          "speed": 198.56666666666666,
+          "turn": 2.695333333333333,
+          "damage": 10.98,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 49.592999999999996,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 12,
+        "stats": {
+          "model": "universal",
+          "hp": 124,
+          "speed": 199.8,
+          "turn": 2.704,
+          "damage": 11.16,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 50.406,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 13,
+        "stats": {
+          "model": "universal",
+          "hp": 126,
+          "speed": 201.03333333333333,
+          "turn": 2.7126666666666672,
+          "damage": 11.34,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 51.219,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 14,
+        "stats": {
+          "model": "universal",
+          "hp": 128,
+          "speed": 202.26666666666665,
+          "turn": 2.7213333333333334,
+          "damage": 11.520000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 52.03200000000001,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "gun": 15,
+        "stats": {
+          "model": "universal",
+          "hp": 130,
+          "speed": 203.50000000000003,
+          "turn": 2.7300000000000004,
+          "damage": 11.700000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 52.845000000000006,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 0,
+        "stats": {
+          "model": "swift",
+          "hp": 175,
+          "speed": 210,
+          "turn": 3.1,
+          "damage": 18,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 61.8,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 1,
+        "stats": {
+          "model": "swift",
+          "hp": 178.5,
+          "speed": 211.39999999999998,
+          "turn": 3.1103333333333336,
+          "damage": 18.36,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 63.035999999999994,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 2,
+        "stats": {
+          "model": "swift",
+          "hp": 182,
+          "speed": 212.8,
+          "turn": 3.1206666666666667,
+          "damage": 18.72,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 64.27199999999999,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 3,
+        "stats": {
+          "model": "swift",
+          "hp": 185.5,
+          "speed": 214.20000000000002,
+          "turn": 3.1310000000000002,
+          "damage": 19.080000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 65.50800000000001,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 4,
+        "stats": {
+          "model": "swift",
+          "hp": 189,
+          "speed": 215.6,
+          "turn": 3.1413333333333338,
+          "damage": 19.44,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 66.744,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 5,
+        "stats": {
+          "model": "swift",
+          "hp": 192.50000000000003,
+          "speed": 217.00000000000003,
+          "turn": 3.1516666666666664,
+          "damage": 19.8,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 67.98,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 6,
+        "stats": {
+          "model": "swift",
+          "hp": 196.00000000000003,
+          "speed": 218.4,
+          "turn": 3.1620000000000004,
+          "damage": 20.160000000000004,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 69.21600000000002,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 7,
+        "stats": {
+          "model": "swift",
+          "hp": 199.50000000000003,
+          "speed": 219.79999999999998,
+          "turn": 3.172333333333334,
+          "damage": 20.520000000000003,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 70.45200000000001,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 8,
+        "stats": {
+          "model": "swift",
+          "hp": 203,
+          "speed": 221.2,
+          "turn": 3.1826666666666665,
+          "damage": 20.88,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 71.688,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 9,
+        "stats": {
+          "model": "swift",
+          "hp": 206.5,
+          "speed": 222.60000000000002,
+          "turn": 3.193,
+          "damage": 21.24,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 72.92399999999999,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 10,
+        "stats": {
+          "model": "swift",
+          "hp": 210,
+          "speed": 224,
+          "turn": 3.2033333333333336,
+          "damage": 21.599999999999998,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 74.16,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 11,
+        "stats": {
+          "model": "swift",
+          "hp": 213.5,
+          "speed": 225.39999999999998,
+          "turn": 3.2136666666666667,
+          "damage": 21.96,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 75.396,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 12,
+        "stats": {
+          "model": "swift",
+          "hp": 217,
+          "speed": 226.8,
+          "turn": 3.224,
+          "damage": 22.32,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 76.632,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 13,
+        "stats": {
+          "model": "swift",
+          "hp": 220.5,
+          "speed": 228.2,
+          "turn": 3.2343333333333337,
+          "damage": 22.68,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 77.868,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 14,
+        "stats": {
+          "model": "swift",
+          "hp": 224,
+          "speed": 229.6,
+          "turn": 3.244666666666667,
+          "damage": 23.04,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 79.104,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "gun": 15,
+        "stats": {
+          "model": "swift",
+          "hp": 227.5,
+          "speed": 231.00000000000003,
+          "turn": 3.2550000000000003,
+          "damage": 23.400000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 80.34,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 0,
+        "stats": {
+          "model": "swift",
+          "hp": 175,
+          "speed": 210,
+          "turn": 3.1,
+          "damage": 18,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 61.8,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 1,
+        "stats": {
+          "model": "swift",
+          "hp": 178.5,
+          "speed": 211.39999999999998,
+          "turn": 3.1103333333333336,
+          "damage": 18.36,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 63.035999999999994,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 2,
+        "stats": {
+          "model": "swift",
+          "hp": 182,
+          "speed": 212.8,
+          "turn": 3.1206666666666667,
+          "damage": 18.72,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 64.27199999999999,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 3,
+        "stats": {
+          "model": "swift",
+          "hp": 185.5,
+          "speed": 214.20000000000002,
+          "turn": 3.1310000000000002,
+          "damage": 19.080000000000002,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 65.50800000000001,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 4,
+        "stats": {
+          "model": "swift",
+          "hp": 189,
+          "speed": 215.6,
+          "turn": 3.1413333333333338,
+          "damage": 19.44,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 66.744,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 5,
+        "stats": {
+          "model": "swift",
+          "hp": 192.50000000000003,
+          "speed": 217.00000000000003,
+          "turn": 3.1516666666666664,
+          "damage": 19.8,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 67.98,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 6,
+        "stats": {
+          "model": "swift",
+          "hp": 196.00000000000003,
+          "speed": 218.4,
+          "turn": 3.1620000000000004,
+          "damage": 20.160000000000004,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 69.21600000000002,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 7,
+        "stats": {
+          "model": "swift",
+          "hp": 199.50000000000003,
+          "speed": 219.79999999999998,
+          "turn": 3.172333333333334,
+          "damage": 20.520000000000003,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 70.45200000000001,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 8,
+        "stats": {
+          "model": "swift",
+          "hp": 203,
+          "speed": 221.2,
+          "turn": 3.1826666666666665,
+          "damage": 20.88,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 71.688,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 9,
+        "stats": {
+          "model": "swift",
+          "hp": 206.5,
+          "speed": 222.60000000000002,
+          "turn": 3.193,
+          "damage": 21.24,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 72.92399999999999,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 10,
+        "stats": {
+          "model": "swift",
+          "hp": 210,
+          "speed": 224,
+          "turn": 3.2033333333333336,
+          "damage": 21.599999999999998,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 74.16,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 11,
+        "stats": {
+          "model": "swift",
+          "hp": 213.5,
+          "speed": 225.39999999999998,
+          "turn": 3.2136666666666667,
+          "damage": 21.96,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 75.396,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 12,
+        "stats": {
+          "model": "swift",
+          "hp": 217,
+          "speed": 226.8,
+          "turn": 3.224,
+          "damage": 22.32,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 76.632,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 13,
+        "stats": {
+          "model": "swift",
+          "hp": 220.5,
+          "speed": 228.2,
+          "turn": 3.2343333333333337,
+          "damage": 22.68,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 77.868,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 14,
+        "stats": {
+          "model": "swift",
+          "hp": 224,
+          "speed": 229.6,
+          "turn": 3.244666666666667,
+          "damage": 23.04,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 79.104,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "gun": 15,
+        "stats": {
+          "model": "swift",
+          "hp": 227.5,
+          "speed": 231.00000000000003,
+          "turn": 3.2550000000000003,
+          "damage": 23.400000000000002,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 80.34,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 0,
+        "stats": {
+          "model": "swift",
+          "hp": 175,
+          "speed": 210,
+          "turn": 3.1,
+          "damage": 16.2,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 73.17,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 1,
+        "stats": {
+          "model": "swift",
+          "hp": 178.5,
+          "speed": 211.39999999999998,
+          "turn": 3.1103333333333336,
+          "damage": 16.524,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 74.6334,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 2,
+        "stats": {
+          "model": "swift",
+          "hp": 182,
+          "speed": 212.8,
+          "turn": 3.1206666666666667,
+          "damage": 16.848,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 76.0968,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 3,
+        "stats": {
+          "model": "swift",
+          "hp": 185.5,
+          "speed": 214.20000000000002,
+          "turn": 3.1310000000000002,
+          "damage": 17.172,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 77.5602,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 4,
+        "stats": {
+          "model": "swift",
+          "hp": 189,
+          "speed": 215.6,
+          "turn": 3.1413333333333338,
+          "damage": 17.496000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 79.0236,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 5,
+        "stats": {
+          "model": "swift",
+          "hp": 192.50000000000003,
+          "speed": 217.00000000000003,
+          "turn": 3.1516666666666664,
+          "damage": 17.82,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 80.48700000000001,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 6,
+        "stats": {
+          "model": "swift",
+          "hp": 196.00000000000003,
+          "speed": 218.4,
+          "turn": 3.1620000000000004,
+          "damage": 18.144000000000005,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 81.95040000000002,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 7,
+        "stats": {
+          "model": "swift",
+          "hp": 199.50000000000003,
+          "speed": 219.79999999999998,
+          "turn": 3.172333333333334,
+          "damage": 18.468000000000004,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 83.41380000000002,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 8,
+        "stats": {
+          "model": "swift",
+          "hp": 203,
+          "speed": 221.2,
+          "turn": 3.1826666666666665,
+          "damage": 18.791999999999998,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 84.87719999999999,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 9,
+        "stats": {
+          "model": "swift",
+          "hp": 206.5,
+          "speed": 222.60000000000002,
+          "turn": 3.193,
+          "damage": 19.116,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 86.3406,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 10,
+        "stats": {
+          "model": "swift",
+          "hp": 210,
+          "speed": 224,
+          "turn": 3.2033333333333336,
+          "damage": 19.439999999999998,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 87.804,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 11,
+        "stats": {
+          "model": "swift",
+          "hp": 213.5,
+          "speed": 225.39999999999998,
+          "turn": 3.2136666666666667,
+          "damage": 19.764000000000003,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 89.26740000000001,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 12,
+        "stats": {
+          "model": "swift",
+          "hp": 217,
+          "speed": 226.8,
+          "turn": 3.224,
+          "damage": 20.088,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 90.7308,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 13,
+        "stats": {
+          "model": "swift",
+          "hp": 220.5,
+          "speed": 228.2,
+          "turn": 3.2343333333333337,
+          "damage": 20.412,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 92.1942,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 14,
+        "stats": {
+          "model": "swift",
+          "hp": 224,
+          "speed": 229.6,
+          "turn": 3.244666666666667,
+          "damage": 20.736,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 93.6576,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "gun": 15,
+        "stats": {
+          "model": "swift",
+          "hp": 227.5,
+          "speed": 231.00000000000003,
+          "turn": 3.2550000000000003,
+          "damage": 21.060000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 95.12100000000001,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 0,
+        "stats": {
+          "model": "yantar",
+          "hp": 305,
+          "speed": 238,
+          "turn": 3.7,
+          "damage": 32,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 109.86666666666666,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 1,
+        "stats": {
+          "model": "yantar",
+          "hp": 311.1,
+          "speed": 239.58666666666664,
+          "turn": 3.712333333333334,
+          "damage": 32.64,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 112.06400000000001,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 2,
+        "stats": {
+          "model": "yantar",
+          "hp": 317.2,
+          "speed": 241.17333333333335,
+          "turn": 3.724666666666667,
+          "damage": 33.28,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 114.26133333333334,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 3,
+        "stats": {
+          "model": "yantar",
+          "hp": 323.3,
+          "speed": 242.76,
+          "turn": 3.737,
+          "damage": 33.92,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 116.45866666666667,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 4,
+        "stats": {
+          "model": "yantar",
+          "hp": 329.40000000000003,
+          "speed": 244.34666666666666,
+          "turn": 3.749333333333334,
+          "damage": 34.56,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 118.656,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 5,
+        "stats": {
+          "model": "yantar",
+          "hp": 335.5,
+          "speed": 245.93333333333337,
+          "turn": 3.7616666666666667,
+          "damage": 35.2,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 120.85333333333334,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 6,
+        "stats": {
+          "model": "yantar",
+          "hp": 341.6,
+          "speed": 247.52,
+          "turn": 3.7740000000000005,
+          "damage": 35.84,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 123.05066666666669,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 7,
+        "stats": {
+          "model": "yantar",
+          "hp": 347.70000000000005,
+          "speed": 249.10666666666665,
+          "turn": 3.7863333333333338,
+          "damage": 36.480000000000004,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 125.24800000000002,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 8,
+        "stats": {
+          "model": "yantar",
+          "hp": 353.79999999999995,
+          "speed": 250.6933333333333,
+          "turn": 3.7986666666666666,
+          "damage": 37.12,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 127.44533333333332,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 9,
+        "stats": {
+          "model": "yantar",
+          "hp": 359.9,
+          "speed": 252.28,
+          "turn": 3.8110000000000004,
+          "damage": 37.76,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 129.64266666666666,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 10,
+        "stats": {
+          "model": "yantar",
+          "hp": 366,
+          "speed": 253.86666666666667,
+          "turn": 3.8233333333333337,
+          "damage": 38.4,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 131.84,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 11,
+        "stats": {
+          "model": "yantar",
+          "hp": 372.09999999999997,
+          "speed": 255.45333333333332,
+          "turn": 3.8356666666666666,
+          "damage": 39.04,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 134.03733333333332,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 12,
+        "stats": {
+          "model": "yantar",
+          "hp": 378.2,
+          "speed": 257.04,
+          "turn": 3.8480000000000003,
+          "damage": 39.68,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 136.23466666666667,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 13,
+        "stats": {
+          "model": "yantar",
+          "hp": 384.3,
+          "speed": 258.62666666666667,
+          "turn": 3.860333333333334,
+          "damage": 40.32,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 138.432,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 14,
+        "stats": {
+          "model": "yantar",
+          "hp": 390.40000000000003,
+          "speed": 260.2133333333333,
+          "turn": 3.872666666666667,
+          "damage": 40.96,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 140.62933333333334,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "gun": 15,
+        "stats": {
+          "model": "yantar",
+          "hp": 396.5,
+          "speed": 261.8,
+          "turn": 3.8850000000000002,
+          "damage": 41.6,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 142.82666666666668,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 0,
+        "stats": {
+          "model": "yantar",
+          "hp": 305,
+          "speed": 238,
+          "turn": 3.7,
+          "damage": 32,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 109.86666666666666,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 1,
+        "stats": {
+          "model": "yantar",
+          "hp": 311.1,
+          "speed": 239.58666666666664,
+          "turn": 3.712333333333334,
+          "damage": 32.64,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 112.06400000000001,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 2,
+        "stats": {
+          "model": "yantar",
+          "hp": 317.2,
+          "speed": 241.17333333333335,
+          "turn": 3.724666666666667,
+          "damage": 33.28,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 114.26133333333334,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 3,
+        "stats": {
+          "model": "yantar",
+          "hp": 323.3,
+          "speed": 242.76,
+          "turn": 3.737,
+          "damage": 33.92,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 116.45866666666667,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 4,
+        "stats": {
+          "model": "yantar",
+          "hp": 329.40000000000003,
+          "speed": 244.34666666666666,
+          "turn": 3.749333333333334,
+          "damage": 34.56,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 118.656,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 5,
+        "stats": {
+          "model": "yantar",
+          "hp": 335.5,
+          "speed": 245.93333333333337,
+          "turn": 3.7616666666666667,
+          "damage": 35.2,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 120.85333333333334,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 6,
+        "stats": {
+          "model": "yantar",
+          "hp": 341.6,
+          "speed": 247.52,
+          "turn": 3.7740000000000005,
+          "damage": 35.84,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 123.05066666666669,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 7,
+        "stats": {
+          "model": "yantar",
+          "hp": 347.70000000000005,
+          "speed": 249.10666666666665,
+          "turn": 3.7863333333333338,
+          "damage": 36.480000000000004,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 125.24800000000002,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 8,
+        "stats": {
+          "model": "yantar",
+          "hp": 353.79999999999995,
+          "speed": 250.6933333333333,
+          "turn": 3.7986666666666666,
+          "damage": 37.12,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 127.44533333333332,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 9,
+        "stats": {
+          "model": "yantar",
+          "hp": 359.9,
+          "speed": 252.28,
+          "turn": 3.8110000000000004,
+          "damage": 37.76,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 129.64266666666666,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 10,
+        "stats": {
+          "model": "yantar",
+          "hp": 366,
+          "speed": 253.86666666666667,
+          "turn": 3.8233333333333337,
+          "damage": 38.4,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 131.84,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 11,
+        "stats": {
+          "model": "yantar",
+          "hp": 372.09999999999997,
+          "speed": 255.45333333333332,
+          "turn": 3.8356666666666666,
+          "damage": 39.04,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 134.03733333333332,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 12,
+        "stats": {
+          "model": "yantar",
+          "hp": 378.2,
+          "speed": 257.04,
+          "turn": 3.8480000000000003,
+          "damage": 39.68,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 136.23466666666667,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 13,
+        "stats": {
+          "model": "yantar",
+          "hp": 384.3,
+          "speed": 258.62666666666667,
+          "turn": 3.860333333333334,
+          "damage": 40.32,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 138.432,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 14,
+        "stats": {
+          "model": "yantar",
+          "hp": 390.40000000000003,
+          "speed": 260.2133333333333,
+          "turn": 3.872666666666667,
+          "damage": 40.96,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 140.62933333333334,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "gun": 15,
+        "stats": {
+          "model": "yantar",
+          "hp": 396.5,
+          "speed": 261.8,
+          "turn": 3.8850000000000002,
+          "damage": 41.6,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 142.82666666666668,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 0,
+        "stats": {
+          "model": "yantar",
+          "hp": 305,
+          "speed": 238,
+          "turn": 3.7,
+          "damage": 28.8,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 130.08,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 1,
+        "stats": {
+          "model": "yantar",
+          "hp": 311.1,
+          "speed": 239.58666666666664,
+          "turn": 3.712333333333334,
+          "damage": 29.376,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 132.6816,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 2,
+        "stats": {
+          "model": "yantar",
+          "hp": 317.2,
+          "speed": 241.17333333333335,
+          "turn": 3.724666666666667,
+          "damage": 29.952,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 135.2832,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 3,
+        "stats": {
+          "model": "yantar",
+          "hp": 323.3,
+          "speed": 242.76,
+          "turn": 3.737,
+          "damage": 30.528000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 137.88479999999998,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 4,
+        "stats": {
+          "model": "yantar",
+          "hp": 329.40000000000003,
+          "speed": 244.34666666666666,
+          "turn": 3.749333333333334,
+          "damage": 31.104000000000003,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 140.48640000000003,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 5,
+        "stats": {
+          "model": "yantar",
+          "hp": 335.5,
+          "speed": 245.93333333333337,
+          "turn": 3.7616666666666667,
+          "damage": 31.680000000000003,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 143.08800000000002,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 6,
+        "stats": {
+          "model": "yantar",
+          "hp": 341.6,
+          "speed": 247.52,
+          "turn": 3.7740000000000005,
+          "damage": 32.25600000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 145.68960000000004,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 7,
+        "stats": {
+          "model": "yantar",
+          "hp": 347.70000000000005,
+          "speed": 249.10666666666665,
+          "turn": 3.7863333333333338,
+          "damage": 32.83200000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 148.29120000000003,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 8,
+        "stats": {
+          "model": "yantar",
+          "hp": 353.79999999999995,
+          "speed": 250.6933333333333,
+          "turn": 3.7986666666666666,
+          "damage": 33.408,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 150.89280000000002,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 9,
+        "stats": {
+          "model": "yantar",
+          "hp": 359.9,
+          "speed": 252.28,
+          "turn": 3.8110000000000004,
+          "damage": 33.984,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 153.4944,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 10,
+        "stats": {
+          "model": "yantar",
+          "hp": 366,
+          "speed": 253.86666666666667,
+          "turn": 3.8233333333333337,
+          "damage": 34.56,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 156.096,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 11,
+        "stats": {
+          "model": "yantar",
+          "hp": 372.09999999999997,
+          "speed": 255.45333333333332,
+          "turn": 3.8356666666666666,
+          "damage": 35.136,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 158.69760000000002,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 12,
+        "stats": {
+          "model": "yantar",
+          "hp": 378.2,
+          "speed": 257.04,
+          "turn": 3.8480000000000003,
+          "damage": 35.712,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 161.2992,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 13,
+        "stats": {
+          "model": "yantar",
+          "hp": 384.3,
+          "speed": 258.62666666666667,
+          "turn": 3.860333333333334,
+          "damage": 36.288000000000004,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 163.9008,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 14,
+        "stats": {
+          "model": "yantar",
+          "hp": 390.40000000000003,
+          "speed": 260.2133333333333,
+          "turn": 3.872666666666667,
+          "damage": 36.864000000000004,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 166.50240000000002,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "gun": 15,
+        "stats": {
+          "model": "yantar",
+          "hp": 396.5,
+          "speed": 261.8,
+          "turn": 3.8850000000000002,
+          "damage": 37.440000000000005,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 169.104,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 0,
+        "stats": {
+          "model": "bastion",
+          "hp": 535,
+          "speed": 268,
+          "turn": 4.4,
+          "damage": 57,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 195.7,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 1,
+        "stats": {
+          "model": "bastion",
+          "hp": 545.7,
+          "speed": 269.78666666666663,
+          "turn": 4.414666666666667,
+          "damage": 58.14,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 199.614,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 2,
+        "stats": {
+          "model": "bastion",
+          "hp": 556.4,
+          "speed": 271.5733333333334,
+          "turn": 4.429333333333333,
+          "damage": 59.28,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 203.528,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 3,
+        "stats": {
+          "model": "bastion",
+          "hp": 567.1,
+          "speed": 273.36,
+          "turn": 4.444000000000001,
+          "damage": 60.42,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 207.442,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 4,
+        "stats": {
+          "model": "bastion",
+          "hp": 577.8000000000001,
+          "speed": 275.14666666666665,
+          "turn": 4.458666666666668,
+          "damage": 61.56,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 211.35600000000002,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 5,
+        "stats": {
+          "model": "bastion",
+          "hp": 588.5,
+          "speed": 276.93333333333334,
+          "turn": 4.473333333333334,
+          "damage": 62.7,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 215.27,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 6,
+        "stats": {
+          "model": "bastion",
+          "hp": 599.2,
+          "speed": 278.72,
+          "turn": 4.488,
+          "damage": 63.84,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 219.18400000000003,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 7,
+        "stats": {
+          "model": "bastion",
+          "hp": 609.9000000000001,
+          "speed": 280.50666666666666,
+          "turn": 4.502666666666667,
+          "damage": 64.98,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 223.098,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 8,
+        "stats": {
+          "model": "bastion",
+          "hp": 620.5999999999999,
+          "speed": 282.2933333333333,
+          "turn": 4.517333333333333,
+          "damage": 66.11999999999999,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 227.01199999999997,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 9,
+        "stats": {
+          "model": "bastion",
+          "hp": 631.3,
+          "speed": 284.08000000000004,
+          "turn": 4.532000000000001,
+          "damage": 67.25999999999999,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 230.92599999999996,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 10,
+        "stats": {
+          "model": "bastion",
+          "hp": 642,
+          "speed": 285.8666666666667,
+          "turn": 4.546666666666668,
+          "damage": 68.39999999999999,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 234.83999999999997,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 11,
+        "stats": {
+          "model": "bastion",
+          "hp": 652.6999999999999,
+          "speed": 287.6533333333333,
+          "turn": 4.561333333333334,
+          "damage": 69.53999999999999,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 238.75399999999996,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 12,
+        "stats": {
+          "model": "bastion",
+          "hp": 663.4,
+          "speed": 289.44,
+          "turn": 4.5760000000000005,
+          "damage": 70.67999999999999,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 242.66799999999998,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 13,
+        "stats": {
+          "model": "bastion",
+          "hp": 674.1,
+          "speed": 291.2266666666667,
+          "turn": 4.590666666666667,
+          "damage": 71.82000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 246.58200000000002,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 14,
+        "stats": {
+          "model": "bastion",
+          "hp": 684.8000000000001,
+          "speed": 293.0133333333333,
+          "turn": 4.605333333333333,
+          "damage": 72.96000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 250.49600000000004,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "gun": 15,
+        "stats": {
+          "model": "bastion",
+          "hp": 695.5,
+          "speed": 294.8,
+          "turn": 4.620000000000001,
+          "damage": 74.10000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 254.41000000000003,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 0,
+        "stats": {
+          "model": "bastion",
+          "hp": 535,
+          "speed": 268,
+          "turn": 4.4,
+          "damage": 57,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 195.7,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 1,
+        "stats": {
+          "model": "bastion",
+          "hp": 545.7,
+          "speed": 269.78666666666663,
+          "turn": 4.414666666666667,
+          "damage": 58.14,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 199.614,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 2,
+        "stats": {
+          "model": "bastion",
+          "hp": 556.4,
+          "speed": 271.5733333333334,
+          "turn": 4.429333333333333,
+          "damage": 59.28,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 203.528,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 3,
+        "stats": {
+          "model": "bastion",
+          "hp": 567.1,
+          "speed": 273.36,
+          "turn": 4.444000000000001,
+          "damage": 60.42,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 207.442,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 4,
+        "stats": {
+          "model": "bastion",
+          "hp": 577.8000000000001,
+          "speed": 275.14666666666665,
+          "turn": 4.458666666666668,
+          "damage": 61.56,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 211.35600000000002,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 5,
+        "stats": {
+          "model": "bastion",
+          "hp": 588.5,
+          "speed": 276.93333333333334,
+          "turn": 4.473333333333334,
+          "damage": 62.7,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 215.27,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 6,
+        "stats": {
+          "model": "bastion",
+          "hp": 599.2,
+          "speed": 278.72,
+          "turn": 4.488,
+          "damage": 63.84,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 219.18400000000003,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 7,
+        "stats": {
+          "model": "bastion",
+          "hp": 609.9000000000001,
+          "speed": 280.50666666666666,
+          "turn": 4.502666666666667,
+          "damage": 64.98,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 223.098,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 8,
+        "stats": {
+          "model": "bastion",
+          "hp": 620.5999999999999,
+          "speed": 282.2933333333333,
+          "turn": 4.517333333333333,
+          "damage": 66.11999999999999,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 227.01199999999997,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 9,
+        "stats": {
+          "model": "bastion",
+          "hp": 631.3,
+          "speed": 284.08000000000004,
+          "turn": 4.532000000000001,
+          "damage": 67.25999999999999,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 230.92599999999996,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 10,
+        "stats": {
+          "model": "bastion",
+          "hp": 642,
+          "speed": 285.8666666666667,
+          "turn": 4.546666666666668,
+          "damage": 68.39999999999999,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 234.83999999999997,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 11,
+        "stats": {
+          "model": "bastion",
+          "hp": 652.6999999999999,
+          "speed": 287.6533333333333,
+          "turn": 4.561333333333334,
+          "damage": 69.53999999999999,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 238.75399999999996,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 12,
+        "stats": {
+          "model": "bastion",
+          "hp": 663.4,
+          "speed": 289.44,
+          "turn": 4.5760000000000005,
+          "damage": 70.67999999999999,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 242.66799999999998,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 13,
+        "stats": {
+          "model": "bastion",
+          "hp": 674.1,
+          "speed": 291.2266666666667,
+          "turn": 4.590666666666667,
+          "damage": 71.82000000000001,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 246.58200000000002,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 14,
+        "stats": {
+          "model": "bastion",
+          "hp": 684.8000000000001,
+          "speed": 293.0133333333333,
+          "turn": 4.605333333333333,
+          "damage": 72.96000000000001,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 250.49600000000004,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "gun": 15,
+        "stats": {
+          "model": "bastion",
+          "hp": 695.5,
+          "speed": 294.8,
+          "turn": 4.620000000000001,
+          "damage": 74.10000000000001,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 254.41000000000003,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 0,
+        "stats": {
+          "model": "bastion",
+          "hp": 535,
+          "speed": 268,
+          "turn": 4.4,
+          "damage": 51.300000000000004,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 231.705,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 1,
+        "stats": {
+          "model": "bastion",
+          "hp": 545.7,
+          "speed": 269.78666666666663,
+          "turn": 4.414666666666667,
+          "damage": 52.326,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 236.3391,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 2,
+        "stats": {
+          "model": "bastion",
+          "hp": 556.4,
+          "speed": 271.5733333333334,
+          "turn": 4.429333333333333,
+          "damage": 53.352000000000004,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 240.97320000000002,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 3,
+        "stats": {
+          "model": "bastion",
+          "hp": 567.1,
+          "speed": 273.36,
+          "turn": 4.444000000000001,
+          "damage": 54.378,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 245.6073,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 4,
+        "stats": {
+          "model": "bastion",
+          "hp": 577.8000000000001,
+          "speed": 275.14666666666665,
+          "turn": 4.458666666666668,
+          "damage": 55.404,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 250.2414,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 5,
+        "stats": {
+          "model": "bastion",
+          "hp": 588.5,
+          "speed": 276.93333333333334,
+          "turn": 4.473333333333334,
+          "damage": 56.43000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 254.87550000000005,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 6,
+        "stats": {
+          "model": "bastion",
+          "hp": 599.2,
+          "speed": 278.72,
+          "turn": 4.488,
+          "damage": 57.456,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 259.50960000000003,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 7,
+        "stats": {
+          "model": "bastion",
+          "hp": 609.9000000000001,
+          "speed": 280.50666666666666,
+          "turn": 4.502666666666667,
+          "damage": 58.482000000000006,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 264.1437,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 8,
+        "stats": {
+          "model": "bastion",
+          "hp": 620.5999999999999,
+          "speed": 282.2933333333333,
+          "turn": 4.517333333333333,
+          "damage": 59.507999999999996,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 268.7778,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 9,
+        "stats": {
+          "model": "bastion",
+          "hp": 631.3,
+          "speed": 284.08000000000004,
+          "turn": 4.532000000000001,
+          "damage": 60.53399999999999,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 273.41189999999995,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 10,
+        "stats": {
+          "model": "bastion",
+          "hp": 642,
+          "speed": 285.8666666666667,
+          "turn": 4.546666666666668,
+          "damage": 61.559999999999995,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 278.046,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 11,
+        "stats": {
+          "model": "bastion",
+          "hp": 652.6999999999999,
+          "speed": 287.6533333333333,
+          "turn": 4.561333333333334,
+          "damage": 62.58599999999999,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 282.6800999999999,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 12,
+        "stats": {
+          "model": "bastion",
+          "hp": 663.4,
+          "speed": 289.44,
+          "turn": 4.5760000000000005,
+          "damage": 63.611999999999995,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 287.31419999999997,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 13,
+        "stats": {
+          "model": "bastion",
+          "hp": 674.1,
+          "speed": 291.2266666666667,
+          "turn": 4.590666666666667,
+          "damage": 64.638,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 291.9483,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 14,
+        "stats": {
+          "model": "bastion",
+          "hp": 684.8000000000001,
+          "speed": 293.0133333333333,
+          "turn": 4.605333333333333,
+          "damage": 65.66400000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 296.58240000000006,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "gun": 15,
+        "stats": {
+          "model": "bastion",
+          "hp": 695.5,
+          "speed": 294.8,
+          "turn": 4.620000000000001,
+          "damage": 66.69000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 301.21650000000005,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 0,
+        "stats": {
+          "model": "skate",
+          "hp": 935,
+          "speed": 300,
+          "turn": 5.2,
+          "damage": 102,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 350.2,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 1,
+        "stats": {
+          "model": "skate",
+          "hp": 953.7,
+          "speed": 302,
+          "turn": 5.217333333333334,
+          "damage": 104.04,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 357.204,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 2,
+        "stats": {
+          "model": "skate",
+          "hp": 972.4,
+          "speed": 304,
+          "turn": 5.234666666666667,
+          "damage": 106.08,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 364.20799999999997,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 3,
+        "stats": {
+          "model": "skate",
+          "hp": 991.1,
+          "speed": 306,
+          "turn": 5.252000000000001,
+          "damage": 108.12,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 371.21200000000005,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 4,
+        "stats": {
+          "model": "skate",
+          "hp": 1009.8000000000001,
+          "speed": 308,
+          "turn": 5.269333333333334,
+          "damage": 110.16000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 378.21600000000007,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 5,
+        "stats": {
+          "model": "skate",
+          "hp": 1028.5,
+          "speed": 310.00000000000006,
+          "turn": 5.286666666666666,
+          "damage": 112.2,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 385.22,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 6,
+        "stats": {
+          "model": "skate",
+          "hp": 1047.2,
+          "speed": 312,
+          "turn": 5.304,
+          "damage": 114.24000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 392.22400000000005,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 7,
+        "stats": {
+          "model": "skate",
+          "hp": 1065.9,
+          "speed": 314,
+          "turn": 5.321333333333334,
+          "damage": 116.28000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 399.22800000000007,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 8,
+        "stats": {
+          "model": "skate",
+          "hp": 1084.6,
+          "speed": 315.99999999999994,
+          "turn": 5.338666666666667,
+          "damage": 118.32,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 406.23199999999997,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 9,
+        "stats": {
+          "model": "skate",
+          "hp": 1103.3,
+          "speed": 318,
+          "turn": 5.356000000000001,
+          "damage": 120.36,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 413.236,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 10,
+        "stats": {
+          "model": "skate",
+          "hp": 1122,
+          "speed": 320,
+          "turn": 5.373333333333334,
+          "damage": 122.39999999999999,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 420.23999999999995,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 11,
+        "stats": {
+          "model": "skate",
+          "hp": 1140.7,
+          "speed": 322,
+          "turn": 5.390666666666666,
+          "damage": 124.44,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 427.24399999999997,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 12,
+        "stats": {
+          "model": "skate",
+          "hp": 1159.4,
+          "speed": 324,
+          "turn": 5.408,
+          "damage": 126.48,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 434.248,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 13,
+        "stats": {
+          "model": "skate",
+          "hp": 1178.1,
+          "speed": 326,
+          "turn": 5.4253333333333345,
+          "damage": 128.52,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 441.25200000000007,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 14,
+        "stats": {
+          "model": "skate",
+          "hp": 1196.8,
+          "speed": 328,
+          "turn": 5.442666666666667,
+          "damage": 130.56,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 448.25600000000003,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "gun": 15,
+        "stats": {
+          "model": "skate",
+          "hp": 1215.5,
+          "speed": 330,
+          "turn": 5.460000000000001,
+          "damage": 132.6,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 455.26,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 0,
+        "stats": {
+          "model": "skate",
+          "hp": 935,
+          "speed": 300,
+          "turn": 5.2,
+          "damage": 102,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 350.2,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 1,
+        "stats": {
+          "model": "skate",
+          "hp": 953.7,
+          "speed": 302,
+          "turn": 5.217333333333334,
+          "damage": 104.04,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 357.204,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 2,
+        "stats": {
+          "model": "skate",
+          "hp": 972.4,
+          "speed": 304,
+          "turn": 5.234666666666667,
+          "damage": 106.08,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 364.20799999999997,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 3,
+        "stats": {
+          "model": "skate",
+          "hp": 991.1,
+          "speed": 306,
+          "turn": 5.252000000000001,
+          "damage": 108.12,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 371.21200000000005,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 4,
+        "stats": {
+          "model": "skate",
+          "hp": 1009.8000000000001,
+          "speed": 308,
+          "turn": 5.269333333333334,
+          "damage": 110.16000000000001,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 378.21600000000007,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 5,
+        "stats": {
+          "model": "skate",
+          "hp": 1028.5,
+          "speed": 310.00000000000006,
+          "turn": 5.286666666666666,
+          "damage": 112.2,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 385.22,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 6,
+        "stats": {
+          "model": "skate",
+          "hp": 1047.2,
+          "speed": 312,
+          "turn": 5.304,
+          "damage": 114.24000000000001,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 392.22400000000005,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 7,
+        "stats": {
+          "model": "skate",
+          "hp": 1065.9,
+          "speed": 314,
+          "turn": 5.321333333333334,
+          "damage": 116.28000000000002,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 399.22800000000007,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 8,
+        "stats": {
+          "model": "skate",
+          "hp": 1084.6,
+          "speed": 315.99999999999994,
+          "turn": 5.338666666666667,
+          "damage": 118.32,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 406.23199999999997,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 9,
+        "stats": {
+          "model": "skate",
+          "hp": 1103.3,
+          "speed": 318,
+          "turn": 5.356000000000001,
+          "damage": 120.36,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 413.236,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 10,
+        "stats": {
+          "model": "skate",
+          "hp": 1122,
+          "speed": 320,
+          "turn": 5.373333333333334,
+          "damage": 122.39999999999999,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 420.23999999999995,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 11,
+        "stats": {
+          "model": "skate",
+          "hp": 1140.7,
+          "speed": 322,
+          "turn": 5.390666666666666,
+          "damage": 124.44,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 427.24399999999997,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 12,
+        "stats": {
+          "model": "skate",
+          "hp": 1159.4,
+          "speed": 324,
+          "turn": 5.408,
+          "damage": 126.48,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 434.248,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 13,
+        "stats": {
+          "model": "skate",
+          "hp": 1178.1,
+          "speed": 326,
+          "turn": 5.4253333333333345,
+          "damage": 128.52,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 441.25200000000007,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 14,
+        "stats": {
+          "model": "skate",
+          "hp": 1196.8,
+          "speed": 328,
+          "turn": 5.442666666666667,
+          "damage": 130.56,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 448.25600000000003,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "gun": 15,
+        "stats": {
+          "model": "skate",
+          "hp": 1215.5,
+          "speed": 330,
+          "turn": 5.460000000000001,
+          "damage": 132.6,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 206,
+        "dps": 455.26,
+        "overheatFraction": 0.35333333333333333
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 0,
+        "stats": {
+          "model": "skate",
+          "hp": 935,
+          "speed": 300,
+          "turn": 5.2,
+          "damage": 91.8,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 414.63,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 1,
+        "stats": {
+          "model": "skate",
+          "hp": 953.7,
+          "speed": 302,
+          "turn": 5.217333333333334,
+          "damage": 93.63600000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 422.92260000000005,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 2,
+        "stats": {
+          "model": "skate",
+          "hp": 972.4,
+          "speed": 304,
+          "turn": 5.234666666666667,
+          "damage": 95.472,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 431.2151999999999,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 3,
+        "stats": {
+          "model": "skate",
+          "hp": 991.1,
+          "speed": 306,
+          "turn": 5.252000000000001,
+          "damage": 97.308,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 439.50780000000003,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 4,
+        "stats": {
+          "model": "skate",
+          "hp": 1009.8000000000001,
+          "speed": 308,
+          "turn": 5.269333333333334,
+          "damage": 99.144,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 447.8004,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 5,
+        "stats": {
+          "model": "skate",
+          "hp": 1028.5,
+          "speed": 310.00000000000006,
+          "turn": 5.286666666666666,
+          "damage": 100.98,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 456.093,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 6,
+        "stats": {
+          "model": "skate",
+          "hp": 1047.2,
+          "speed": 312,
+          "turn": 5.304,
+          "damage": 102.81600000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 464.3856000000001,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 7,
+        "stats": {
+          "model": "skate",
+          "hp": 1065.9,
+          "speed": 314,
+          "turn": 5.321333333333334,
+          "damage": 104.65200000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 472.67820000000006,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 8,
+        "stats": {
+          "model": "skate",
+          "hp": 1084.6,
+          "speed": 315.99999999999994,
+          "turn": 5.338666666666667,
+          "damage": 106.488,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 480.9708,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 9,
+        "stats": {
+          "model": "skate",
+          "hp": 1103.3,
+          "speed": 318,
+          "turn": 5.356000000000001,
+          "damage": 108.324,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 489.2634,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 10,
+        "stats": {
+          "model": "skate",
+          "hp": 1122,
+          "speed": 320,
+          "turn": 5.373333333333334,
+          "damage": 110.16,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 497.556,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 11,
+        "stats": {
+          "model": "skate",
+          "hp": 1140.7,
+          "speed": 322,
+          "turn": 5.390666666666666,
+          "damage": 111.996,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 505.8486,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 12,
+        "stats": {
+          "model": "skate",
+          "hp": 1159.4,
+          "speed": 324,
+          "turn": 5.408,
+          "damage": 113.83200000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 514.1412,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 13,
+        "stats": {
+          "model": "skate",
+          "hp": 1178.1,
+          "speed": 326,
+          "turn": 5.4253333333333345,
+          "damage": 115.668,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 522.4338,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 14,
+        "stats": {
+          "model": "skate",
+          "hp": 1196.8,
+          "speed": 328,
+          "turn": 5.442666666666667,
+          "damage": 117.504,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 530.7264,
+        "overheatFraction": 0.11388888888888889
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "gun": 15,
+        "stats": {
+          "model": "skate",
+          "hp": 1215.5,
+          "speed": 330,
+          "turn": 5.460000000000001,
+          "damage": 119.34,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "shots": 271,
+        "dps": 539.019,
+        "overheatFraction": 0.11388888888888889
+      }
+    ],
+    "boost": [
+      {
+        "model": "universal",
+        "module": "",
+        "burstSeconds": 1.9666666666666694,
+        "recoverySeconds": 5.933333333333322,
+        "fullCharge": true,
+        "health": 100
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "burstSeconds": 2.9333333333333327,
+        "recoverySeconds": 7.333333333333317,
+        "fullCharge": true,
+        "health": 100
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "burstSeconds": 1.9666666666666694,
+        "recoverySeconds": 5.933333333333322,
+        "fullCharge": true,
+        "health": 100
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "burstSeconds": 1.9666666666666694,
+        "recoverySeconds": 5.933333333333322,
+        "fullCharge": true,
+        "health": 175
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "burstSeconds": 2.9333333333333327,
+        "recoverySeconds": 7.333333333333317,
+        "fullCharge": true,
+        "health": 175
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "burstSeconds": 1.9666666666666694,
+        "recoverySeconds": 5.933333333333322,
+        "fullCharge": true,
+        "health": 175
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "burstSeconds": 1.9666666666666694,
+        "recoverySeconds": 5.933333333333322,
+        "fullCharge": true,
+        "health": 305
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "burstSeconds": 2.9333333333333327,
+        "recoverySeconds": 7.333333333333317,
+        "fullCharge": true,
+        "health": 305
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "burstSeconds": 1.9666666666666694,
+        "recoverySeconds": 5.933333333333322,
+        "fullCharge": true,
+        "health": 305
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "burstSeconds": 1.9666666666666694,
+        "recoverySeconds": 5.933333333333322,
+        "fullCharge": true,
+        "health": 535
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "burstSeconds": 2.9333333333333327,
+        "recoverySeconds": 7.333333333333317,
+        "fullCharge": true,
+        "health": 535
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "burstSeconds": 1.9666666666666694,
+        "recoverySeconds": 5.933333333333322,
+        "fullCharge": true,
+        "health": 535
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "burstSeconds": 1.9666666666666694,
+        "recoverySeconds": 5.933333333333322,
+        "fullCharge": true,
+        "health": 935
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "burstSeconds": 2.9333333333333327,
+        "recoverySeconds": 7.333333333333317,
+        "fullCharge": true,
+        "health": 935
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "burstSeconds": 1.9666666666666694,
+        "recoverySeconds": 5.933333333333322,
+        "fullCharge": true,
+        "health": 935
+      }
+    ],
+    "samples": [
+      {
+        "model": "universal",
+        "module": "",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "universal",
+          "hp": 100,
+          "speed": 185,
+          "turn": 2.6,
+          "damage": 10,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 0,
+          "xp": 0,
+          "gold": 0
+        }
+      },
+      {
+        "model": "universal",
+        "module": "",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "universal",
+          "hp": 130,
+          "speed": 203.50000000000003,
+          "turn": 2.7300000000000004,
+          "damage": 13,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 7620,
+          "xp": 2400,
+          "gold": 0
+        }
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "universal",
+          "hp": 100,
+          "speed": 185,
+          "turn": 2.6,
+          "damage": 10,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 0,
+          "xp": 0,
+          "gold": 120
+        }
+      },
+      {
+        "model": "universal",
+        "module": "carburetor",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "universal",
+          "hp": 130,
+          "speed": 203.50000000000003,
+          "turn": 2.7300000000000004,
+          "damage": 13,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 7620,
+          "xp": 2400,
+          "gold": 120
+        }
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "universal",
+          "hp": 100,
+          "speed": 185,
+          "turn": 2.6,
+          "damage": 9,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 0,
+          "xp": 0,
+          "gold": 120
+        }
+      },
+      {
+        "model": "universal",
+        "module": "radiator",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "universal",
+          "hp": 130,
+          "speed": 203.50000000000003,
+          "turn": 2.7300000000000004,
+          "damage": 11.700000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 7620,
+          "xp": 2400,
+          "gold": 120
+        }
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "swift",
+          "hp": 175,
+          "speed": 210,
+          "turn": 3.1,
+          "damage": 18,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 10120,
+          "xp": 2400,
+          "gold": 0
+        }
+      },
+      {
+        "model": "swift",
+        "module": "",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "swift",
+          "hp": 227.5,
+          "speed": 231.00000000000003,
+          "turn": 3.2550000000000003,
+          "damage": 23.400000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 147280,
+          "xp": 45600,
+          "gold": 0
+        }
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "swift",
+          "hp": 175,
+          "speed": 210,
+          "turn": 3.1,
+          "damage": 18,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 10120,
+          "xp": 2400,
+          "gold": 120
+        }
+      },
+      {
+        "model": "swift",
+        "module": "carburetor",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "swift",
+          "hp": 227.5,
+          "speed": 231.00000000000003,
+          "turn": 3.2550000000000003,
+          "damage": 23.400000000000002,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 147280,
+          "xp": 45600,
+          "gold": 120
+        }
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "swift",
+          "hp": 175,
+          "speed": 210,
+          "turn": 3.1,
+          "damage": 16.2,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 10120,
+          "xp": 2400,
+          "gold": 120
+        }
+      },
+      {
+        "model": "swift",
+        "module": "radiator",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "swift",
+          "hp": 227.5,
+          "speed": 231.00000000000003,
+          "turn": 3.2550000000000003,
+          "damage": 21.060000000000002,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 147280,
+          "xp": 45600,
+          "gold": 120
+        }
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "yantar",
+          "hp": 305,
+          "speed": 238,
+          "turn": 3.7,
+          "damage": 32,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 159280,
+          "xp": 45600,
+          "gold": 0
+        }
+      },
+      {
+        "model": "yantar",
+        "module": "",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "yantar",
+          "hp": 396.5,
+          "speed": 261.8,
+          "turn": 3.8850000000000002,
+          "damage": 41.6,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 540280,
+          "xp": 165600,
+          "gold": 0
+        }
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "yantar",
+          "hp": 305,
+          "speed": 238,
+          "turn": 3.7,
+          "damage": 32,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 159280,
+          "xp": 45600,
+          "gold": 120
+        }
+      },
+      {
+        "model": "yantar",
+        "module": "carburetor",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "yantar",
+          "hp": 396.5,
+          "speed": 261.8,
+          "turn": 3.8850000000000002,
+          "damage": 41.6,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 540280,
+          "xp": 165600,
+          "gold": 120
+        }
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "yantar",
+          "hp": 305,
+          "speed": 238,
+          "turn": 3.7,
+          "damage": 28.8,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 159280,
+          "xp": 45600,
+          "gold": 120
+        }
+      },
+      {
+        "model": "yantar",
+        "module": "radiator",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "yantar",
+          "hp": 396.5,
+          "speed": 261.8,
+          "turn": 3.8850000000000002,
+          "damage": 37.440000000000005,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 540280,
+          "xp": 165600,
+          "gold": 120
+        }
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "bastion",
+          "hp": 535,
+          "speed": 268,
+          "turn": 4.4,
+          "damage": 57,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 570280,
+          "xp": 165600,
+          "gold": 0
+        }
+      },
+      {
+        "model": "bastion",
+        "module": "",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "bastion",
+          "hp": 695.5,
+          "speed": 294.8,
+          "turn": 4.620000000000001,
+          "damage": 74.10000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 859840,
+          "xp": 256800,
+          "gold": 0
+        }
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "bastion",
+          "hp": 535,
+          "speed": 268,
+          "turn": 4.4,
+          "damage": 57,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 570280,
+          "xp": 165600,
+          "gold": 120
+        }
+      },
+      {
+        "model": "bastion",
+        "module": "carburetor",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "bastion",
+          "hp": 695.5,
+          "speed": 294.8,
+          "turn": 4.620000000000001,
+          "damage": 74.10000000000001,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 859840,
+          "xp": 256800,
+          "gold": 120
+        }
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "bastion",
+          "hp": 535,
+          "speed": 268,
+          "turn": 4.4,
+          "damage": 51.300000000000004,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 570280,
+          "xp": 165600,
+          "gold": 120
+        }
+      },
+      {
+        "model": "bastion",
+        "module": "radiator",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "bastion",
+          "hp": 695.5,
+          "speed": 294.8,
+          "turn": 4.620000000000001,
+          "damage": 66.69000000000001,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 859840,
+          "xp": 256800,
+          "gold": 120
+        }
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "skate",
+          "hp": 935,
+          "speed": 300,
+          "turn": 5.2,
+          "damage": 102,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 0,
+          "xp": 0,
+          "gold": 300
+        }
+      },
+      {
+        "model": "skate",
+        "module": "",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "skate",
+          "hp": 1215.5,
+          "speed": 330,
+          "turn": 5.460000000000001,
+          "damage": 132.6,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 289560,
+          "xp": 91200,
+          "gold": 300
+        }
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "skate",
+          "hp": 935,
+          "speed": 300,
+          "turn": 5.2,
+          "damage": 102,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 0,
+          "xp": 0,
+          "gold": 420
+        }
+      },
+      {
+        "model": "skate",
+        "module": "carburetor",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "skate",
+          "hp": 1215.5,
+          "speed": 330,
+          "turn": 5.460000000000001,
+          "damage": 132.6,
+          "boostDuration": 3,
+          "boostRecharge": 7.5,
+          "cooling": 1,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 289560,
+          "xp": 91200,
+          "gold": 420
+        }
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "build": {
+          "hull": 0,
+          "engine": 0,
+          "gun": 0
+        },
+        "stats": {
+          "model": "skate",
+          "hp": 935,
+          "speed": 300,
+          "turn": 5.2,
+          "damage": 91.8,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 0,
+          "xp": 0,
+          "gold": 420
+        }
+      },
+      {
+        "model": "skate",
+        "module": "radiator",
+        "build": {
+          "hull": 15,
+          "engine": 15,
+          "gun": 15
+        },
+        "stats": {
+          "model": "skate",
+          "hp": 1215.5,
+          "speed": 330,
+          "turn": 5.460000000000001,
+          "damage": 119.34,
+          "boostDuration": 2,
+          "boostRecharge": 6,
+          "cooling": 1.35,
+          "rewardMultiplier": 1,
+          "phaseSkill": false
+        },
+        "cost": {
+          "silver": 289560,
+          "xp": 91200,
+          "gold": 420
+        }
+      }
+    ]
+  }
+}

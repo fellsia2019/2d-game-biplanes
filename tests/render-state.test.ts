@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { readyLastSortie } from './fixtures';
 import assert from 'node:assert/strict';
 import { RenderBuffer } from '../src/render-state';
 import { createBattle, makePlane, stepBattle, IDLE } from '../shared/simulation';
@@ -63,7 +64,7 @@ test('Пакет с меньшим серверным временем не во
 test('Обычный новый уровень сохраняет высоту и фиксирует горизонтальный полёт', () => {
   const s = createBattle('transition', 'pve', [makePlane('pilot', planeStats(freshProfile('pilot')))]);
   const p = s.planes[0]; p.x = 190; p.y = 270; p.angle = .55; p.shield = 0;
-  s.distance = ZONE[0].length - .01;
+  s.distance = ZONE[0].length - .01; readyLastSortie(s);
   stepBattle(s, { pilot: IDLE }, 1 / 30);
   assert.equal(s.level, 2); assert.equal(p.x, 220); assert.equal(p.y, 270);
   assert.equal(p.angle, 0); assert.equal(p.shield, 0);

@@ -1,10 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { BOSS_LEVELS, CAMPAIGN_LEVELS, CAMPAIGN_REGIONS, CAREER_STAGES, ZONE, bossBalance, campaignLevel, campaignReward, careerStage, freshProfile, planeStats } from '../shared/data';
+import { MAX_UPGRADE_LEVEL, BOSS_LEVELS, CAMPAIGN_LEVELS, CAMPAIGN_REGIONS, CAREER_STAGES, ZONE, bossBalance, bossReferenceAircraft, campaignAircraft, campaignLevel, campaignReward, careerStage, freshProfile, planeStats } from '../shared/data';
 import { campaignEncounter, GROUND_Y, PVO_MODELS, pvoModelsForLevel, ROCK_MAX_HEIGHT, rockPoints } from '../shared/terrain';
 import { createBattle, finishBossReward, IDLE, makePlane, startBossFight, stepBattle } from '../shared/simulation';
 import { weaponBenchmark } from '../scripts/balance-report';
 import { modifierBonuses } from '../shared/modifiers';
+import { readyLastSortie } from './fixtures';
+import { operationPlan } from '../shared/operations';
 
 test('250-level route has eleven contiguous stages, with a boss every25 levels after50', () => {
   assert.equal(CAMPAIGN_LEVELS, 250); assert.equal(ZONE.length, 250);
@@ -20,28 +22,34 @@ test('250-level route has eleven contiguous stages, with a boss every25 levels a
   assert.equal(previous, CAMPAIGN_LEVELS);
 });
 
-test('Extension preserves first50 balances, aircraft unlock bosses and half campaign rewards', () => {
-  const first = campaignLevel(1), last = campaignLevel(50);
-  assert.deepEqual(first, {level: 1, name: 'Лазурные острова', tier: 1, length: 2624, scroll: 100.7,
-    spawn: 4.8, enemyHp: 24, enemyDamage: 5, mobCooldown: 3.2, pvoCooldown: 2.35,
-    rewardSilver: 90, rewardXp: 34, killSilver: 18, killXp: 5, boss: null});
-  assert.deepEqual(bossBalance(10), {name: 'Капитан Буря', hp: 700, speed: 75, turn: 1.8, damage: 8, cooldown: 1.6, bulletSpeed: 300, windup: .35, silver: 900, xp: 180});
-  assert.deepEqual(bossBalance(25), {name: 'Алый охотник', hp: 1600, speed: 88, turn: 2, damage: 17, cooldown: 1.45, bulletSpeed: 330, windup: .35, silver: 2400, xp: 400});
-  assert.deepEqual(last.boss, {name: 'Командор', hp: 3600, speed: 102, turn: 2.2, damage: 35, cooldown: 1.3, bulletSpeed: 360, windup: .35, silver: 6000, xp: 900});
-  assert.equal(last.enemyHp, 224); assert.equal(last.enemyDamage, 42); assert.equal(last.length, 3800);
-  assert.equal(campaignReward(first.rewardSilver), 45); assert.equal(campaignReward(last.boss!.silver), 3000);
-  assert.equal(campaignReward(ZONE[249].rewardSilver), 150); assert.equal(campaignReward(ZONE[249].boss!.silver), 5000);
+test('Long operations retain a gentle opening, named bosses and separate half campaign rewards', () => {
+  const first = campaignLevel(1);
+  assert.equal(first.name,'Лазурные острова'); assert.equal(first.enemyHp,24); assert.equal(first.enemyDamage,5); assert.equal(first.spawn,4.8);
+  assert.equal(first.length/first.scroll,45); assert.equal(first.boss,null);
+  assert.equal(bossBalance(10).name,'Капитан Буря'); assert.equal(bossBalance(25).name,'Алый охотник'); assert.equal(bossBalance(50).name,'Командор');
+  for (const level of ZONE) {
+    assert.equal(level.rewardSilver,180); assert.equal(level.rewardXp,80);
+    assert.equal(campaignReward(level.rewardSilver),90); assert.equal(campaignReward(level.rewardXp),40);
+    if (level.boss) {
+      assert.equal(campaignReward(level.boss.silver),Math.round(level.boss.silver/2));
+      assert.equal(campaignReward(level.boss.xp),Math.round(level.boss.xp/2));
+    }
+  }
+  assert.equal(campaignReward(ZONE[249].boss!.silver),7500);
 });
 
-test('Generated levels are deterministic, bounded and smoothly follow the original50', () => {
-  for (const level of ZONE.slice(50)) {
+test('Generated levels are deterministic with bounded sorties and smooth threat between aircraft unlocks', () => {
+  for (const level of ZONE) {
     assert.deepEqual(campaignLevel(level.level), level);
-    assert.deepEqual(campaignEncounter(level.level), level.encounter);
+    if (level.level > 50) assert.deepEqual(campaignEncounter(level.level), level.encounter);
     const previous = ZONE[level.level - 2];
-    assert.ok(level.enemyHp > previous.enemyHp && level.scroll > previous.scroll);
-    assert.ok(level.enemyHp / previous.enemyHp < 1.02, 'No health spike at a region border');
-    assert.ok(level.enemyDamage / previous.enemyDamage < 1.01, 'No damage spike at a region border');
-    assert.ok(level.length / level.scroll >= 28 && level.length / level.scroll < 30, 'Ordinary level duration remains bounded');
+    if (previous) {
+      assert.ok(level.enemyHp > previous.enemyHp && level.scroll > previous.scroll);
+      const aircraft = campaignAircraft(level.level), previousAircraft = campaignAircraft(previous.level);
+      assert.ok((level.enemyHp/aircraft.damage)/(previous.enemyHp/previousAircraft.damage)<1.04, 'No jump in required hits relative to the available free aircraft');
+      assert.ok((level.enemyDamage/aircraft.hp)/(previous.enemyDamage/previousAircraft.hp)<1.04, 'No damage spike relative to the available free aircraft');
+    }
+    assert.ok(Math.abs(level.length/level.scroll-operationPlan(level.level).seconds)<1e-9, 'Flight distance matches its 45/90-second sortie');
     for (const key of ['length', 'scroll', 'spawn', 'enemyHp', 'enemyDamage', 'mobCooldown', 'pvoCooldown', 'rewardSilver', 'rewardXp', 'killSilver', 'killXp'] as const) {
       assert.ok(Number.isFinite(level[key]) && level[key] > 0, `${level.level}: ${key}`);
     }
@@ -92,7 +100,7 @@ test('Actual tail hazard sequences and rock geometry repeat despite different se
     const plane = makePlane('pilot', {...stats, hp: 10000, traits: modifierBonuses([{id: 'critical-strike', level: 1}])});
     const state = createBattle(session, 'pve', [plane], level); plane.y = 85; plane.speed = 0;
     const seen = new Set<number>(), result: Array<unknown> = [];
-    for (let frame = 0; frame < 360; frame++) {
+    for (let frame = 0; frame < 1800 && result.length < 4; frame++) {
       stepBattle(state, {pilot: {turn: 0, fire, boost: false}}, 1 / 30);
       for (const obstacle of state.obstacles) if (!seen.has(obstacle.id)) {
         seen.add(obstacle.id);
@@ -108,20 +116,21 @@ test('Actual tail hazard sequences and rock geometry repeat despite different se
   }
 });
 
-test('Free fully upgraded Rubin covers endgame HP, damage and boss response windows withoutpremium ormodifiers', () => {
-  const profile = freshProfile('free'); profile.selected = 'bastion'; profile.owned.push('bastion');
-  profile.upgrades.bastion = {hull: 5, engine: 5, gun: 5};
-  const stats = planeStats(profile, true), weapon = weaponBenchmark('bastion', 5, 'radiator');
-  assert.equal(stats.rewardMultiplier, 1);
-  for (const level of ZONE.slice(50)) {
+test('The available fully upgraded free aircraft covers HP, damage and boss response without paid bonuses', () => {
+  for (const level of ZONE) {
+    const aircraft=level.boss?bossReferenceAircraft(level.level):campaignAircraft(level.level);
+    const profile=freshProfile('free'); profile.selected=aircraft.id; profile.owned=[aircraft.id];
+    profile.upgrades[aircraft.id]={hull:MAX_UPGRADE_LEVEL,engine:MAX_UPGRADE_LEVEL,gun:MAX_UPGRADE_LEVEL};
+    const stats=planeStats(profile,true), weapon=weaponBenchmark(aircraft.id,MAX_UPGRADE_LEVEL,'');
+    assert.equal(stats.rewardMultiplier,1); assert.equal(profile.module,''); assert.equal(stats.traits?.damage??0,0);
     assert.ok(Math.ceil(level.enemyHp / stats.damage) <= 6);
-    assert.ok(Math.ceil(level.enemyHp * 2 / stats.damage) <= 11);
+    assert.ok(Math.ceil(level.enemyHp * 2 / stats.damage) <= 12);
     assert.ok(Math.ceil(stats.hp / level.enemyDamage) >= 12);
     if (level.boss) {
       assert.ok(Math.ceil(stats.hp / level.boss.damage) >= 13);
       assert.ok(level.boss.speed < stats.speed / 2);
       assert.ok(level.boss.cooldown >= 1.3 && level.boss.windup >= .35);
-      assert.ok(level.boss.hp / (weapon.dps * .4) <= 55, 'No-modifier40%hit-rate TTK stays below55s');
+      assert.ok(weapon.dps>0 && level.boss.hp/(weapon.dps*.4)<=190, `Boss ${level.level} exceeds 190s at 40% hits with its free aircraft`);
     }
   }
 });
@@ -130,7 +139,7 @@ test('Every level can advance without NaN, and50 is an intermediate reward gate 
   for (const level of ZONE) {
     const plane = makePlane('pilot', planeStats(freshProfile('pilot')));
     const state = createBattle(`boundary-${level.level}`, 'pve', [plane], level.level);
-    state.distance = level.length; state.spawn = 999;
+    state.distance = level.length; state.spawn = 999; readyLastSortie(state);
     stepBattle(state, {pilot: IDLE}, 0);
     if (!level.boss) {
       assert.equal(state.level, level.level + 1); assert.equal(state.phase, 'flight');

@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { freshProfile, planeStats, bossBalance } from '../shared/data';
+import { BOSS_LEVELS, ZONE, freshProfile, planeStats, bossBalance } from '../shared/data';
 import { createBattle, makePlane, stepBattle, beginBoss, IDLE } from '../shared/simulation';
 const human = () => makePlane('pilot', planeStats(freshProfile('pilot')));
 const forward = (vx: number, vy: number, angle: number) => {
   assert.ok(Math.abs(vx * Math.sin(angle) - vy * Math.cos(angle)) < 1e-8);
   assert.ok(vx * Math.cos(angle) + vy * Math.sin(angle) > 0);
 };
-test('Самолёты-мобы на всех 50 уровнях стреляют по носу влево, даже когда игрок позади или выше', () => {
-  for (let level = 1; level <= 50; level++) for (const kind of ['fighter', 'heavy'] as const) for (const x of [120, 900]) {
+test('Самолёты-мобы на всех 250 уровнях стреляют по носу влево, даже когда игрок позади или выше', () => {
+  for (let level = 1; level <= ZONE.length; level++) for (const kind of ['fighter', 'heavy'] as const) for (const x of [120, 900]) {
     const s = createBattle('mob-' + level, 'pve', [human()], level); s.spawn = 100;
     const o = { id: 7, kind, x, y: 210, radius: 24, hp: 100, fire: 0, damage: 5 }; s.obstacles.push(o);
     stepBattle(s, { pilot: IDLE }, 1 / 30);
@@ -41,7 +41,7 @@ test('Боты дуэли стреляют по носу, а цель позад
 });
 
 test('Боссы целятся в игрока во всех направлениях независимо от носа; выстрел имеет длинный КД', () => {
-  for (const level of [10,25,50]) for (const dx of [-200,200]) for (const dy of [-120,120]) {
+  for (const level of BOSS_LEVELS) for (const dx of [-200,200]) for (const dy of [-120,120]) {
     const s = createBattle('boss-aim', 'pve', [human()], level); beginBoss(s);
     const [p, bot] = s.planes; bot.x = 600; bot.y = 330; bot.angle = 0; bot.shot = 0;
     p.x = bot.x + dx; p.y = bot.y + dy;
@@ -49,9 +49,13 @@ test('Боссы целятся в игрока во всех направлен
     assert.equal(s.bullets.length,0); assert.equal(bot.windup,bossBalance(level).windup);
     // The warning locks aim; changing player position cannot retarget the projectile.
     p.speed = 0; p.y = 100;
-    for (let frame=0;frame<11;frame++) stepBattle(s,{pilot:IDLE},1/30);
+    for (let frame=0;frame<Math.ceil(bossBalance(level).windup*30)+1;frame++) stepBattle(s,{pilot:IDLE},1/30);
     const bullet = s.bullets.find(b => b.owner === 'boss')!; assert.ok(bullet);
-    forward(bullet.vx, bullet.vy, Math.atan2(dy,dx)); assert.ok(bot.shot >= .9);
+    forward(bullet.vx, bullet.vy, Math.atan2(dy,dx));
+    const definition=bossBalance(level);
+    assert.ok(definition.cooldown>=1.3, 'Boss fire cadence must leave a reaction window');
+    assert.ok(bot.shot>=definition.cooldown-definition.windup-1/30-1e-9, `Boss ${level}: cooldown ${bot.shot}`);
+    assert.ok(Math.abs(Math.hypot(bullet.vx,bullet.vy)-definition.bulletSpeed)<1e-8);
     const shots = s.effects.filter(e => e.kind === 'shot').length;
     stepBattle(s, {pilot: IDLE}, .1); assert.equal(s.effects.filter(e => e.kind === 'shot').length, shots);
   }

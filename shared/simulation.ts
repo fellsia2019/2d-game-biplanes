@@ -2,26 +2,36 @@ import { GROUND_Y, rockPoints, pvoPoints, touchesPolygon, pvoAim, pvoModelsForLe
 import { WIDTH, HEIGHT, ZONE, bossBalance, campaignReward } from './data';
 import type { ModifierBonuses } from './modifiers';
 import { combatReward } from './premium';
-export interface Controls { turn: number; horizontal?: number; fire: boolean; boost: boolean }
+import { PHASE_SKILL } from './skills';
+import { freshOperation, operationPlan, operationMission, missionComplete, sortieReward, type OperationState } from './operations';
+export interface Controls { turn: number; horizontal?: number; fire: boolean; boost: boolean; skill?: boolean }
 export const IDLE: Controls = { turn: 0, fire: false, boost: false };
-export interface Stats { model: string; hp: number; speed: number; turn: number; damage: number; boostDuration?: number; boostRecharge?: number; cooling?: number; traits?: ModifierBonuses; rewardMultiplier?: number }
-export interface Plane extends Stats { id: string; x: number; y: number; angle: number; health: number; heat: number; overheated: boolean; energy: number; shot: number; dead: number; shield: number; score: number; bot: boolean; ram: number; boosting?: boolean; boostExhausted?: boolean; lastAttacker?: string; patrolIndex?: number; windup?: number; aimAngle?: number; rocketClock?: number; emergencyUsed?: boolean }
-export interface Bullet { id: number; owner: string; x: number; y: number; vx: number; vy: number; life: number; damage: number; kind?: 'rocket'; piercing?: number; hitTargets?: string[] }
-export interface Obstacle { id: number; kind: 'rock' | 'pvo' | 'fighter' | 'heavy'; x: number; y: number; radius: number; hp: number; fire: number; damage: number; height?: number; pvoModel?: PvoModel; terrainVariant?: number }
+export interface Stats { model: string; hp: number; speed: number; turn: number; damage: number; boostDuration?: number; boostRecharge?: number; cooling?: number; traits?: ModifierBonuses; rewardMultiplier?: number; phaseSkill?: boolean }
+export interface Plane extends Stats { id: string; x: number; y: number; angle: number; health: number; heat: number; overheated: boolean; energy: number; shot: number; dead: number; shield: number; score: number; bot: boolean; ram: number; boosting?: boolean; boostExhausted?: boolean; lastAttacker?: string; patrolIndex?: number; windup?: number; aimAngle?: number; rocketClock?: number; emergencyUsed?: boolean; phaseSeconds?: number; phaseCooldown?: number; skillHeld?: boolean }
+export interface Bullet { id: number; owner: string; x: number; y: number; vx: number; vy: number; life: number; damage: number; kind?: 'rocket' | 'bomb'; piercing?: number; hitTargets?: string[] }
+export interface Obstacle { id: number; kind: 'rock' | 'pvo' | 'fighter' | 'heavy'; x: number; y: number; radius: number; hp: number; fire: number; damage: number; height?: number; pvoModel?: PvoModel; terrainVariant?: number; elite?: boolean }
+export interface Pickup { id: number; x: number; y: number; kind: 'recon' | 'supply' }
+export interface Bomber {id:number; x:number; y:number; warning:number; dropX:number; bombs:number}
 export interface Effect { id: number; kind: 'shot' | 'hit' | 'explosion' | 'reward' | 'level' | 'boss'; x: number; y: number; label?: string }
-export interface Reward { player: string; silver: number; xp: number; kind: 'kill' | 'level' | 'duel'; win?: boolean; bossLevel?: number }
+export interface Reward { player: string; silver: number; xp: number; kind: 'kill' | 'level' | 'duel' | 'sortie'; win?: boolean; bossLevel?: number }
 export interface Battle {
   id: string; mode: 'duel' | 'pve'; planes: Plane[]; bullets: Bullet[]; obstacles: Obstacle[]; effects: Effect[];
-  time: number; distance: number; totalDistance: number; level: number; phase: 'flight' | 'boss-intro' | 'boss' | 'reward' | 'duel' | 'ended';
+  time: number; distance: number; totalDistance: number; level: number; phase: 'flight' | 'sortie-reward' | 'boss-intro' | 'boss' | 'reward' | 'duel' | 'ended';
   spawn: number; seq: number; seed: number; paused: boolean; result: string; earned: Record<string, { silver: number; xp: number }>; activity: Record<string, number>;
   bossAttempt?: number; bossAttemptsExhausted?: boolean; restartLevel?: number;
   rewardBossLevel?: number; rewardNextPhase?: 'flight' | 'ended';
   encounterSeed?: number;
+  operation?: OperationState; pickups?: Pickup[];
+  bombers?: Bomber[]; bomberClock?: number;
 }
 const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
 export const angleDiff = (a: number, b: number) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 function random(s: Battle) { s.seed = (1664525 * s.seed + 1013904223) >>> 0; return s.seed / 4294967296; }
 function encounterRandom(s: Battle) {
+  if (s.operation) {
+    s.encounterSeed = (1664525 * (s.encounterSeed ?? operationMission(s.level, s.operation.completed).seed) + 1013904223) >>> 0;
+    return s.encounterSeed / 4294967296;
+  }
   if (!ZONE[s.level - 1].encounter) return random(s);
   s.encounterSeed = (1664525 * (s.encounterSeed ?? ZONE[s.level - 1].encounter!.seed) + 1013904223) >>> 0;
   return s.encounterSeed / 4294967296;
@@ -44,7 +54,7 @@ export const CAMPAIGN_X = 220, FLIGHT_LEFT = CAMPAIGN_X, FLIGHT_RIGHT = WIDTH - 
 export function normalizeCampaignPlane(p: Plane) { p.x = clamp(p.x, FLIGHT_LEFT, FLIGHT_RIGHT); p.angle = 0; p.y = clamp(p.y, FLIGHT_TOP, FLIGHT_BOTTOM); }
 export function createBattle(id: string, mode: Battle['mode'], planes: Plane[], level = 1): Battle {
   if (mode === 'pve') { planes[0].x = CAMPAIGN_X; normalizeCampaignPlane(planes[0]); planes[0].y = HEIGHT / 2; }
-  return { id, mode, planes, bullets: [], obstacles: [], effects: [], time: 0, distance: 0, totalDistance: 0, level, phase: mode === 'pve' ? 'flight' : 'duel', spawn: 1.8, seq: 0, seed: [...id].reduce((a,c) => ((a * 31) + c.charCodeAt(0)) >>> 0, 12345), paused: false, result: '', earned: Object.fromEntries(planes.map(p => [p.id, { silver: 0, xp: 0 }])), activity: Object.fromEntries(planes.map(p => [p.id, 0])) };
+  return { id, mode, planes, bullets: [], obstacles: [], effects: [], time: 0, distance: 0, totalDistance: 0, level, phase: mode === 'pve' ? 'flight' : 'duel', spawn: 1.8, seq: 0, seed: [...id].reduce((a,c) => ((a * 31) + c.charCodeAt(0)) >>> 0, 12345), paused: false, result: '', earned: Object.fromEntries(planes.map(p => [p.id, { silver: 0, xp: 0 }])), activity: Object.fromEntries(planes.map(p => [p.id, 0])), ...(mode === 'pve' ? {operation:freshOperation(), pickups:[]} : {}) };
 }
 function botControls(s: Battle, p: Plane): Controls {
   const target = s.planes.find(x => x.id !== p.id && x.health > 0);
@@ -103,6 +113,7 @@ function nextLevel(s: Battle, rewards: Reward[]) {
   if (s.level === ZONE.length) { s.phase = 'ended'; s.result = 'Рубеж пройден!'; return; }
   const fromBoss = s.phase === 'boss';
   s.level++; s.distance = 0; s.spawn = 2; s.phase = 'flight';
+  s.operation = freshOperation(); s.pickups = []; s.bombers = []; s.bomberClock = 18; human.health = human.hp; human.heat = 0; human.overheated = false;
   s.encounterSeed = ZONE[s.level - 1].encounter?.seed;
   if (fromBoss) s.bullets = [];
   if (fromBoss) s.bossAttempt = undefined;
@@ -113,16 +124,37 @@ function nextLevel(s: Battle, rewards: Reward[]) {
 }
 export function beginBoss(s: Battle) {
   const def = ZONE[s.level - 1]; if (!def.boss) return;
-  s.phase = 'boss'; s.obstacles = []; s.bullets = [];
+  s.phase = 'boss'; s.obstacles = []; s.bullets = []; s.pickups = []; s.bombers = []; s.bomberClock = 18;
   const human = s.planes[0]; human.x = 230; human.y = 330; human.angle = 0; human.health = human.hp; human.heat = 0; human.overheated = false; human.energy = 1; human.boostExhausted = false; human.shield = 2; human.rocketClock = 10;
   s.planes = [human, makePlane('boss', { model: 'enemy', hp: def.boss.hp, speed: def.boss.speed, turn: def.boss.turn, damage: def.boss.damage }, true, 1)];
   s.planes[1].shot = 1.2;
   fx(s, 'boss', WIDTH / 2, 190, def.boss.name);
 }
+function awardSortie(s:Battle, rewards:Reward[]) {
+  const pilot=s.planes[0], budget=sortieReward(s.level), multiplier=pilot.rewardMultiplier ?? 1;
+  // Kill bounties were credited immediately. Completion only tops up to the
+  // guaranteed total; strong play above that total keeps its additional income.
+  const silver=Math.max(0,combatReward(campaignReward(budget.silver),multiplier)-(s.operation!.killSilver ?? 0));
+  const xp=Math.max(0,combatReward(campaignReward(budget.xp),multiplier)-(s.operation!.killXp ?? 0));
+  s.earned[pilot.id].silver+=silver;s.earned[pilot.id].xp+=xp;
+  rewards.push({player:pilot.id,silver,xp,kind:'sortie',win:true});
+}
 export function approachBoss(s: Battle) { beginBoss(s); if (s.phase === 'boss') { s.phase = 'boss-intro'; s.paused = true; } }
 export function startBossFight(s: Battle) {
   if (s.phase !== 'boss-intro') throw new Error('Бой с боссом уже начат');
   s.phase = 'boss'; s.paused = false;
+}
+export function finishSortie(s: Battle) {
+  if (s.phase !== 'sortie-reward') throw new Error('Вылет ещё не завершён');
+  const completed = s.operation!.completed;
+  s.operation = freshOperation(completed); s.phase = 'flight'; s.paused = false; s.distance = 0; s.spawn = 1.8;
+  s.bullets = []; s.obstacles = []; s.pickups = []; s.bombers = []; s.bomberClock = 18; s.encounterSeed = operationMission(s.level, completed).seed;
+  const pilot = s.planes[0]; pilot.health = pilot.hp; pilot.heat = 0; pilot.overheated = false; pilot.energy = 1; pilot.boostExhausted = false; pilot.shield = 2;
+  pilot.phaseSeconds = 0; pilot.x = CAMPAIGN_X; pilot.y = HEIGHT / 2; normalizeCampaignPlane(pilot);
+}
+export function restoreOperationProgress(s: Battle, completed: number) {
+  if (s.mode !== 'pve' || s.phase !== 'flight' || !Number.isInteger(completed) || completed < 0 || completed >= operationPlan(s.level).sorties) throw new Error('Некорректное сохранение операции');
+  s.operation = freshOperation(completed); s.pickups = []; s.encounterSeed = operationMission(s.level, completed).seed;
 }
 export function finishBossReward(s: Battle) {
   if (s.phase !== 'reward') return;
@@ -165,9 +197,11 @@ function bulletHit(b: Bullet, target: string, solid = false) {
 }
 export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: number): Reward[] {
   const rewards: Reward[] = [];
-  if (s.paused || s.phase === 'ended' || s.phase === 'boss-intro' || s.phase === 'reward') return rewards;
+  if (s.paused || s.phase === 'ended' || s.phase === 'boss-intro' || s.phase === 'reward' || s.phase === 'sortie-reward') return rewards;
   s.time += dt;
   const flight = s.mode === 'pve' && s.phase === 'flight', def = ZONE[s.level - 1];
+  if (flight) s.operation ??= freshOperation();
+  const mission = flight ? operationMission(s.level, s.operation!.completed) : undefined;
   for (const p of s.planes) {
     p.ram = Math.max(0, p.ram - dt); p.shield = Math.max(0, p.shield - dt);
     if (p.health <= 0) {
@@ -182,6 +216,9 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
       p.speed = bossDef.speed; p.turn = bossDef.turn; p.damage = bossDef.damage;
     }
     const c = p.bot ? botControls(s, p) : inputs[p.id] ?? IDLE;
+    p.phaseSeconds = Math.max(0, (p.phaseSeconds ?? 0) - dt); p.phaseCooldown = Math.max(0, (p.phaseCooldown ?? 0) - dt);
+    if (!p.bot && p.phaseSkill && s.mode === 'pve' && c.skill && !p.skillHeld && !p.phaseCooldown) { p.phaseSeconds = PHASE_SKILL.duration; p.phaseCooldown = PHASE_SKILL.cooldown; fx(s,'reward',p.x,p.y,'ФАЗОВЫЙ ПРОХОД'); }
+    p.skillHeld = c.skill === true;
     s.activity ??= {};
     if (!p.bot && (c.turn || c.horizontal || c.fire || c.boost)) s.activity[p.id] = (s.activity[p.id] ?? 0) + dt;
     if (p.energy >= 1) p.boostExhausted = false;
@@ -227,22 +264,62 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
     if (p.y + (boss ? 34 : 22) >= GROUND_Y) p.health = 0;
   }
   if (flight) {
+    s.operation!.seconds += dt;
     const scroll = def.scroll * (s.planes[0].boosting ? 1.7 : 1) * dt; s.distance += scroll; s.totalDistance += scroll; s.spawn -= dt;
+    s.pickups ??= [];
+    for (const pickup of s.pickups) pickup.x -= scroll;
+    if (mission!.targetPickups) {
+      s.operation!.pickupClock -= dt;
+      if (s.operation!.pickupClock <= 0) {
+        s.operation!.pickupClock = mission!.seconds / (mission!.targetPickups + 1);
+        s.pickups.push({id:++s.seq, x:WIDTH + 40, y:[155, 220, 285][Math.floor(encounterRandom(s) * 3)], kind:mission!.kind === 'supply' ? 'supply' : 'recon'});
+      }
+    }
+    for (const pickup of s.pickups) {
+      if (pickup.x < -50) continue;
+      const pilot = s.planes[0];
+      if (pilot.health > 0 && Math.hypot(pilot.x - pickup.x, pilot.y - pickup.y) <= 42) {
+        s.operation!.collected++; pickup.x = -200;
+        if (pickup.kind === 'supply') pilot.health = Math.min(pilot.hp, pilot.health + pilot.hp * .25);
+        fx(s, 'reward', pilot.x, pilot.y, pickup.kind === 'supply' ? 'РЕМОНТ +25%' : 'МАРШРУТ ПРОВЕРЕН');
+      }
+    }
+    s.pickups = s.pickups.filter(pickup => pickup.x > -50);
+    s.bombers ??= []; s.bomberClock = (s.bomberClock ?? 18) - dt;
+    // Bombing lanes are announced before release, then stay fixed.
+    if (s.level >= 4 && s.bomberClock <= 0 && mission!.kind !== 'recon' && mission!.kind !== 'supply') {
+      const count = s.level < 26 ? 1 : s.level < 101 ? 2 : 3;
+      const x = clamp(s.planes[0].x + (encounterRandom(s) - .5) * 180, 160, WIDTH - 160);
+      for (let i=0; i<count; i++) {
+        const dropX = clamp(x + i * 180,100,WIDTH - 100), warning = 1.5 + i * .6;
+        s.bombers.push({id:++s.seq, x:dropX + warning * 50, y:38, warning, dropX, bombs:s.level < 51 ? 1 : s.level < 151 ? 2 : 3});
+      }
+      s.bomberClock = s.level < 26 ? 26 : s.level < 101 ? 23 : 21;
+    }
+    for (const bomber of s.bombers) {
+      bomber.x -= 50 * dt;
+      const before = bomber.warning; bomber.warning -= dt;
+      if (before > 0 && bomber.warning <= 0) {
+        for (let n=0; n<bomber.bombs; n++) s.bullets.push({id:++s.seq, owner:'bomber-' + bomber.id, x:bomber.dropX + (n-(bomber.bombs-1)/2)*70, y:65 - n * 35, vx:0, vy:s.level < 26 ? 100 : 120, life:8, damage:def.enemyDamage * 1.8, kind:'bomb'});
+      }
+    }
+    s.bombers = s.bombers.filter(bomber => bomber.warning > -.8);
     for (const o of s.obstacles) {
       if (o.kind === 'rock' || o.kind === 'pvo') o.y = GROUND_Y;
       o.x -= scroll + (o.kind === 'fighter' || o.kind === 'heavy' ? 65 * dt : 0);
       o.fire -= dt;
     }
     if (s.spawn <= 0) {
-      s.spawn = def.spawn * (def.encounter?.spacingMultiplier ?? 1); const r = encounterRandom(s), encounter = def.encounter;
+      s.spawn = def.spawn * mission!.spacing; const r = encounterRandom(s), encounter = def.encounter;
       const pvoModels = pvoModelsForLevel(s.level);
-      const rockChance = encounter?.rockChance ?? .24, pvoChance = encounter?.pvoChance ?? .24, heavyChance = encounter?.heavyChance ?? .15;
-      const minY = encounter?.aircraftMinY ?? 140, maxY = encounter?.aircraftMaxY ?? 480;
+      const rockChance = mission!.rockChance, pvoChance = mission!.pvoChance, heavyChance = mission!.heavyChance;
+      const minY = mission!.aircraftMinY, maxY = mission!.aircraftMaxY;
       const minRock = encounter?.minRockHeight ?? 140, maxRock = encounter?.maxRockHeight ?? 280;
       const kind: Obstacle['kind'] = r < rockChance ? 'rock' : r < rockChance + pvoChance && pvoModels.length ? 'pvo' : r > 1 - heavyChance && s.level >= 6 ? 'heavy' : 'fighter';
+      const elite = mission!.kind === 'squadron' && kind === 'heavy' && !s.operation!.specialKills && !s.obstacles.some(o => o.elite && o.hp > 0);
       s.obstacles.push({ id: ++s.seq, kind, x: WIDTH + 80, y: kind === 'pvo' || kind === 'rock' ? GROUND_Y : minY + encounterRandom(s) * (maxY - minY),
         height: kind === 'rock' ? minRock + encounterRandom(s) * (maxRock - minRock) : undefined, pvoModel: kind === 'pvo' ? pvoModels[Math.floor(encounterRandom(s) * pvoModels.length)] : undefined,
-        radius: kind === 'rock' ? 72 : kind === 'heavy' ? 32 : 24, hp: kind === 'rock' ? 99999 : def.enemyHp * (kind === 'heavy' ? 2 : 1), fire: 1.4, damage: def.enemyDamage,
+        radius: kind === 'rock' ? 72 : kind === 'heavy' ? 32 : 24, hp: kind === 'rock' ? 99999 : def.enemyHp * (elite ? 2.8 : kind === 'heavy' ? 2 : 1), fire: elite ? 2.4 : 1.4, damage: def.enemyDamage, ...(elite ? {elite:true} : {}),
         ...(kind === 'rock' && encounter ? {terrainVariant: Math.floor(encounterRandom(s) * 3)} : {}) });
     }
     const solid = s.obstacles.filter(o => o.hp > 0 && (o.kind === 'rock' || o.kind === 'pvo')).map(o => ({
@@ -282,15 +359,14 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
       const ground = o.kind === 'rock' || o.kind === 'pvo';
       const touching = ground ? touchesPolygon(p.x, p.y, 22, o.kind === 'rock' ? rockPoints(o) : pvoPoints(o)) : Math.hypot(p.x - o.x, p.y - o.y) < o.radius + 22;
       // Shields and the ram cooldown never allow flying through solid terrain.
-      if (p.health > 0 && touching && (ground || p.ram <= 0)) { p.health = ground ? 0 : p.health - p.hp * .5; p.ram = .8; fx(s, 'hit', p.x, p.y); }
+      if (p.health > 0 && !p.phaseSeconds && touching && (ground || p.ram <= 0)) { p.health = ground ? 0 : p.health - p.hp * .5; p.ram = .8; fx(s, 'hit', p.x, p.y); }
     }
-    if (s.planes[0].health > 0 && s.distance >= def.length) { if (def.boss) approachBoss(s); else nextLevel(s, rewards); }
   }
   for (const b of s.bullets) {
     b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
     for (const p of s.planes) {
       if (p.id === b.owner || p.health <= 0 || p.shield > 0 || b.life <= 0 || b.hitTargets?.includes(p.id)) continue;
-      if (Math.hypot(p.x - b.x, p.y - b.y) < (p.id === 'boss' ? 38 : 26)) { p.health -= b.damage * (1 - (p.traits?.resistance ?? 0)); p.lastAttacker = b.owner; bulletHit(b, p.id); fx(s, b.kind === 'rocket' ? 'explosion' : 'hit', b.x, b.y); }
+      if (Math.hypot(p.x - b.x, p.y - b.y) < (p.id === 'boss' ? 38 : b.kind === 'bomb' ? 39 : 26)) { p.health -= b.damage * (1 - (p.traits?.resistance ?? 0)); p.lastAttacker = b.owner; bulletHit(b, p.id); fx(s, b.kind === 'rocket' || b.kind === 'bomb' ? 'explosion' : 'hit', b.x, b.y); }
     }
     if (flight && b.owner === s.planes[0].id && b.life > 0) {
       for (const o of s.obstacles) {
@@ -298,18 +374,23 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
         if (o.hp <= 0 || !touching || b.hitTargets?.includes('obstacle-' + o.id)) continue;
         bulletHit(b, 'obstacle-' + o.id, o.kind === 'rock'); o.hp -= b.damage; fx(s, b.kind === 'rocket' ? 'explosion' : 'hit', b.x, b.y);
         if (o.hp <= 0) {
+          s.operation!.kills++;
+          if (mission!.kind === 'strike' && o.kind === 'pvo' || mission!.kind === 'convoy' && o.kind === 'heavy' || mission!.kind === 'squadron' && o.elite) s.operation!.specialKills++;
           const multiplier = o.kind === 'pvo' ? 1.25 : o.kind === 'heavy' ? 1.6 : 1;
           const silver = Math.round(def.killSilver * multiplier), xp = Math.round(def.killXp * multiplier);
-          award(s, rewards, b.owner, silver, xp, 'kill'); fx(s, 'explosion', o.x, o.y); fx(s, 'reward', o.x, o.y, '+' + combatReward(campaignReward(silver), s.planes[0].rewardMultiplier ?? 1) + ' серебра');
+          award(s, rewards, b.owner, silver, xp, 'kill');
+          const paid = rewards.at(-1)!;
+          s.operation!.killSilver = (s.operation!.killSilver ?? 0) + paid.silver; s.operation!.killXp = (s.operation!.killXp ?? 0) + paid.xp;
+          fx(s, 'explosion', o.x, o.y); fx(s, 'reward', o.x, o.y, '+' + combatReward(campaignReward(silver), s.planes[0].rewardMultiplier ?? 1) + ' серебра');
         }
         if (b.life <= 0) break;
       }
     }
   }
-  s.bullets = s.bullets.filter(b => b.life > 0 && b.x > -50 && b.x < WIDTH + 150 && b.y > 0 && b.y < HEIGHT);
+  s.bullets = s.bullets.filter(b => b.life > 0 && b.x > -50 && b.x < WIDTH + 150 && b.y > (b.kind === 'bomb' ? -100 : 0) && b.y < HEIGHT);
   if (!flight && s.planes.length === 2) {
     const [a, b] = s.planes;
-    const touching = a.health > 0 && b.health > 0 && Math.hypot(a.x - b.x, a.y - b.y) < (s.phase === 'boss' ? 56 : 44);
+    const touching = a.health > 0 && b.health > 0 && !a.phaseSeconds && !b.phaseSeconds && Math.hypot(a.x - b.x, a.y - b.y) < (s.phase === 'boss' ? 56 : 44);
     if (touching && s.phase === 'boss') {
       a.health = 0; a.lastAttacker = b.id; fx(s, 'hit', a.x, a.y);
     } else if (touching && a.ram <= 0 && b.ram <= 0) {
@@ -328,6 +409,13 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
     }
   }
   if (s.mode === 'pve' && s.planes[0].health <= 0) { s.phase = 'ended'; s.result = 'Самолёт потерян'; }
+  else if (flight && missionComplete(s.operation!, mission!)) {
+    awardSortie(s, rewards);
+    s.operation!.completed++; s.bullets = []; s.obstacles = []; s.pickups = [];
+    if (s.operation!.completed >= operationPlan(s.level).sorties) {
+      if (def.boss) approachBoss(s); else nextLevel(s, rewards);
+    } else { s.phase = 'sortie-reward'; s.paused = true; fx(s, 'level', WIDTH / 2, 150, 'ВЫЛЕТ ЗАВЕРШЁН'); }
+  }
   else if (s.phase === 'boss' && s.planes[1].health <= 0) {
     const b = bossBalance(s.level);
     const bossLevel = s.level;

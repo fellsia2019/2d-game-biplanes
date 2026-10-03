@@ -14,7 +14,7 @@ test('Генератор карьеры не создаёт ранние ПВО 
   for (const level of [1,3,10,11,25,26,50]) {
     const seen = new Set<string>();
     for (let seed=0;seed<200;seed++) {
-      const s = run('pvo-spawn'); s.level=level; s.seed=seed*99991; s.spawn=0;
+      const s = run('pvo-spawn'); s.level=level; s.encounterSeed=seed*99991; s.spawn=0;
       stepBattle(s,{pilot:IDLE},1/30);
       for (const o of s.obstacles) if (o.kind==='pvo') {
         assert.ok(pvoModelsForLevel(level).includes(o.pvoModel!)); seen.add(o.pvoModel!);
@@ -36,7 +36,7 @@ test('Форсаж ускоряет прокрутку и препятствия
 test('Все скальные формы стоят на земле, при генерации нет верхних камней', () => {
   for(let id=0;id<3;id++){const points=rockPoints({id,x:300,radius:72,height:280});assert.equal(points[0].y,GROUND_Y);assert.equal(points.at(-1)!.y,GROUND_Y);assert.equal(Math.min(...points.map(p=>p.y)),GROUND_Y-280);}
   let rocks=0;
-  for(let seed=0;seed<150;seed++){const s=run('spawn-'+seed);s.spawn=0;stepBattle(s,{pilot:IDLE},1/30);for(const o of s.obstacles)if(o.kind==='rock'){rocks++;assert.equal(o.y,GROUND_Y);assert.ok(o.height!>=140&&o.height!<=280);}}
+  for(let seed=0;seed<150;seed++){const s=run('spawn-'+seed);s.encounterSeed=seed*99991;s.spawn=0;stepBattle(s,{pilot:IDLE},1/30);for(const o of s.obstacles)if(o.kind==='rock'){rocks++;assert.equal(o.y,GROUND_Y);assert.ok(o.height!>=140&&o.height!<=280);}}
   assert.ok(rocks>10);
 });
 test('Столкновения идут по видимому скальному полигону, включая старые сохранения', () => {

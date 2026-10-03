@@ -10,9 +10,17 @@ test('W/S перемещают по вертикали в карьере, A/D у
 test('Стрелки, экранные кнопки, огонь и форсаж работают в обоих режимах', () => {
   for (const phase of ['flight', 'boss', 'duel'] as const) {
     assert.equal(controls(phase, ['ArrowUp']).turn, -1); assert.equal(controls(phase, ['ArrowDown']).turn, 1);
-    assert.deepEqual(controls(phase, [], ['left', 'fire', 'boost']), { turn: -1, ...(phase === 'flight' ? {horizontal: 0} : {}), fire: true, boost: true });
-    assert.deepEqual(controls(phase, ['Space', 'ShiftRight'], ['right']), { turn: 1, ...(phase === 'flight' ? {horizontal: 0} : {}), fire: true, boost: true });
+    assert.deepEqual(controls(phase, [], ['left', 'fire', 'boost']), { turn: -1, ...(phase === 'flight' ? {horizontal: 0} : {}), fire: true, boost: true, ...(phase === 'duel' ? {} : {skill:false}) });
+    assert.deepEqual(controls(phase, ['Space', 'ShiftRight'], ['right']), { turn: 1, ...(phase === 'flight' ? {horizontal: 0} : {}), fire: true, boost: true, ...(phase === 'duel' ? {} : {skill:false}) });
   }
+});
+
+test('Кнопка навыка E и экранный ввод активны в кампании и у босса, в дуэли навык не передаётся', () => {
+  for (const phase of ['flight','boss'] as const) {
+    assert.equal(controls(phase,['KeyE']).skill,true); assert.equal(controls(phase,[],['skill']).skill,true);
+    assert.equal(controls(phase,[]).skill,false);
+  }
+  assert.equal(controls('duel',['KeyE'],['skill']).skill,undefined);
 });
 
 test('A/D и стрелки меняют X только в обычной карьере; джойстик имеет мёртвую зону', () => {

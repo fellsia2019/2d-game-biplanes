@@ -1,22 +1,32 @@
-import { mkdir, writeFile } from 'node:fs/promises';
-import { aircraftCombatMatrix, independentCampaignScenarios, estimateHumanTime, type PlaythroughResult } from './campaign-playthrough';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { aircraftCombatMatrix, independentCampaignScenarios, estimateHumanTime, auditCampaign, type PlaythroughResult } from './campaign-playthrough';
 
 function summarize(run: PlaythroughResult) {
-  const {visits, ...summary} = run;
-  return {...summary, bossVisits:visits.filter(v=>v.phase==='boss'), visitedFlightLevels:[...new Set(visits.filter(v=>v.phase==='flight').map(v=>v.level))]};
+  const {visits, missions, timeline, ...summary} = run;
+  const kinds = [...new Set(missions.map(m => m.kind))];
+  return {...summary, audit:auditCampaign(run), timeline,
+    missionStatistics:kinds.map(kind => {
+      const rows=missions.filter(m=>m.kind===kind),passed=rows.filter(m=>m.outcome==='passed');
+      return {kind,attempts:rows.length,passed:passed.length,lost:rows.length-passed.length,
+        seconds:rows.reduce((n,m)=>n+m.seconds,0),maxSuccessfulSeconds:Math.max(0,...passed.map(m=>m.seconds)),
+        minSuccessfulSeconds:passed.length?Math.min(...passed.map(m=>m.seconds)):null};
+    }),bossVisits:visits.filter(v=>v.phase==='boss'),
+    lostMissions:missions.filter(m=>m.outcome==='lost'),
+    visitedFlightLevels:[...new Set(visits.filter(v=>v.phase==='flight').map(v=>v.level))]};
 }
 
-const campaigns = independentCampaignScenarios();
-const report = {
-  generatedAt:new Date().toISOString(), qualification:campaigns.qualification,
-  aircraftCombat:aircraftCombatMatrix(),
-  careers:{firstOffer:summarize(campaigns.firstOffer),earlyNoUpgrade:summarize(campaigns.earlyNoUpgrade),paidPhoenix:summarize(campaigns.paidPhoenix),sampledKeyboard:summarize(campaigns.sampledKeyboard)},
-  humanEstimate:{
-    qualification:'Scenario estimates, not timed human participants. Full careers are estimated separately; the early 50-level test is not extrapolated to the whole campaign.',
-    freeFirstOffer:estimateHumanTime([campaigns.firstOffer]),paidPhoenix:estimateHumanTime([campaigns.paidPhoenix]),sampledKeyboard:estimateHumanTime([campaigns.sampledKeyboard]),
-  },
-};
+// Reuse a genuinely executed raw route when auditing it; fixtures never replace
+// an incomplete earned career and no mission or boss is skipped by this option.
+const rawInput=process.env.CAMPAIGN_RAW_INPUT;
+const loaded=rawInput?JSON.parse(await readFile(rawInput,'utf8')):undefined;
+const career:PlaythroughResult=loaded?(loaded.runs?.[0]??loaded):independentCampaignScenarios().earnedCareer;
+const summary=summarize(career);
+const report={generatedAt:new Date().toISOString(),version:'v0.8',
+  qualification:'One authoritative earned free career, with real timers, objectives, collisions and boss hits. Separate aircraft point fights are funded combat fixtures, not economic progression or human playtests. Native duration, automated active time and assumed human/menu/retry time are reported separately.',
+  source:rawInput?'Audited previously executed raw full route':'Executed by this command',
+  aircraftCombat:aircraftCombatMatrix(),careers:{earnedCareer:summary},humanEstimate:estimateHumanTime([career])};
 await mkdir('design-review',{recursive:true});
-await writeFile('design-review/campaign-audit.json',JSON.stringify(report,null,2)+'\n');
-console.log(JSON.stringify({careers:Object.fromEntries(Object.entries(report.careers).map(([key,run])=>[key,{completed:run.completed,level:run.reachedLevel,finalPhase:run.finalPhase,activeSeconds:run.activeSeconds,deaths:run.deaths,bossDeaths:run.bossDeaths,scenario:run.scenario}])),humanEstimate:report.humanEstimate},null,2));
-if ([campaigns.firstOffer,campaigns.paidPhoenix,campaigns.sampledKeyboard].some(r=>!r.completed||r.finalPhase!=='ended')||!campaigns.earlyNoUpgrade.completed) process.exitCode=1;
+await writeFile('design-review/campaign-v08-audit.json',JSON.stringify(report,null,2)+'\n');
+console.log(JSON.stringify({completed:career.completed,level:career.reachedLevel,finalPhase:career.finalPhase,
+  activeSeconds:career.activeSeconds,deaths:career.deaths,audit:summary.audit,humanEstimate:report.humanEstimate},null,2));
+if(!career.completed||career.finalPhase!=='ended'||!summary.audit.passed)process.exitCode=1;

@@ -3,7 +3,7 @@ export function flightControls(battle: Pick<Battle, 'mode' | 'phase'>, keys: Rea
   const vertical = battle.mode === 'pve' && battle.phase === 'flight';
   const up = vertical ? keys.has('KeyW') || keys.has('ArrowUp') : keys.has('KeyA') || keys.has('ArrowLeft') || keys.has('ArrowUp');
   const down = vertical ? keys.has('KeyS') || keys.has('ArrowDown') : keys.has('KeyD') || keys.has('ArrowRight') || keys.has('ArrowDown');
-  return { turn: Number(down || touches.has('right')) - Number(up || touches.has('left')), ...(vertical ? { horizontal: Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft')) } : {}), fire: keys.has('Space') || touches.has('fire'), boost: keys.has('ShiftLeft') || keys.has('ShiftRight') || touches.has('boost') };
+  return { turn: Number(down || touches.has('right')) - Number(up || touches.has('left')), ...(vertical ? { horizontal: Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft')) } : {}), fire: keys.has('Space') || touches.has('fire'), boost: keys.has('ShiftLeft') || keys.has('ShiftRight') || touches.has('boost'), ...(battle.mode === 'pve' ? {skill:keys.has('KeyE') || touches.has('skill')} : {}) };
 }
 
 export function joystickHorizontal(x: number): number { return Math.abs(x) < .2 ? 0 : Math.sign(x); }

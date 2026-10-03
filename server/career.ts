@@ -9,6 +9,7 @@ export interface CareerAccount {
   modifierOffer?: ModifierOffer; lastModifierChoice?: { offerId: string; id: string };
   lastModifierVictory?: string;
   campaignLength?: number;
+  operationCheckpoint?: {level: number; completed: number};
 }
 export function migrateCareer(a: CareerAccount) {
   normalizeProgression(a.profile);
@@ -32,6 +33,7 @@ export function finishCareer(a: CareerAccount, battle: Battle) {
   if (battle.phase !== 'ended' || a.lastFinishedBattle === battle.id) return;
   a.lastFinishedBattle = battle.id; a.checkpoint = undefined;
   const bossLoss = battle.planes[0].health <= 0 && battle.planes.some(p => p.id === 'boss');
+  a.operationCheckpoint = !bossLoss && battle.planes[0].health <= 0 ? {level:battle.level, completed:battle.operation?.completed ?? 0} : undefined;
   a.restartLevel = battle.level; a.restartBoss = bossLoss;
   if (bossLoss) {
     const count = (a.bossFailures?.level === battle.level ? a.bossFailures.count : 0) + 1;
