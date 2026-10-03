@@ -5,7 +5,7 @@ const token = 'a'.repeat(64);
 function mock(options: { anonymous?: boolean; storageFailure?: boolean } = {}) {
   const events: string[] = [], cloud = { biplanesToken: token };
   const sdk = {
-    features: {}, on() {}, auth: { async openAuthDialog() {} },
+    features: {LoadingAPI:{ready(){events.push('ready');}},GameplayAPI:{start(){events.push('start');},stop(){events.push('stop');}}}, on() {}, auth: { async openAuthDialog() {} },
     async getPlayer() { return {
       isAuthorized: () => !options.anonymous,
       async getData() { if (options.storageFailure) throw new Error('Cloud unavailable'); return cloud; },
@@ -51,4 +51,14 @@ test('Гостю доступна игра, а покупки требуют с�
   mock({ anonymous: true }); const platform = new Platform(); await platform.init(() => {});
   await platform.rememberToken(token); assert.equal(platform.canPay, false);
   await assert.rejects(platform.purchase('gold300', async () => undefined));
+});
+test('LoadingAPI.ready ждёт готового интерфейса и вызывается ровно один раз; переходы геймплея не дублируются', async () => {
+  const {events}=mock(), platform=new Platform(); await platform.init(()=>{}); assert.deepEqual(events,[]);
+  platform.markReady(); platform.markReady(); assert.deepEqual(events,['ready']);
+  platform.gameplay(true); platform.gameplay(true); platform.gameplay(false); platform.gameplay(false);
+  assert.deepEqual(events,['ready','start','stop']);
+});
+test('Интерфейс, готовый раньше SDK, отправляет готовность после инициализации один раз', async () => {
+  const {events}=mock(), platform=new Platform(); platform.markReady(); assert.deepEqual(events,[]);
+  await platform.init(()=>{}); platform.markReady(); assert.deepEqual(events,['ready']);
 });

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { freshProfile, planeStats, pilotRank, normalizeProgression, addExperience, PLANES, planeUnlocked, RESEARCH_XP } from '../shared/data';
+import { freshProfile, planeStats, pilotRank, normalizeProgression, addExperience, PLANES, planeUnlocked, RESEARCH_XP, careerStage } from '../shared/data';
 import { researchUpgrade, buyUpgrade, buyPlane } from '../server/economy';
 import { createBattle, makePlane, beginBoss, stepBattle } from '../shared/simulation';
 import { finishCareer, prepareBossAttempt, migrateCareer, type CareerAccount } from '../server/career';
@@ -41,7 +41,7 @@ test('Старые покупки и улучшения сохраняются, 
   normalizeProgression(p); assert.deepEqual(p.research!.yantar,p.upgrades.yantar); assert.equal(planeUnlocked(p,PLANES[2]),true);
   const a: CareerAccount={profile:p,restartLevel:26}; migrateCareer(a); assert.deepEqual(p.defeatedBosses,[10,25]);
 });
-for (const level of [10,25,50]) test('Босс '+level+': ровно три попытки, пауза сохраняет счётчик, третья смерть возвращает к уровню 1', () => {
+for (const level of [10,25,50]) test('Босс '+level+': три попытки, третья смерть возвращает к началу текущего этапа', () => {
   const profile=freshProfile('pilot'); profile.silver=700; profile.xp=90; profile.owned.push('swift'); profile.upgrades.swift={hull:1,engine:0,gun:0};
   const a: CareerAccount={profile};
   for (let attempt=1;attempt<=3;attempt++) {
@@ -49,7 +49,7 @@ for (const level of [10,25,50]) test('Босс '+level+': ровно три по
     prepareBossAttempt(a,battle); assert.equal(battle.bossAttempt,attempt);
     const restored=JSON.parse(JSON.stringify(a)); prepareBossAttempt(restored,battle); assert.equal(battle.bossAttempt,attempt);
     battle.planes[0].health=0; stepBattle(battle,{},0); finishCareer(a,battle); finishCareer(a,battle);
-    assert.equal(a.restartLevel,attempt===3?1:level); assert.equal(a.restartBoss,attempt!==3);
+    assert.equal(a.restartLevel,attempt===3?careerStage(level).start:level); assert.equal(a.restartBoss,attempt!==3);
     assert.equal(!!battle.bossAttemptsExhausted,attempt===3);
   }
   assert.equal(profile.silver,700); assert.equal(profile.xp,90); assert.ok(profile.owned.includes('swift')); assert.equal(profile.upgrades.swift.hull,1);
@@ -71,7 +71,7 @@ for (const level of [10,25,50]) test('Таран босса '+level+' сразу
     assert.deepEqual(stepBattle(battle,{},0),[]);
     assert.equal(pilot.health,0); assert.equal(boss.health,bossHp); assert.equal(battle.phase,'ended'); assert.equal(battle.level,level);
     finishCareer(account,battle); finishCareer(account,battle);
-    assert.equal(battle.bossAttempt,attempt); assert.equal(account.restartLevel,attempt===3?1:level);
+    assert.equal(battle.bossAttempt,attempt); assert.equal(account.restartLevel,attempt===3?careerStage(level).start:level);
     assert.equal(!!battle.bossAttemptsExhausted,attempt===3);
   }
 });

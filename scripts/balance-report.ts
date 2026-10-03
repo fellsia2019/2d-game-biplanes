@@ -1,5 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises';
-import { PLANES, ZONE, freshProfile, planeStats, RESEARCH_XP, upgradeSilver } from '../shared/data';
+import { PLANES, ZONE, freshProfile, planeStats, RESEARCH_XP, upgradeSilver, campaignReward } from '../shared/data';
 import { createBattle, makePlane, stepBattle } from '../shared/simulation';
 
 export function weaponBenchmark(model: string, level = 0, module = '', duration = 60) {
@@ -45,9 +45,9 @@ export function balanceReport() {
     const levels=ZONE.slice(first-1,last), tier=levels[0].tier;
     const boss=levels.at(-1)!.boss!;
     // Conservative scenario, not telemetry: three ordinary kills per level; no heavy/PVO bonus.
-    const guaranteedSilver=levels.reduce((sum,l)=>sum+l.rewardSilver,0)+boss.silver;
-    const guaranteedXp=levels.reduce((sum,l)=>sum+l.rewardXp,0)+boss.xp;
-    const expectedKills=levels.length*3, killsSilver=expectedKills*levels[0].killSilver, killsXp=expectedKills*levels[0].killXp;
+    const guaranteedSilver=levels.reduce((sum,l)=>sum+campaignReward(l.rewardSilver),0)+campaignReward(boss.silver);
+    const guaranteedXp=levels.reduce((sum,l)=>sum+campaignReward(l.rewardXp),0)+campaignReward(boss.xp);
+    const expectedKills=levels.length*3, killsSilver=expectedKills*campaignReward(levels[0].killSilver), killsXp=expectedKills*campaignReward(levels[0].killXp);
     const build = tier===1 ? {hull:2,engine:1,gun:3} : tier===2 ? {hull:2,engine:2,gun:3} : {hull:4,engine:3,gun:5};
     const buildSilver=Object.values(build).reduce((sum,n)=>sum+Array.from({length:n},(_,i)=>upgradeSilver(i+1)).reduce((a,b)=>a+b,0),0);
     const buildXp=Object.values(build).reduce((sum,n)=>sum+RESEARCH_XP.slice(0,n).reduce((a,b)=>a+b,0),0);
@@ -55,14 +55,14 @@ export function balanceReport() {
     const reference=weaponBenchmark(model,3), maximum=weaponBenchmark(model,5), naked=weaponBenchmark(model), recommended=weaponBenchmark(model,build.gun);
     const recommendedHp=PLANES.find(p=>p.id===model)!.hp*(1+build.hull*.06);
     return {first,last,model,next,build,guaranteedSilver,guaranteedXp,expectedKills,killsSilver,killsXp,buildSilver,buildXp,planePrice:target.price,
-      preBossSilver: guaranteedSilver-boss.silver-levels.at(-1)!.rewardSilver+killsSilver+(tier===1?200:0)-buildSilver,
-      preBossXp: guaranteedXp-boss.xp-levels.at(-1)!.rewardXp+killsXp-buildXp,
-      incomeCases:[1,3,5].map(killsPerLevel=>({killsPerLevel,silverAfterBuildAndPlane:guaranteedSilver+levels.length*killsPerLevel*levels[0].killSilver-buildSilver-target.price+(tier===1?200:0)})),
+      preBossSilver: guaranteedSilver-campaignReward(boss.silver)-campaignReward(levels.at(-1)!.rewardSilver)+killsSilver+(tier===1?200:0)-buildSilver,
+      preBossXp: guaranteedXp-campaignReward(boss.xp)-campaignReward(levels.at(-1)!.rewardXp)+killsXp-buildXp,
+      incomeCases:[1,3,5].map(killsPerLevel=>({killsPerLevel,silverAfterBuildAndPlane:guaranteedSilver+levels.length*killsPerLevel*campaignReward(levels[0].killSilver)-buildSilver-target.price+(tier===1?200:0)})),
       silverAfterBuildAndPlane:guaranteedSilver+killsSilver-buildSilver-target.price+(tier===1?200:0),
       xpAfterBuild:guaranteedXp+killsXp-buildXp,
       spawn:{normal:spawnBenchmark(first,last),boost:spawnBenchmark(first,last,true)},
       enemyShotsToKill:levels.map(l=>({level:l.level,base:Math.ceil(l.enemyHp/naked.stats.damage),recommended:Math.ceil(l.enemyHp/recommended.stats.damage),heavy:Math.ceil(l.enemyHp*2/recommended.stats.damage)})),
-      boss:{...boss,baseTtk:boss.hp/(naked.dps*.4),level3Ttk:boss.hp/(reference.dps*.4),recommendedTtk:boss.hp/(recommended.dps*.4),maxTtk:boss.hp/(maximum.dps*.4),
+      boss:{...boss,silver:campaignReward(boss.silver),xp:campaignReward(boss.xp),baseTtk:boss.hp/(naked.dps*.4),level3Ttk:boss.hp/(reference.dps*.4),recommendedTtk:boss.hp/(recommended.dps*.4),maxTtk:boss.hp/(maximum.dps*.4),
         hitsToDefeatPlayer:Math.ceil(recommendedHp/boss.damage),survivalSeconds:[.1,.2,.3].map(hitRate=>({hitRate,seconds:recommendedHp/(boss.damage/boss.cooldown*hitRate)})),
         maxTtkRange:[boss.hp/(maximum.dps*.55),boss.hp/(maximum.dps*.3)]}};
   });

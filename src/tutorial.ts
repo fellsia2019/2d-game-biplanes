@@ -2,6 +2,7 @@ import { createBattle, makePlane, stepBattle, type Battle, type Controls } from 
 import { planeStats, type Profile } from '../shared/data';
 export type TutorialMode = 'pve' | 'duel';
 export const tutorialKey = (player: string, mode: TutorialMode) => `biplanes-tutorial-v1-${player}-${mode}`;
+export const needsBossLesson = (hasLearned: (mode: TutorialMode) => boolean) => !hasLearned('duel');
 export const lessonInput = (step: number): Controls => ({ turn: step === 1 ? -1 : step === 2 ? 1 : 0, fire: step === 3, boost: step === 4 });
 export function lessonMatches(step: number, input: Controls) {
   return step === 1 ? input.turn < 0 : step === 2 ? input.turn > 0 : step === 3 ? input.fire : step === 4 ? input.boost : false;

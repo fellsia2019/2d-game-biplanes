@@ -1,27 +1,29 @@
 import { GROUND_Y, rockPoints, pvoPoints, touchesPolygon, pvoAim, pvoModelsForLevel, type PvoModel } from './terrain';
-import { WIDTH, HEIGHT, ZONE, bossBalance } from './data';
+import { WIDTH, HEIGHT, ZONE, bossBalance, campaignReward } from './data';
+import type { ModifierBonuses } from './modifiers';
 export interface Controls { turn: number; horizontal?: number; fire: boolean; boost: boolean }
 export const IDLE: Controls = { turn: 0, fire: false, boost: false };
-export interface Stats { model: string; hp: number; speed: number; turn: number; damage: number; boostDuration?: number; boostRecharge?: number; cooling?: number }
-export interface Plane extends Stats { id: string; x: number; y: number; angle: number; health: number; heat: number; overheated: boolean; energy: number; shot: number; dead: number; shield: number; score: number; bot: boolean; ram: number; boosting?: boolean; lastAttacker?: string; patrolIndex?: number; windup?: number; aimAngle?: number }
-export interface Bullet { id: number; owner: string; x: number; y: number; vx: number; vy: number; life: number; damage: number }
+export interface Stats { model: string; hp: number; speed: number; turn: number; damage: number; boostDuration?: number; boostRecharge?: number; cooling?: number; traits?: ModifierBonuses }
+export interface Plane extends Stats { id: string; x: number; y: number; angle: number; health: number; heat: number; overheated: boolean; energy: number; shot: number; dead: number; shield: number; score: number; bot: boolean; ram: number; boosting?: boolean; lastAttacker?: string; patrolIndex?: number; windup?: number; aimAngle?: number; rocketClock?: number; emergencyUsed?: boolean }
+export interface Bullet { id: number; owner: string; x: number; y: number; vx: number; vy: number; life: number; damage: number; kind?: 'rocket'; piercing?: number; hitTargets?: string[] }
 export interface Obstacle { id: number; kind: 'rock' | 'pvo' | 'fighter' | 'heavy'; x: number; y: number; radius: number; hp: number; fire: number; damage: number; height?: number; pvoModel?: PvoModel }
 export interface Effect { id: number; kind: 'shot' | 'hit' | 'explosion' | 'reward' | 'level' | 'boss'; x: number; y: number; label?: string }
 export interface Reward { player: string; silver: number; xp: number; kind: 'kill' | 'level' | 'duel'; win?: boolean; bossLevel?: number }
 export interface Battle {
   id: string; mode: 'duel' | 'pve'; planes: Plane[]; bullets: Bullet[]; obstacles: Obstacle[]; effects: Effect[];
-  time: number; distance: number; totalDistance: number; level: number; phase: 'flight' | 'boss' | 'duel' | 'ended';
+  time: number; distance: number; totalDistance: number; level: number; phase: 'flight' | 'boss-intro' | 'boss' | 'reward' | 'duel' | 'ended';
   spawn: number; seq: number; seed: number; paused: boolean; result: string; earned: Record<string, { silver: number; xp: number }>; activity: Record<string, number>;
-  bossAttempt?: number; bossAttemptsExhausted?: boolean;
+  bossAttempt?: number; bossAttemptsExhausted?: boolean; restartLevel?: number;
+  rewardBossLevel?: number; rewardNextPhase?: 'flight' | 'ended';
 }
 const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
 export const angleDiff = (a: number, b: number) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 function random(s: Battle) { s.seed = (1664525 * s.seed + 1013904223) >>> 0; return s.seed / 4294967296; }
 function fx(s: Battle, kind: Effect['kind'], x: number, y: number, label?: string) { s.effects.push({ id: ++s.seq, kind, x, y, label }); if (s.effects.length > 60) s.effects.shift(); }
 // Aircraft weapons share one muzzle and heading calculation, regardless of owner.
-function fireForward(s: Battle, owner: string, x: number, y: number, angle: number, speed: number, life: number, damage: number) {
+function fireForward(s: Battle, owner: string, x: number, y: number, angle: number, speed: number, life: number, damage: number, piercing = 0, kind?: 'rocket') {
   const cos = Math.cos(angle), sin = Math.sin(angle);
-  s.bullets.push({ id: ++s.seq, owner, x: x + cos * 38, y: y + sin * 38, vx: cos * speed, vy: sin * speed, life, damage });
+  s.bullets.push({ id: ++s.seq, owner, x: x + cos * 38, y: y + sin * 38, vx: cos * speed, vy: sin * speed, life, damage, ...(piercing ? {piercing, hitTargets: []} : {}), ...(kind ? {kind} : {}) });
   fx(s, 'shot', x + cos * 40, y + sin * 40);
 }
 export function makePlane(id: string, stats: Stats, bot = false, side = 0): Plane {
@@ -60,6 +62,7 @@ function botControls(s: Battle, p: Plane): Controls {
 }
 function award(s: Battle, rewards: Reward[], player: string, silver: number, xp: number, kind: Reward['kind'], win?: boolean, bossLevel?: number) {
   if (!s.earned[player]) return;
+  if (s.mode === 'pve') { silver = campaignReward(silver); xp = campaignReward(xp); }
   s.earned[player].silver += silver; s.earned[player].xp += xp;
   rewards.push({ player, silver, xp, kind, win, ...(bossLevel ? {bossLevel} : {}) });
 }
@@ -83,7 +86,7 @@ export function forfeitDuel(s: Battle, quitter: string): Reward[] {
 function nextLevel(s: Battle, rewards: Reward[]) {
   const human = s.planes[0], def = ZONE[s.level - 1];
   award(s, rewards, human.id, def.rewardSilver, def.rewardXp, 'level', true);
-  if (s.level === 50) { s.phase = 'ended'; s.result = 'Рубеж пройден!'; return; }
+  if (s.level === ZONE.length) { s.phase = 'ended'; s.result = 'Рубеж пройден!'; return; }
   const fromBoss = s.phase === 'boss';
   s.level++; s.distance = 0; s.spawn = 2; s.phase = 'flight';
   if (fromBoss) s.bullets = [];
@@ -96,14 +99,50 @@ function nextLevel(s: Battle, rewards: Reward[]) {
 export function beginBoss(s: Battle) {
   const def = ZONE[s.level - 1]; if (!def.boss) return;
   s.phase = 'boss'; s.obstacles = []; s.bullets = [];
-  const human = s.planes[0]; human.x = 230; human.y = 330; human.angle = 0; human.health = human.hp; human.heat = 0; human.overheated = false; human.energy = 1; human.shield = 2;
+  const human = s.planes[0]; human.x = 230; human.y = 330; human.angle = 0; human.health = human.hp; human.heat = 0; human.overheated = false; human.energy = 1; human.shield = 2; human.rocketClock = 10;
   s.planes = [human, makePlane('boss', { model: 'enemy', hp: def.boss.hp, speed: def.boss.speed, turn: def.boss.turn, damage: def.boss.damage }, true, 1)];
   s.planes[1].shot = 1.2;
   fx(s, 'boss', WIDTH / 2, 190, def.boss.name);
 }
+export function approachBoss(s: Battle) { beginBoss(s); if (s.phase === 'boss') { s.phase = 'boss-intro'; s.paused = true; } }
+export function startBossFight(s: Battle) {
+  if (s.phase !== 'boss-intro') throw new Error('Бой с боссом уже начат');
+  s.phase = 'boss'; s.paused = false;
+}
+export function finishBossReward(s: Battle) {
+  if (s.phase !== 'reward') return;
+  s.phase = s.rewardNextPhase ?? 'flight'; s.rewardNextPhase = undefined; s.rewardBossLevel = undefined; s.paused = false;
+}
+function autoRocket(s: Battle, p: Plane, dt: number) {
+  if (!p.traits?.rocketDamage || s.mode !== 'pve') return;
+  p.rocketClock = Math.max(0, (p.rocketClock ?? 10) - dt);
+  if (p.rocketClock > 0) return;
+  const ground = s.obstacles.filter(o => o.kind === 'pvo' && o.hp > 0 && o.x >= 0 && o.x <= WIDTH);
+  const aircraft = s.obstacles.filter(o => (o.kind === 'fighter' || o.kind === 'heavy') && o.hp > 0 && o.x >= 0 && o.x <= WIDTH);
+  const planes = s.planes.filter(q => q.id !== p.id && q.health > 0);
+  const scroll = s.phase === 'flight' ? ZONE[s.level - 1].scroll * (p.boosting ? 1.7 : 1) : 0;
+  const targets = (ground.length ? ground : [...aircraft, ...planes]).map(t => ({
+    x: t.x, y: t.y - ('kind' in t && t.kind === 'pvo' ? 30 : 0),
+    vx: 'kind' in t ? -scroll - (t.kind === 'pvo' ? 0 : 65) : Math.cos(t.angle) * t.speed,
+    vy: 'kind' in t ? 0 : Math.sin(t.angle) * t.speed,
+  }));
+  const target = targets.sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))[0];
+  if (!target) return;
+  // Lead the scrolling target at launch. The rocket's heading then stays fixed.
+  const dx = target.x - p.x, dy = target.y - p.y, a = target.vx ** 2 + target.vy ** 2 - 520 ** 2;
+  const b = 2 * (dx * target.vx + dy * target.vy), c = dx ** 2 + dy ** 2;
+  const lead = Math.abs(a) > .001 ? Math.max(0, (-b - Math.sqrt(Math.max(0, b * b - 4 * a * c))) / (2 * a)) : 0;
+  fireForward(s, p.id, p.x, p.y, Math.atan2(dy + target.vy * lead, dx + target.vx * lead), 520, 3, p.damage * p.traits.rocketDamage, 0, 'rocket');
+  p.rocketClock = 10; p.shield = 0;
+}
+function bulletHit(b: Bullet, target: string, solid = false) {
+  (b.hitTargets ??= []).push(target);
+  if (!solid && (b.piercing ?? 0) > 0) b.piercing!--;
+  else b.life = 0;
+}
 export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: number): Reward[] {
   const rewards: Reward[] = [];
-  if (s.paused || s.phase === 'ended') return rewards;
+  if (s.paused || s.phase === 'ended' || s.phase === 'boss-intro' || s.phase === 'reward') return rewards;
   s.time += dt;
   const flight = s.mode === 'pve' && s.phase === 'flight', def = ZONE[s.level - 1];
   for (const p of s.planes) {
@@ -136,7 +175,8 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
       if (p.y < 75) { p.y = 75; if (Math.sin(p.angle) < 0) p.angle = Math.abs(p.angle); }
     }
     p.shot -= dt;
-    const cooling = Math.min(1 / .6, (p.cooling ?? 1) * (p.model === 'skate' && (flight ? c.turn > 0 : p.angle > .35) ? 1.25 : 1));
+    const cooling = Math.min(1 / .6, (p.cooling ?? 1) * (p.model === 'skate' && (flight ? c.turn > 0 : p.angle > .35) ? 1.25 : 1)) * (1 + (p.traits?.cooling ?? 0));
+    if (s.mode === 'pve' && !p.bot) p.health = Math.min(p.hp, p.health + p.hp * (p.traits?.regeneration ?? 0) * dt);
     p.heat = Math.max(0, p.heat - dt * .5 * cooling);
     if (p.overheated && p.heat <= .1) p.overheated = false;
     if (boss) {
@@ -153,8 +193,11 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
     } else if (c.fire && p.shot <= 0 && !p.overheated) {
       p.shot = .18; p.heat = Math.min(1, p.heat + .15); p.shield = 0;
       if (p.heat >= 1) p.overheated = true;
-      fireForward(s, p.id, p.x, p.y, p.angle, 650, 1.5, p.damage);
+      const damage = p.damage * (p.traits?.criticalChance && random(s) < p.traits.criticalChance ? 2 : 1);
+      fireForward(s, p.id, p.x, p.y, p.angle, 650, 1.5, damage, p.traits?.piercing);
+      if (p.traits?.sideShotDamage) for (const side of [-1, 1]) fireForward(s, p.id, p.x, p.y, p.angle + side * Math.PI / 15, 650, 1.5, damage * p.traits.sideShotDamage, p.traits.piercing);
     }
+    if (!p.bot) autoRocket(s, p, dt);
     if (p.y + (boss ? 34 : 22) >= GROUND_Y) p.health = 0;
   }
   if (flight) {
@@ -211,25 +254,25 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
       // Shields and the ram cooldown never allow flying through solid terrain.
       if (p.health > 0 && touching && (ground || p.ram <= 0)) { p.health = ground ? 0 : p.health - p.hp * .5; p.ram = .8; fx(s, 'hit', p.x, p.y); }
     }
-    if (s.planes[0].health > 0 && s.distance >= def.length) { if (def.boss) beginBoss(s); else nextLevel(s, rewards); }
+    if (s.planes[0].health > 0 && s.distance >= def.length) { if (def.boss) approachBoss(s); else nextLevel(s, rewards); }
   }
   for (const b of s.bullets) {
     b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
     for (const p of s.planes) {
-      if (p.id === b.owner || p.health <= 0 || p.shield > 0 || b.life <= 0) continue;
-      if (Math.hypot(p.x - b.x, p.y - b.y) < (p.id === 'boss' ? 38 : 26)) { p.health -= b.damage; p.lastAttacker = b.owner; b.life = 0; fx(s, 'hit', b.x, b.y); }
+      if (p.id === b.owner || p.health <= 0 || p.shield > 0 || b.life <= 0 || b.hitTargets?.includes(p.id)) continue;
+      if (Math.hypot(p.x - b.x, p.y - b.y) < (p.id === 'boss' ? 38 : 26)) { p.health -= b.damage * (1 - (p.traits?.resistance ?? 0)); p.lastAttacker = b.owner; bulletHit(b, p.id); fx(s, b.kind === 'rocket' ? 'explosion' : 'hit', b.x, b.y); }
     }
     if (flight && b.owner === s.planes[0].id && b.life > 0) {
       for (const o of s.obstacles) {
         const touching = o.kind === 'rock' || o.kind === 'pvo' ? touchesPolygon(b.x, b.y, 5, o.kind === 'rock' ? rockPoints(o) : pvoPoints(o)) : Math.hypot(o.x - b.x, o.y - b.y) <= o.radius + 5;
-        if (o.hp <= 0 || !touching) continue;
-        b.life = 0; o.hp -= b.damage; fx(s, 'hit', b.x, b.y);
+        if (o.hp <= 0 || !touching || b.hitTargets?.includes('obstacle-' + o.id)) continue;
+        bulletHit(b, 'obstacle-' + o.id, o.kind === 'rock'); o.hp -= b.damage; fx(s, b.kind === 'rocket' ? 'explosion' : 'hit', b.x, b.y);
         if (o.hp <= 0) {
           const multiplier = o.kind === 'pvo' ? 1.25 : o.kind === 'heavy' ? 1.6 : 1;
           const silver = Math.round(def.killSilver * multiplier), xp = Math.round(def.killXp * multiplier);
-          award(s, rewards, b.owner, silver, xp, 'kill'); fx(s, 'explosion', o.x, o.y); fx(s, 'reward', o.x, o.y, '+' + silver + ' серебра');
+          award(s, rewards, b.owner, silver, xp, 'kill'); fx(s, 'explosion', o.x, o.y); fx(s, 'reward', o.x, o.y, '+' + campaignReward(silver) + ' серебра');
         }
-        break;
+        if (b.life <= 0) break;
       }
     }
   }
@@ -244,6 +287,9 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
     }
   }
   for (const p of s.planes) {
+    if (s.mode === 'pve' && !p.bot && p.traits?.emergencyRepair && !p.emergencyUsed && p.health > 0 && p.health < p.hp * .25) {
+      p.health = Math.min(p.hp, p.health + p.hp * p.traits.emergencyRepair); p.emergencyUsed = true; fx(s, 'reward', p.x, p.y, 'РЕЗЕРВНЫЙ РЕМОНТ');
+    }
     if (p.health > 0 || p.dead > 0) continue;
     p.dead = 2; fx(s, 'explosion', p.x, p.y);
     if (s.mode === 'duel') {
@@ -254,7 +300,9 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
   if (s.mode === 'pve' && s.planes[0].health <= 0) { s.phase = 'ended'; s.result = 'Самолёт потерян'; }
   else if (s.phase === 'boss' && s.planes[1].health <= 0) {
     const b = bossBalance(s.level);
-    award(s, rewards, s.planes[0].id, b.silver, b.xp, 'kill', true, s.level); nextLevel(s, rewards);
+    const bossLevel = s.level;
+    award(s, rewards, s.planes[0].id, b.silver, b.xp, 'kill', true, bossLevel); nextLevel(s, rewards);
+    s.rewardNextPhase = bossLevel === ZONE.length ? 'ended' : 'flight'; s.rewardBossLevel = bossLevel; s.phase = 'reward'; s.paused = true; s.bullets = [];
   } else if (s.mode === 'duel' && (s.time >= 120 || s.planes.some(p => p.score >= 3))) endDuel(s, rewards);
   return rewards;
 }

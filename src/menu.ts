@@ -1,4 +1,4 @@
-import { GOLD_PACKS, MODULES, PLANES, Profile, Upgrade, planeStats, researchLevel, RESEARCH_XP, upgradeSilver, planeUnlocked } from '../shared/data';
+import { GOLD_PACKS, MODULES, PLANES, Profile, Upgrade, planeStats, researchLevel, RESEARCH_XP, upgradeSilver, planeUnlocked, CAREER_STAGES, careerStage, ZONE } from '../shared/data';
 import { icon, IconName } from './icons';
 
 const money = (n: number) => Math.floor(n).toLocaleString('ru-RU');
@@ -7,10 +7,11 @@ const aircraft = (id: string, cls = '') => '<canvas class="' + cls + '" data-air
 
 export function renderLobby(p: Profile, resume: boolean, level: number) {
   const model = PLANES.find(x => x.id === p.selected)!;
+  const stage = careerStage(level);
   return '<section class="launch-screen" aria-label="Выбор режима">' +
     '<button class="launch-aircraft" data-tab="fleet" aria-label="Сменить самолёт: ' + model.name + '">' + aircraft(model.id) + '<span><b>' + model.name + '</b><small>Сменить самолёт ' + icon('arrow') + '</small></span></button>' +
-    '<div class="launch-modes"><button class="launch-mode campaign" data-action="pve" aria-label="Играть: Кампания"><span class="mode-mark">' + icon('route') + '</span><strong>Кампания</strong><small>Уровень ' + level + ' / 50</small><span class="launch-cta">' + (resume ? 'Продолжить' : 'Играть') + icon('arrow') + '</span></button>' +
-    '<button class="launch-mode versus" data-action="queue" aria-label="Играть: Один на один"><span class="mode-mark">' + icon('duel') + '</span><strong>Один на один</strong><small>Дуэль</small><span class="launch-cta">Играть' + icon('arrow') + '</span></button></div><button class="flight-help" data-tab="help">' + icon('help') + '<span>Как летать</span>' + icon('arrow') + '</button></section>';
+    '<div class="launch-modes"><button class="launch-mode campaign" data-action="pve" aria-label="Играть: Кампания"><span class="mode-mark">' + icon('route') + '</span><strong>Кампания</strong><small>Уровень ' + level + ' / ' + ZONE.length + ' · этап ' + stage.number + '</small><span class="launch-cta">' + (resume ? 'Продолжить' : 'Играть') + icon('arrow') + '</span></button>' +
+    '<button class="launch-mode versus" data-action="queue" aria-label="Играть: Один на один"><span class="mode-mark">' + icon('duel') + '</span><strong>Один на один</strong><small>Дуэль</small><span class="launch-cta">Играть' + icon('arrow') + '</span></button></div><div class="career-route" aria-label="Этапы карьеры">' + CAREER_STAGES.map(s => '<span class="career-stage ' + (stage.number === s.number ? 'current' : s.number < stage.number ? 'complete' : '') + '"><i>' + (s.number < stage.number ? '✓' : s.number) + '</i><span>Уровни <b>' + s.start + '–' + s.end + '</b></span></span>').join('') + '</div><button class="flight-help" data-tab="help">' + icon('help') + '<span>Как летать</span>' + icon('arrow') + '</button></section>';
 }
 
 export function renderHangar(p: Profile, inspected: string) {

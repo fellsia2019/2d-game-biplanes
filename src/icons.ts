@@ -1,4 +1,12 @@
 const paths = {
+  cards: '<rect x="6" y="3" width="14" height="18" rx="3"/><path d="M3 6v12a3 3 0 0 0 3 3m7-14 3 4-3 4-3-4z"/>',
+  triple: '<path d="M3 12h17m-5-4 5 4-5 4M5 8l13-5m-5-1 5 1-2 5M5 16l13 5m-5 1 5-1-2-5"/>',
+  rocket: '<path d="M9 15 7 9c3-5 7-6 13-6 0 6-1 10-6 13l-6-2m-1-5L3 10v5h5m6 1v5h-5l1-5M4 17l-2 5 5-2"/><circle cx="15" cy="8" r="2"/>',
+  repair: '<path d="M14 3a6 6 0 0 0-7 7L2 15l7 7 5-5a6 6 0 0 0 7-7l-4 4-4-3z"/>',
+  layers: '<path d="m12 3 10 6-10 6L2 9zM3 13l9 6 9-6M3 17l9 6 9-6"/>',
+  spark: '<path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5zM19 3v4m-2-2h4"/>',
+  pierce: '<path d="M2 12h20m-5-5 5 5-5 5M7 4v16m5-16v16"/>',
+  heart: '<path d="M12 21 3.5 12.5a5.5 5.5 0 0 1 8.5-7 5.5 5.5 0 0 1 8.5 7zM9 11h6m-3-3v6"/>',
   play: '<path d="m7 3 14 9-14 9z"/>',
   compass: '<circle cx="12" cy="12" r="9.5"/><path d="m16.8 7.2-3.1 6.5-6.5 3.1 3.1-6.5z"/><path d="m10.3 10.3 3.4 3.4"/>',
   hangar: '<path d="M3 10 12 4l9 6v10H3z"/><path d="M7 20v-8h10v8M7 16h10"/>',

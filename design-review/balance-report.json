@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-02T19:15:52.572Z",
+  "generatedAt": "2026-10-03T06:31:26.903Z",
   "method": "30 Hz authoritative simulation, 60 seconds held fire, no aim assist. TTK uses 40% hit rate; range 30–55%. Income scenario assumes three kills per level, no ads, paid gold, tasks or login bonuses.",
   "planes": [
     {
@@ -298,32 +298,32 @@
         "engine": 1,
         "gun": 3
       },
-      "guaranteedSilver": 1800,
-      "guaranteedXp": 520,
+      "guaranteedSilver": 900,
+      "guaranteedXp": 260,
       "expectedKills": 30,
-      "killsSilver": 540,
-      "killsXp": 150,
+      "killsSilver": 270,
+      "killsXp": 90,
       "buildSilver": 1160,
       "buildXp": 420,
       "planePrice": 1200,
-      "preBossSilver": 390,
-      "preBossXp": 36,
+      "preBossSilver": -285,
+      "preBossXp": -177,
       "incomeCases": [
         {
           "killsPerLevel": 1,
-          "silverAfterBuildAndPlane": -180
+          "silverAfterBuildAndPlane": -1170
         },
         {
           "killsPerLevel": 3,
-          "silverAfterBuildAndPlane": 180
+          "silverAfterBuildAndPlane": -990
         },
         {
           "killsPerLevel": 5,
-          "silverAfterBuildAndPlane": 540
+          "silverAfterBuildAndPlane": -810
         }
       ],
-      "silverAfterBuildAndPlane": 180,
-      "xpAfterBuild": 250,
+      "silverAfterBuildAndPlane": -990,
+      "xpAfterBuild": -70,
       "spawn": {
         "normal": {
           "seeds": 12,
@@ -407,8 +407,8 @@
         "cooldown": 1.6,
         "bulletSpeed": 300,
         "windup": 0.35,
-        "silver": 900,
-        "xp": 180,
+        "silver": 450,
+        "xp": 90,
         "baseTtk": 50.970873786407765,
         "level3Ttk": 43.19565575119302,
         "recommendedTtk": 43.19565575119302,
@@ -444,32 +444,32 @@
         "engine": 2,
         "gun": 3
       },
-      "guaranteedSilver": 4500,
-      "guaranteedXp": 820,
+      "guaranteedSilver": 2250,
+      "guaranteedXp": 410,
       "expectedKills": 45,
-      "killsSilver": 1260,
-      "killsXp": 360,
+      "killsSilver": 630,
+      "killsXp": 180,
       "buildSilver": 1380,
       "buildXp": 500,
       "planePrice": 3800,
-      "preBossSilver": 1840,
-      "preBossXp": 252,
+      "preBossSilver": 230,
+      "preBossXp": -124,
       "incomeCases": [
         {
           "killsPerLevel": 1,
-          "silverAfterBuildAndPlane": -260
+          "silverAfterBuildAndPlane": -2720
         },
         {
           "killsPerLevel": 3,
-          "silverAfterBuildAndPlane": 580
+          "silverAfterBuildAndPlane": -2300
         },
         {
           "killsPerLevel": 5,
-          "silverAfterBuildAndPlane": 1420
+          "silverAfterBuildAndPlane": -1880
         }
       ],
-      "silverAfterBuildAndPlane": 580,
-      "xpAfterBuild": 680,
+      "silverAfterBuildAndPlane": -2300,
+      "xpAfterBuild": 90,
       "spawn": {
         "normal": {
           "seeds": 12,
@@ -583,8 +583,8 @@
         "cooldown": 1.45,
         "bulletSpeed": 330,
         "windup": 0.35,
-        "silver": 2400,
-        "xp": 400,
+        "silver": 1200,
+        "xp": 200,
         "baseTtk": 64.72491909385114,
         "level3Ttk": 54.851626350721304,
         "recommendedTtk": 54.851626350721304,
@@ -620,32 +620,32 @@
         "engine": 3,
         "gun": 5
       },
-      "guaranteedSilver": 11750,
-      "guaranteedXp": 2000,
+      "guaranteedSilver": 5875,
+      "guaranteedXp": 1000,
       "expectedKills": 75,
-      "killsSilver": 3150,
-      "killsXp": 900,
+      "killsSilver": 1575,
+      "killsXp": 450,
       "buildSilver": 4720,
       "buildXp": 1540,
       "planePrice": 10000,
-      "preBossSilver": 3950,
-      "preBossXp": 416,
+      "preBossSilver": -385,
+      "preBossXp": -562,
       "incomeCases": [
         {
           "killsPerLevel": 1,
-          "silverAfterBuildAndPlane": -1920
+          "silverAfterBuildAndPlane": -8320
         },
         {
           "killsPerLevel": 3,
-          "silverAfterBuildAndPlane": 180
+          "silverAfterBuildAndPlane": -7270
         },
         {
           "killsPerLevel": 5,
-          "silverAfterBuildAndPlane": 2280
+          "silverAfterBuildAndPlane": -6220
         }
       ],
-      "silverAfterBuildAndPlane": 180,
-      "xpAfterBuild": 1360,
+      "silverAfterBuildAndPlane": -7270,
+      "xpAfterBuild": -90,
       "spawn": {
         "normal": {
           "seeds": 12,
@@ -819,8 +819,8 @@
         "cooldown": 1.3,
         "bulletSpeed": 360,
         "windup": 0.35,
-        "silver": 6000,
-        "xp": 900,
+        "silver": 3000,
+        "xp": 450,
         "baseTtk": 81.91747572815534,
         "level3Ttk": 69.42158960013164,
         "recommendedTtk": 63.01344286781179,

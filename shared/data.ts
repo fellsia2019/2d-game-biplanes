@@ -1,4 +1,6 @@
+import { modifierBonuses, type OwnedModifier } from './modifiers';
 export const WIDTH = 1200, HEIGHT = 675;
+export const campaignReward = (amount: number) => Math.round(amount / 2);
 export const PLANES = [
   { id: 'universal', unlockBoss: 0, name: 'Сокол', role: 'Баланс и точность', price: 0, currency: 'silver', rank: 1, hp: 100, speed: 185, turn: 2.6, damage: 10, color: '#368afa' },
   { id: 'swift', unlockBoss: 10, name: 'Стриж', role: 'Лёгкий манёвренный истребитель', price: 1200, currency: 'silver', rank: 3, hp: 175, speed: 210, turn: 3.1, damage: 18, color: '#20bda7' },
@@ -16,7 +18,7 @@ export const planeUnlocked = (p: Profile, plane: typeof PLANES[number]) => p.own
 export const pilotRank = (p: Profile) => rankOf(Math.max(p.totalXp ?? 0, p.xp));
 export function addExperience(p: Profile, amount: number) { p.totalXp = Math.max(p.totalXp ?? 0, p.xp) + amount; p.xp += amount; }
 export function normalizeProgression(p: Profile) {
-  p.totalXp = Math.max(p.totalXp ?? 0, p.xp); p.defeatedBosses ??= []; p.research ??= {};
+  p.totalXp = Math.max(p.totalXp ?? 0, p.xp); p.defeatedBosses ??= []; p.research ??= {}; p.modifiers ??= []; p.modifierBosses ??= [];
   for (const [model, upgrade] of Object.entries(p.upgrades)) {
     const research = p.research[model] ??= {hull: 0, engine: 0, gun: 0};
     for (const branch of ['hull', 'engine', 'gun'] as const) research[branch] = Math.max(research[branch], upgrade[branch]);
@@ -32,6 +34,7 @@ export interface Profile {
   id: string; silver: number; gold: number; xp: number; totalXp?: number; defeatedBosses?: number[]; research?: Record<string, Record<Upgrade, number>>; selected: string; owned: string[];
   upgrades: Record<string, Record<Upgrade, number>>;
   modules: string[]; module: string;
+  modifiers?: OwnedModifier[]; modifierBosses?: number[];
   daily: { key: string; activity: number; kills: number; wins: number; claimed: string[] };
   weekly: { key: string; activity: number; levels: number; duels: number; claimed: string[] };
   taskArchive: ArchivedTasks[];
@@ -101,9 +104,15 @@ export const ZONE = Array.from({ length: 50 }, (_, i) => {
     killSilver:[18,28,42][tier-1],killXp:[5,8,12][tier-1],
     boss:level===10||level===25||level===50?bossBalance(level):null};
 });
-export function planeStats(p: Profile) {
+// Stage boundaries come from the boss catalogue, including future added bosses.
+export const CAREER_STAGES = ZONE.filter(z => z.boss).map((z, index, bosses) => ({
+  number: index + 1, start: index ? bosses[index - 1].level + 1 : 1, end: z.level, name: z.name, boss: z.boss!,
+}));
+export const careerStage = (level: number) => CAREER_STAGES.find(s => level <= s.end) ?? CAREER_STAGES[CAREER_STAGES.length - 1];
+export function planeStats(p: Profile, career = false) {
   const model = PLANES.find(x => x.id === p.selected) ?? PLANES[0];
   const u = p.upgrades[model.id] ?? { hull: 0, engine: 0, gun: 0 };
   const module = p.modules?.includes(p.module) ? p.module : '';
-  return { model: model.id, hp: model.hp * (1 + u.hull * .06), speed: model.speed * (1 + u.engine * .02), turn: model.turn * (1 + u.engine * .01), damage: model.damage * (1 + u.gun * .06) * (module === 'radiator' ? .9 : 1), boostDuration: module === 'carburetor' ? 3 : 2, boostRecharge: module === 'carburetor' ? 7.5 : 6, cooling: module === 'radiator' ? 1.35 : 1 };
+  const traits = career ? modifierBonuses(p.modifiers) : undefined;
+  return { model: model.id, hp: model.hp * (1 + u.hull * .06) * (1 + (traits?.hp ?? 0)), speed: model.speed * (1 + u.engine * .02) * (1 + (traits?.speed ?? 0)), turn: model.turn * (1 + u.engine * .01) * (1 + (traits?.turn ?? 0)), damage: model.damage * (1 + u.gun * .06) * (module === 'radiator' ? .9 : 1) * (1 + (traits?.damage ?? 0)), boostDuration: (module === 'carburetor' ? 3 : 2) * (1 + (traits?.boost ?? 0)), boostRecharge: module === 'carburetor' ? 7.5 : 6, cooling: module === 'radiator' ? 1.35 : 1, traits };
 }

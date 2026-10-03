@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { balanceReport } from '../scripts/balance-report';
-import { PLANES, freshProfile, planeStats, bossBalance, ZONE } from '../shared/data';
+import { PLANES, freshProfile, planeStats, bossBalance, ZONE, campaignReward } from '../shared/data';
 import { beginBoss, createBattle, IDLE, makePlane, refreshPlaneStats, stepBattle } from '../shared/simulation';
 
 const report=balanceReport();
@@ -27,12 +27,14 @@ test('Полная прокачка даёт 30% HP и урона; радиат�
     assert.ok(plane.radiator.overheatFraction<plane.max.overheatFraction);
   }
 });
-test('Три обычных убийства на уровень оплачивают сборку до босса и следующий корпус после него без платных бонусов',()=>{
+test('Отчёт экономики учитывает половинные награды кампании и неизменные цены улучшений',()=>{
   for(const phase of report.economy) {
-    assert.ok(phase.preBossSilver>=0,`серебро до босса ${phase.last}`);
-    assert.ok(phase.preBossXp>=0,`опыт до босса ${phase.last}`);
-    assert.ok(phase.silverAfterBuildAndPlane>=150);
-    assert.ok(phase.xpAfterBuild>=0);
+    const levels=ZONE.slice(phase.first-1,phase.last),boss=levels.at(-1)!.boss!;
+    assert.equal(phase.guaranteedSilver,levels.reduce((sum,l)=>sum+campaignReward(l.rewardSilver),0)+campaignReward(boss.silver));
+    assert.equal(phase.guaranteedXp,levels.reduce((sum,l)=>sum+campaignReward(l.rewardXp),0)+campaignReward(boss.xp));
+    assert.equal(phase.killsSilver,phase.expectedKills*campaignReward(levels[0].killSilver));
+    assert.equal(phase.killsXp,phase.expectedKills*campaignReward(levels[0].killXp));
+    assert.ok(phase.silverAfterBuildAndPlane<150);
     assert.ok(phase.spawn.normal.averageVisibleTargets>phase.expectedKills/(phase.last-phase.first+1));
     assert.ok(phase.spawn.boost.averageSeconds<phase.spawn.normal.averageSeconds);
     assert.ok(phase.spawn.boost.averageVisibleTargets<phase.spawn.normal.averageVisibleTargets);

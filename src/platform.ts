@@ -9,9 +9,14 @@ interface Sdk {
 }
 declare global { interface Window { YaGames?: { init(): Promise<Sdk> } } }
 type Rpc = (type: string, data?: object) => Promise<any>;
+async function deadline<T>(promise: Promise<T>, ms = 8000): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  try { return await Promise.race([promise, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('Platform timeout')), ms); })]); }
+  finally { clearTimeout(timer!); }
+}
 export class Platform {
   private sdk?: Sdk; private player?: Player; private payments?: Payments;
-  private playing = false; private ready = false; private busy = false;
+  private playing = false; private ready = false; private readySent = false; private busy = false;
   private token?: string; private cloudSaved = false; private cloudRead = false; private recovery?: Promise<void>;
   products: Product[] = []; onChange?: () => void;
   get available() { return !!this.sdk; }
@@ -27,17 +32,19 @@ export class Platform {
         });
       }
       if (!window.YaGames) return;
-      this.sdk = await window.YaGames.init();
+      this.sdk = await deadline(window.YaGames.init());
       this.sdk.on('game_api_pause', () => pause(true)); this.sdk.on('game_api_resume', () => pause(false));
-      if (this.ready) this.sdk.features.LoadingAPI?.ready();
+      this.notifyReady();
       if (this.playing) this.sdk.features.GameplayAPI?.start();
-      try { this.player = await this.sdk.getPlayer(); await this.readCloudToken(); } catch { /* Remain a guest. */ }
-      try { this.payments = await this.sdk.getPayments({ signed: true }); this.products = await this.payments.getCatalog(); } catch { this.payments = undefined; }
+      await Promise.all([
+        (async () => { try { this.player = await deadline(this.sdk!.getPlayer(), 4000); await this.readCloudToken(); } catch { /* Remain a guest. */ } })(),
+        (async () => { try { this.payments = await deadline(this.sdk!.getPayments({ signed: true }), 4000); this.products = await deadline(this.payments.getCatalog(), 4000); } catch { this.payments = undefined; } })(),
+      ]);
     } catch { /* Local mode remains playable. */ }
   }
   private async readCloudToken() {
     if (!this.authorized) return;
-    const data = await this.player!.getData(['biplanesToken']);
+    const data = await deadline(this.player!.getData(['biplanesToken']), 4000);
     this.cloudRead = true;
     if (typeof data.biplanesToken === 'string' && /^[a-f0-9]{64}$/.test(data.biplanesToken)) { this.token = data.biplanesToken; this.cloudSaved = true; }
   }
@@ -86,7 +93,8 @@ export class Platform {
       throw error;
     } finally { this.busy = false; }
   }
-  markReady() { if (this.ready) return; this.ready = true; this.sdk?.features.LoadingAPI?.ready(); }
+  private notifyReady() { if (!this.sdk || !this.ready || this.readySent) return; this.sdk.features.LoadingAPI?.ready(); this.readySent = true; }
+  markReady() { this.ready = true; this.notifyReady(); }
   gameplay(active: boolean) {
     if (active === this.playing) return; this.playing = active;
     if (active) this.sdk?.features.GameplayAPI?.start(); else this.sdk?.features.GameplayAPI?.stop();

@@ -22,7 +22,7 @@ class Peer {
       const waiter = { predicate, resolve: (m: any) => { clearTimeout(t); resolve(m); } }; this.waiters.push(waiter);
     });
   }
-  async auth(token?: string) { const welcome = this.wait(m => m.type === 'welcome'), profile = this.wait(m => m.type === 'profile'); this.send({ type: 'auth', token }); return { welcome: await welcome, profile: (await profile).profile }; }
+  async auth(token?: string) { const welcome = this.wait(m => m.type === 'welcome'), profile = this.wait(m => m.type === 'profile'); this.send({ type: 'auth', token }); const state = await profile; return { welcome: await welcome, profile: state.profile, state }; }
   async rpc(type: string, data: object = {}) { const requestId = randomUUID(), reply = this.wait(m => m.type === 'reply' && m.requestId === requestId); this.send({ type, requestId, ...data }); const result = await reply; if (!result.ok) throw new Error(result.error); return result.result; }
 }
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -47,7 +47,8 @@ test('Сервер: онлайн 1×1, кошелёк, сохранение, о�
   try {
     await new Promise<void>((r, j) => { proc.stdout.on('data', d => { if (String(d).includes('Сервер Бипланы')) r(); }); proc.once('exit', code => j(new Error('Сервер не запустился: ' + code))); setTimeout(() => j(new Error('Server startup timeout')), 6000).unref(); });
     const shop = new Peer(), bossPeer = new Peer(); peers.push(shop, bossPeer); await Promise.all([shop.open(), bossPeer.open()]);
-    await shop.auth('shop-test-token'); await bossPeer.auth('boss-test-token');
+    const shopAuth = await shop.auth('shop-test-token'); await bossPeer.auth('boss-test-token');
+    await shop.rpc('modifier-choose', {offerId:shopAuth.state.bossOffer.id,id:shopAuth.state.bossOffer.options[0]});
     const bought = shop.wait(m => m.type === 'profile'); shop.send({ type: 'buy', id: 'swift' }); const boughtProfile = (await bought).profile;
     assert.equal(boughtProfile.silver, 3800); assert.equal(boughtProfile.selected, 'swift');
     const missingResearch = shop.wait(m => m.type === 'error'); shop.send({type:'upgrade', branch:'hull', level:1}); await missingResearch;
@@ -70,17 +71,17 @@ test('Сервер: онлайн 1×1, кошелёк, сохранение, о�
     shop.send({type: 'input', turn: 0, horizontal: 'invalid', fire: false, boost: false});
     const shopMenu = shop.wait(m => m.type === 'profile'); shop.send({ type: 'leave' }); assert.equal((await shopMenu).profile.silver, 3800);
     const bossRetry = bossPeer.wait(m => m.type === 'start'); bossPeer.send({ type: 'pve' }); const retryState = (await bossRetry).battle;
-    assert.equal(retryState.phase, 'boss'); assert.equal(retryState.level, 10); assert.equal(retryState.planes[1].health, 700);
+    assert.equal(retryState.phase, 'boss-intro'); assert.equal(retryState.paused,true); assert.equal(retryState.level, 10); assert.equal(retryState.planes[1].health, 700);
     const bossMenu = bossPeer.wait(m => m.type === 'profile'); bossPeer.send({ type: 'leave' }); await bossMenu;
     const limit = new Peer(), winner = new Peer(); peers.push(limit,winner); await Promise.all([limit.open(),winner.open()]);
     await limit.auth('limit-test-token'); await winner.auth('winner-test-token');
     const ended = limit.wait(m=>m.type==='state'&&m.battle.phase==='ended');
-    const restartedProfile = limit.wait(m=>m.type==='profile'&&m.restartLevel===1); limit.send({type:'pve',resume:true});
+    const restartedProfile = limit.wait(m=>m.type==='profile'&&m.restartLevel===1); const limitStart = limit.wait(m=>m.type==='start'); limit.send({type:'pve',resume:true}); await limitStart; limit.send({type:'boss-start'});
     const loss = (await ended).battle; assert.equal(loss.bossAttempt,3); assert.equal(loss.bossAttemptsExhausted,true); assert.equal((await restartedProfile).resume,false);
     const limitMenu = limit.wait(m=>m.type==='profile'); limit.send({type:'leave'}); await limitMenu;
     const resetRun = limit.wait(m=>m.type==='start'); limit.send({type:'pve'}); assert.equal((await resetRun).battle.level,1);
     const resetMenu=limit.wait(m=>m.type==='profile'); limit.send({type:'leave'}); await resetMenu;
-    const victory = winner.wait(m=>m.type==='profile'&&m.profile.defeatedBosses.includes(10)); winner.send({type:'pve',resume:true}); await victory;
+    const victory = winner.wait(m=>m.type==='profile'&&m.profile.defeatedBosses.includes(10)); const winnerStart = winner.wait(m=>m.type==='start'); winner.send({type:'pve',resume:true}); await winnerStart; winner.send({type:'boss-start'}); await victory;
     const winMenu=winner.wait(m=>m.type==='profile'); winner.send({type:'leave'}); await winMenu;
     const order = await shop.rpc('payment-order', { sku: 'gold300' });
     const receipt = { productID: 'gold300', purchaseToken: 'server-receipt-1', developerPayload: order.id };

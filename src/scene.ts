@@ -10,6 +10,8 @@ import { drawGoldenTrail } from './aircraft-effects';
 type Particle = { x: number; y: number; vx: number; vy: number; age: number; life: number; size: number; color: number; smoke?: boolean };
 export class SkyScene extends Phaser.Scene {
   onReady?: () => void;
+  onLoadProgress?: (progress: number) => void; onLoadError?: () => void;
+  private loadFailed = false;
   state?: Battle; you = ''; active = false;
   private sky!: Phaser.GameObjects.Graphics; private landscape!: Phaser.GameObjects.Graphics; private ground!: Phaser.GameObjects.Graphics; private ink!: Phaser.GameObjects.Graphics; private sparks!: Phaser.GameObjects.Graphics;
   private sprites = new Map<string, Phaser.GameObjects.Image>(); private particles: Particle[] = []; private seen = new Set<number>(); private match = '';
@@ -33,8 +35,14 @@ export class SkyScene extends Phaser.Scene {
     ctx.drawImage(source, -200, -100); ctx.restore();
   }
   constructor() { super('sky'); }
-  preload() { for (const id of Object.keys(AIRCRAFT_ART)) this.load.image('raw-' + id, aircraftAsset(id)); for (const model of PVO_MODELS) this.load.image('raw-pvo-' + model, pvoAsset(model)); }
+  preload() {
+    this.load.on('progress', (progress: number) => { if (!this.loadFailed) this.onLoadProgress?.(progress); });
+    this.load.on('loaderror', () => { this.loadFailed = true; this.onLoadError?.(); });
+    for (const id of Object.keys(AIRCRAFT_ART)) this.load.image('raw-' + id, aircraftAsset(id));
+    for (const model of PVO_MODELS) this.load.image('raw-pvo-' + model, pvoAsset(model));
+  }
   create() {
+    if (this.loadFailed) return;
     const prepared = new Map<string, ReturnType<typeof prepareAircraft>>();
     for (const id of Object.keys(AIRCRAFT_ART)) {
       const file = AIRCRAFT_ART[id as keyof typeof AIRCRAFT_ART].file;
@@ -181,6 +189,7 @@ export class SkyScene extends Phaser.Scene {
     this.engineEnergy.set(p.id, p.energy);
   }
   update(_time: number, delta: number) {
+    if (this.loadFailed) return;
     const dt = Math.min(.04, delta / 1000), state = this.active ? this.buffer.sample(performance.now()) : undefined;
     if (!document.hidden && (!this.active || state && !state.paused && state.phase !== 'ended')) {
       this.aircraftTime += dt;
@@ -200,7 +209,13 @@ export class SkyScene extends Phaser.Scene {
     for (const [id, sprite] of this.sprites) if (!visibleIds.has(id)) { sprite.destroy(); this.sprites.delete(id); this.engineEnergy.delete(id); }
     if (state) {
       for (const p of state.planes) this.drawPlane(p, state.level);
-      for (const b of state.bullets) { this.ink.lineStyle(3, b.owner === this.you ? 0xfff7a1 : 0xff805e); this.ink.lineBetween(b.x, b.y, b.x - b.vx * .017, b.y - b.vy * .017); this.ink.fillStyle(0xffffff); this.ink.fillCircle(b.x, b.y, 2); }
+      for (const b of state.bullets) {
+        if (b.kind === 'rocket') {
+          const angle = Math.atan2(b.vy, b.vx), c = Math.cos(angle), sn = Math.sin(angle);
+          this.ink.lineStyle(5, 0xffa950, .7); this.ink.lineBetween(b.x - c * 9, b.y - sn * 9, b.x - c * 30, b.y - sn * 30);
+          this.ink.lineStyle(7, 0xe0f2ed); this.ink.lineBetween(b.x - c * 8, b.y - sn * 8, b.x + c * 6, b.y + sn * 6);
+        } else { this.ink.lineStyle(3, b.owner === this.you ? 0xfff7a1 : 0xff805e); this.ink.lineBetween(b.x, b.y, b.x - b.vx * .017, b.y - b.vy * .017); this.ink.fillStyle(0xffffff); this.ink.fillCircle(b.x, b.y, 2); }
+      }
       for (const o of state.obstacles) {
         const g = this.ink;
         const painter: GroundPainter = {
