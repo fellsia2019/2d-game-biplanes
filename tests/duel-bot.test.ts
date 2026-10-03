@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { MAX_UPGRADE_LEVEL, PLANES, freshProfile, planeStats } from '../shared/data';
 import { duelBotStats } from '../server/duel-bot';
+import { buyModule, equipModule } from '../server/economy';
 
 test('Стартовый самолёт встречает случайно Сокол или Стриж, без дорогих и золотых моделей', () => {
   const profile = freshProfile('pilot');
@@ -12,8 +13,10 @@ test('Стартовый самолёт встречает случайно Со
 test('Для каждого самолёта и уровня улучшений бот остаётся в пределах 10% силы игрока', () => {
   for (const model of PLANES) for (const upgrades of [0, 5, MAX_UPGRADE_LEVEL, MAX_UPGRADE_LEVEL + 5]) {
     const profile = freshProfile('pilot'); profile.selected = model.id;
+    profile.owned = [...new Set([...profile.owned, model.id])]; profile.gold = 240;
     profile.upgrades[model.id] = { hull: upgrades, engine: upgrades, gun: upgrades };
-    profile.modules = ['radiator', 'carburetor']; profile.module = upgrades ? 'radiator' : 'carburetor';
+    buyModule(profile, 'radiator'); buyModule(profile, 'carburetor');
+    equipModule(profile, upgrades ? 'radiator' : 'carburetor');
     const player = planeStats(profile), before = structuredClone(profile);
     for (let i = 0; i < 100; i++) {
       const bot = duelBotStats(profile, () => i / 100);

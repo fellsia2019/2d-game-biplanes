@@ -1,8 +1,7 @@
 import { WIDTH } from '../shared/data';
-import { FLIGHT_TOP, FLIGHT_BOTTOM, FLIGHT_LEFT, FLIGHT_RIGHT } from '../shared/simulation';
 import type { Battle } from '../shared/simulation';
 
-const DELAY = .1, MAX_PREDICTION = .08;
+const DELAY = .1;
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 function xBetween(a: number, b: number, t: number, wrap: boolean) {
   let delta = b - a;
@@ -46,25 +45,20 @@ export class RenderBuffer {
     const latest = this.frames.at(-1); if (!latest) return;
     if (latest.paused || latest.phase === 'ended') { this.now = now; return latest; }
     const elapsed = Math.max(0, Math.min(.1, (now - this.now) / 1000)); this.now = now;
-    const target = latest.time + Math.min(MAX_PREDICTION, (now - this.arrival) / 1000) - DELAY;
+    const target = latest.time + Math.min(DELAY, Math.max(0, (now - this.arrival) / 1000)) - DELAY;
     const drift = target - this.clock;
     this.clock += elapsed * Math.max(.9, Math.min(1.1, 1 + drift * 2));
     if (drift > .3) this.clock = target;
-    this.clock = Math.min(this.clock, latest.time + MAX_PREDICTION);
+    // Input-driven movement can stop or reverse between packets. Extrapolating
+    // the old velocity overshoots that stop, then snaps back when it arrives.
+    // Keep the delayed clock on confirmed motion; one late packet may exhaust
+    // the buffer briefly, but cannot invent a position requiring a rewind.
+    this.clock = Math.min(this.clock, latest.time);
     if (this.clock <= this.frames[0].time) return this.frames[0];
     for (let i = 1; i < this.frames.length; i++) {
       const a = this.frames[i - 1], b = this.frames[i];
       if (this.clock < b.time) return frameBetween(a, b, (this.clock - a.time) / (b.time - a.time));
     }
-    const older = this.frames.at(-2);
-    if (!older || latest.time === older.time) return latest;
-    // Briefly bridge one missed packet; never simulate collisions or rewards here.
-    const extrapolated = frameBetween(older, latest, 1 + Math.min(MAX_PREDICTION, this.clock - latest.time) / (latest.time - older.time));
-    return { ...latest, time: extrapolated.time, totalDistance: extrapolated.totalDistance,
-      planes: latest.planes.map(p => { const q = extrapolated.planes.find(q => q.id === p.id); return q ? { ...p, x: latest.mode === 'pve' && latest.phase === 'flight' ? Math.max(FLIGHT_LEFT, Math.min(FLIGHT_RIGHT, q.x)) : q.x, y: latest.mode === 'pve' && latest.phase === 'flight' ? Math.max(FLIGHT_TOP, Math.min(FLIGHT_BOTTOM, q.y)) : q.y, angle: q.angle } : p; }),
-      obstacles: latest.obstacles.map(o => { const q = extrapolated.obstacles.find(q => q.id === o.id); return q ? { ...o, x: q.x, y: q.y } : o; }),
-      pickups: latest.pickups?.map(p => {const q=extrapolated.pickups?.find(q=>q.id===p.id);return q?{...p,x:q.x,y:q.y}:p;}),
-      bombers: latest.bombers?.map(p => {const q=extrapolated.bombers?.find(q=>q.id===p.id);return q?{...p,x:q.x,warning:q.warning}:p;}),
-      bullets: latest.bullets.map(p => { const q = extrapolated.bullets.find(q => q.id === p.id); return q ? { ...p, x: q.x, y: q.y } : p; }) };
+    return latest;
   }
 }

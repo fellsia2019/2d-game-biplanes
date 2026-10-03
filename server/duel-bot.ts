@@ -15,5 +15,7 @@ export function duelBotStats(profile: Profile, random: () => number = Math.rando
   for (const key of ['hp', 'speed', 'turn', 'damage'] as const) {
     stats[key] = Math.max(player[key] * .9, Math.min(player[key] * 1.1, stats[key]));
   }
+  // The opponent keeps the player's equipment strength when its visual model changes.
+  for (const key of ['cooling', 'boostDuration', 'boostRecharge'] as const) stats[key] = player[key];
   return stats;
 }

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { campaignPilot, estimateHumanTime, runCampaign, auditCampaign } from '../scripts/campaign-playthrough';
+import { campaignPilot, estimateHumanTime, runCampaign, auditCampaign, runBossScenario, campaignEconomyCosts } from '../scripts/campaign-playthrough';
+import { PHOENIX_BASE, PHOENIX_PART_STAGES } from '../shared/phoenix';
 import { PLANES, MAX_UPGRADE_LEVEL, ZONE, researchXp, upgradeSilver, freshProfile, planeStats } from '../shared/data';
 import { operationMission, operationPlan, campaignMinimumSeconds } from '../shared/operations';
 import { beginBoss, createBattle, makePlane, restoreOperationProgress, stepBattle } from '../shared/simulation';
@@ -73,6 +74,33 @@ test('Короткие настоящие миссии воспроизводя�
   assert.deepEqual(a,b);
   assert.equal(a.missions.filter(m=>m.outcome==='passed').length,3);
   assert.ok(a.activeSeconds+1e-5>=135);
+});
+
+test('Фикстура Феникса проверяет именно золотые детали 0..6 и отклоняет старые серебряные улучшения', () => {
+  for(const level of [0,3,6]) {
+    const result=runBossScenario({model:'skate',level:250,seed:7,phoenixParts:{hull:level,engine:level,gun:level},maxSeconds:1});
+    const expected=PHOENIX_PART_STAGES[level-1]??PHOENIX_BASE;
+    for(const key of ['hp','speed','turn','damage'] as const)assert.ok(Math.abs(result.stats[key]-expected[key])<1e-8);
+  }
+  assert.throws(()=>runBossScenario({model:'skate',level:250,seed:7,upgrades:{hull:15,engine:15,gun:15},maxSeconds:1}),/phoenixParts/);
+  assert.throws(()=>runBossScenario({model:'skate',level:250,seed:7,phoenixParts:{hull:7,engine:0,gun:0},maxSeconds:1}),/0\.\.6/);
+  assert.throws(()=>runBossScenario({model:'swift',level:25,seed:7,phoenixParts:{hull:1,engine:1,gun:1},maxSeconds:1}),/only to Phoenix/);
+  const costs=campaignEconomyCosts();
+  assert.deepEqual(costs.skate.silver,[]);assert.deepEqual(costs.skate.xp,[]);
+  assert.deepEqual(costs.skate.goldParts,PHOENIX_PART_STAGES.map(stage=>stage.price));
+});
+
+test('Платный сценарий явно декларирует золото и покупает детали только после настоящего босса', {timeout:60000}, () => {
+  const run=runCampaign({seed:7,endLevel:25,paidPhoenix:true,paidGoldBudget:1665,maxDeaths:50,maxActiveSeconds:8*3600});
+  assert.equal(run.completed,true,run.stoppedReason);
+  assert.equal(run.scenario.paidGoldCredit,1665);
+  assert.equal(run.finalProfile.selected,'skate');
+  assert.equal(run.finalProfile.upgrades.skate,undefined);
+  assert.deepEqual(run.finalProfile.phoenixParts,{hull:1,engine:1,gun:1});
+  assert.equal(run.finalProfile.gold,1275);
+  assert.deepEqual(run.timeline.filter(event=>event.kind==='phoenix-part').map(event=>event.level),[26,26,26]);
+  const audit=auditCampaign(run);assert.equal(audit.passed,true,audit.errors.join('; '));
+  assert.throws(()=>runCampaign({seed:7,endLevel:1,paidGoldBudget:1665}),/explicit paid/);
 });
 
 test('Нативные длительности сами защищают30 часов до четвёртого бесплатного самолёта', () => {

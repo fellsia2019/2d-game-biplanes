@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { freshProfile, planeStats, resetTasks, ZONE } from '../shared/data';
-import { beginBoss, startBossFight, finishBossReward, createBattle, makePlane, stepBattle, forfeitDuel, IDLE, FLIGHT_RIGHT, FLIGHT_BOTTOM, normalizeCampaignPlane } from '../shared/simulation';
+import { freshProfile, planeStats, resetTasks, ZONE, PLANES, WIDTH } from '../shared/data';
+import { beginBoss, startBossFight, finishBossReward, createBattle, makePlane, stepBattle, forfeitDuel, IDLE, FLIGHT_LEFT, FLIGHT_RIGHT, FLIGHT_BOTTOM, normalizeCampaignPlane } from '../shared/simulation';
 import { SORTIE_REWARD } from '../shared/operations';
 import { campaignReward } from '../shared/data';
 import { readyLastSortie } from './fixtures';
@@ -127,8 +127,44 @@ test('Карьера: D продвигает, A возвращает, отпус
   const x = p.x; stepBattle(s, {pilot: IDLE}, .1); assert.equal(p.x, x);
   const restored = JSON.parse(JSON.stringify(s)); normalizeCampaignPlane(restored.planes[0]); assert.equal(restored.planes[0].x, x);
   s.distance = ZONE[0].length; readyLastSortie(s); stepBattle(s, {pilot: IDLE}, 0); assert.equal(p.x, x);
-  stepBattle(s, {pilot: {...IDLE, horizontal: -1}}, 1); assert.equal(p.x, 220);
+  stepBattle(s, {pilot: {...IDLE, horizontal: -1}}, 1); assert.equal(p.x, x - p.speed); assert.ok(p.x < 220);
+  stepBattle(s, {pilot: {...IDLE, horizontal: -1}}, .5); assert.equal(p.x, FLIGHT_LEFT);
   p.x = FLIGHT_RIGHT - 1; stepBattle(s, {pilot: {...IDLE, horizontal: 1, boost: true}}, .1); assert.equal(p.x, FLIGHT_RIGHT);
+});
+test('Все самолёты достигают симметричных краёв обычного вылета и удерживают позицию', () => {
+  assert.equal(FLIGHT_LEFT, WIDTH - FLIGHT_RIGHT);
+  for (const model of PLANES) for (const boost of [false, true]) {
+    const profile = freshProfile('pilot'); profile.selected = model.id;
+    const s = createBattle(`edges-${model.id}-${boost}`, 'pve', [makePlane('pilot', planeStats(profile))]);
+    const p = s.planes[0]; s.spawn = 100;
+    assert.equal(p.x, 220);
+    p.x = FLIGHT_LEFT + 1;
+    stepBattle(s, {pilot: {...IDLE, horizontal: -1, boost}}, .1);
+    assert.equal(p.x, FLIGHT_LEFT); assert.equal(p.angle, 0);
+    stepBattle(s, {pilot: IDLE}, .1); assert.equal(p.x, FLIGHT_LEFT);
+    p.x = FLIGHT_RIGHT - 1;
+    stepBattle(s, {pilot: {...IDLE, horizontal: 1, boost}}, .1);
+    assert.equal(p.x, FLIGHT_RIGHT);
+    stepBattle(s, {pilot: IDLE}, .1); assert.equal(p.x, FLIGHT_RIGHT);
+  }
+});
+test('Загрузка вылета сохраняет позицию слева от спавна и исправляет только выход за края', () => {
+  const p = human();
+  for (const x of [FLIGHT_LEFT, 190, 220, 1100, FLIGHT_RIGHT]) {
+    p.x = x; const restored = JSON.parse(JSON.stringify(p));
+    normalizeCampaignPlane(restored); assert.equal(restored.x, x);
+  }
+  p.x = -100; normalizeCampaignPlane(p); assert.equal(p.x, FLIGHT_LEFT);
+  p.x = WIDTH + 100; normalizeCampaignPlane(p); assert.equal(p.x, FLIGHT_RIGHT);
+});
+test('Горизонтальные края вылета не ограничивают свободное движение дуэли и босса', () => {
+  for (const phase of ['duel', 'boss'] as const) {
+    const s = createBattle(`free-edge-${phase}`, phase === 'duel' ? 'duel' : 'pve', [human()], 10);
+    if (phase === 'boss') beginBoss(s);
+    const p = s.planes[0]; p.x = FLIGHT_LEFT - 10; p.y = 300; p.angle = Math.PI; p.speed = 20;
+    const x = p.x; stepBattle(s, {pilot: IDLE}, .1);
+    assert.equal(p.x, x - 2); assert.ok(p.x < FLIGHT_LEFT);
+  }
 });
 test('Столкновение на границе уровня не превращается в победу или восстановление у босса', () => {
   for (const level of [1, 10]) {

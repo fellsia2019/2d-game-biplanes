@@ -1,11 +1,13 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
-import { ZONE, PLANES, freshProfile, planeStats, addExperience, planeUnlocked, MAX_UPGRADE_LEVEL, researchXp, upgradeSilver, type Profile, type Upgrade } from '../shared/data';
+import { ZONE, PLANES, MODULES, freshProfile, planeStats, addExperience, planeUnlocked, MAX_UPGRADE_LEVEL, researchXp, upgradeSilver, type Profile, type Upgrade } from '../shared/data';
+import { PHOENIX_PART_LEVELS, PHOENIX_PART_STAGES, phoenixPartRequirements, type PhoenixParts } from '../shared/phoenix';
 import { angleDiff, approachBoss, createBattle, finishBossReward, finishSortie, restoreOperationProgress, makePlane, refreshPlaneStats, startBossFight, stepBattle, type Battle, type Controls, type Plane, type Stats } from '../shared/simulation';
 import { operationMission, operationPlan, campaignMinimumSeconds, type MissionKind } from '../shared/operations';
 import { GROUND_Y, rockPoints, touchesPolygon } from '../shared/terrain';
 import { awardBossModifier, chooseModifier, finishCareer, prepareBossAttempt, type CareerAccount } from '../server/career';
-import { buyPlane, buyUpgrade, researchUpgrade } from '../server/economy';
+import { buyPlane, buyUpgrade, researchUpgrade, buyPhoenixPart } from '../server/economy';
 import type { ModifierId, OwnedModifier } from '../shared/modifiers';
 
 const clamp = (n: number, low: number, high: number) => Math.max(low, Math.min(high, n));
@@ -131,9 +133,9 @@ function bossPilot(s: Battle, p: Plane, sustainedEscape: boolean): Controls {
 export interface ControlScenario {reactionSeconds?: number; keyboardTurns?: boolean; firingRetention?: number; sustainedEscape?: boolean}
 export interface PlaythroughOptions {
   seed: number; endLevel?: number; maxDeaths?: number; maxActiveSeconds?: number; onEvent?: (event: ProgressEvent) => void;
-  modifierChoice?: 'priority' | 'first-offer'; upgradePolicy?: 'balanced' | 'none'; paidPhoenix?: boolean; controls?: ControlScenario;
+  modifierChoice?: 'priority' | 'first-offer'; upgradePolicy?: 'balanced' | 'none'; paidPhoenix?: boolean; paidGoldBudget?: number; controls?: ControlScenario;
 }
-export interface ProgressEvent {kind: string; level: number; seconds: number; model: string; silver: number; xp: number; detail: string}
+export interface ProgressEvent {kind: string; level: number; seconds: number; model: string; silver: number; xp: number; gold?: number; detail: string}
 export interface LevelVisit {level: number; seconds: number; phase: 'flight' | 'boss'; outcome: 'passed' | 'lost'; healthRemaining: number; model: string; kills: number; shots: number; triggerPulls: number; landedProjectiles: number; observedHitRate: number; hitFrames: number; damageDealt: number; shotDutyFraction: number; damage: number; hp: number; modifiers: NonNullable<Profile['modifiers']>; firingReference?: {method: string; sustainedDps: number; fortyPercentHitRateSeconds: number}}
 export interface PlaythroughResult {
   seed: number; completed: boolean; reachedLevel: number; stoppedReason: string; finalPhase: Battle['phase'];
@@ -147,8 +149,19 @@ export interface MissionVisit {level: number; sortie: number; kind: MissionKind;
 
 export function campaignEconomyCosts() {
   return Object.fromEntries(PLANES.map(model => [model.id, {price:model.price, currency:model.currency,
-    silver:Array.from({length:MAX_UPGRADE_LEVEL},(_,i)=>upgradeSilver(i+1,model.id)),
-    xp:Array.from({length:MAX_UPGRADE_LEVEL},(_,i)=>researchXp(i+1,model.id))}]));
+    silver:model.id === 'skate' ? [] : Array.from({length:MAX_UPGRADE_LEVEL},(_,i)=>upgradeSilver(i+1,model.id)),
+    xp:model.id === 'skate' ? [] : Array.from({length:MAX_UPGRADE_LEVEL},(_,i)=>researchXp(i+1,model.id)),
+    ...(model.id === 'skate' ? {goldParts:PHOENIX_PART_STAGES.map(stage => stage.price)} : {}),
+    equipment:MODULES.map(module => ({id:module.id, gold:module.price}))}]));
+}
+
+/** Fingerprint the actual economy, physics and control policy used by a report. */
+export async function campaignSourceFingerprint() {
+  const files = ['shared/data.ts', 'shared/simulation.ts', 'shared/operations.ts', 'shared/terrain.ts',
+    'shared/modifiers.ts', 'shared/premium.ts', 'shared/skills.ts', 'shared/phoenix.ts', 'shared/equipment.ts',
+    'server/economy.ts', 'server/career.ts', 'scripts/campaign-playthrough.ts'];
+  const entries = await Promise.all(files.map(async path => [path, createHash('sha256').update(await readFile(new URL('../' + path, import.meta.url))).digest('hex')] as const));
+  return Object.fromEntries(entries);
 }
 
 /** Input sensitivity model, not a claim about human reaction or ability. */
@@ -170,7 +183,7 @@ function sampledPilot(scenario: ControlScenario = {}) {
 
 export interface BossScenarioOptions {
   model: typeof PLANES[number]['id']; level: number; seed: number;
-  upgrades?: Record<Upgrade, number>; modifiers?: OwnedModifier[]; controls?: ControlScenario; maxSeconds?: number;
+  upgrades?: Record<Upgrade, number>; phoenixParts?: PhoenixParts; modifiers?: OwnedModifier[]; controls?: ControlScenario; maxSeconds?: number;
 }
 export interface BossScenarioResult {
   fixture: true; method: string; options: BossScenarioOptions; stats: Stats;
@@ -184,8 +197,13 @@ export function runBossScenario(options: BossScenarioOptions): BossScenarioResul
   if (!ZONE[options.level - 1]?.boss || !Number.isInteger(options.seed)) throw new Error('Choose an existing boss level and integer seed');
   const upgrades = options.upgrades ?? {hull: 0, engine: 0, gun: 0};
   if (Object.values(upgrades).some(n => !Number.isInteger(n) || n < 0 || n > MAX_UPGRADE_LEVEL)) throw new Error('Upgrade fixture levels must be 0..' + MAX_UPGRADE_LEVEL);
+  if (options.model === 'skate' && Object.values(upgrades).some(n => n !== 0)) throw new Error('Phoenix uses phoenixParts 0..6, not silver/XP upgrades');
+  if (options.model !== 'skate' && options.phoenixParts) throw new Error('Phoenix parts belong only to Phoenix');
+  if (options.phoenixParts && (['hull', 'engine', 'gun'] as const).some(branch => !Number.isInteger(options.phoenixParts![branch]) || options.phoenixParts![branch] < 0 || options.phoenixParts![branch] > PHOENIX_PART_LEVELS)) throw new Error('Phoenix part fixture levels must be 0..6');
   const p = freshProfile('boss-fixture-' + options.seed); p.selected = options.model; p.owned = [options.model];
-  p.upgrades[options.model] = {...upgrades}; p.modifiers = structuredClone(options.modifiers ?? []);
+  if (options.model === 'skate') p.phoenixParts = {...options.phoenixParts ?? {hull:0, engine:0, gun:0}};
+  else p.upgrades[options.model] = {...upgrades};
+  p.modifiers = structuredClone(options.modifiers ?? []);
   const stats = planeStats(p, true), battle = createBattle('boss-fixture-' + options.seed, 'pve', [makePlane(p.id, stats)], options.level);
   approachBoss(battle); startBossFight(battle);
   const boss = battle.planes[1], hp = boss.hp, controller = sampledPilot(options.controls);
@@ -207,9 +225,11 @@ export function runBossScenario(options: BossScenarioOptions): BossScenarioResul
 export function aircraftCombatMatrix() {
   const nextBoss = {universal: 25, swift: 100, yantar: 200, bastion: 250, skate: 250} as const;
   const builds = [{hull: 0, engine: 0, gun: 0}, {hull: 6, engine: 3, gun: 6}, {hull: MAX_UPGRADE_LEVEL, engine: MAX_UPGRADE_LEVEL, gun: MAX_UPGRADE_LEVEL}];
-  const rows = PLANES.flatMap(model => builds.map(upgrades => runBossScenario({model: model.id, level: nextBoss[model.id], seed: 7, upgrades})));
-  const controlSensitivity = PLANES.map(model => runBossScenario({model: model.id, level: nextBoss[model.id], seed: 7, upgrades: {hull: 6, engine: 3, gun: 6}, controls: {reactionSeconds: .1, keyboardTurns: true, firingRetention: .85}}));
-  const alternateEscape = PLANES.map(model => runBossScenario({model: model.id, level: nextBoss[model.id], seed: 7, upgrades: builds[2], controls: {reactionSeconds: .1, keyboardTurns: true, firingRetention: .85, sustainedEscape: true}}));
+  const parts = [{hull:0, engine:0, gun:0}, {hull:3, engine:2, gun:3}, {hull:6, engine:6, gun:6}];
+  const buildFor = (model:string, index:number) => model === 'skate' ? {phoenixParts:parts[index]} : {upgrades:builds[index]};
+  const rows = PLANES.flatMap(model => builds.map((_, index) => runBossScenario({model: model.id, level: nextBoss[model.id], seed: 7, ...buildFor(model.id,index)})));
+  const controlSensitivity = PLANES.map(model => runBossScenario({model: model.id, level: nextBoss[model.id], seed: 7, ...buildFor(model.id,1), controls: {reactionSeconds: .1, keyboardTurns: true, firingRetention: .85}}));
+  const alternateEscape = PLANES.map(model => runBossScenario({model: model.id, level: nextBoss[model.id], seed: 7, ...buildFor(model.id,2), controls: {reactionSeconds: .1, keyboardTurns: true, firingRetention: .85, sustainedEscape: true}}));
   return {qualification: 'Aircraft-specific point fights without modifiers; these are combat fixtures, not earned careers or a human benchmark. Three builds per aircraft plus separate delayed/keyboard input sensitivity and an alternative sustained-turn avoidance policy. Losses/timeouts are reported rather than replaced with cheats.', rows, controlSensitivity, alternateEscape};
 }
 
@@ -222,15 +242,26 @@ export function independentCampaignScenarios() {
 /** Default progression uses earned resources; the paid aircraft scenario declares its gold credit. */
 function spendEarned(profile: Profile, level: number, seconds: number, timeline: ProgressEvent[], options: PlaythroughOptions) {
   const event = (kind: string, detail: string) => {
-    const row = {kind, level, seconds, model: profile.selected, silver: profile.silver, xp: profile.xp, detail};
+    const row = {kind, level, seconds, model: profile.selected, silver: profile.silver, xp: profile.xp, gold:profile.gold, detail};
     timeline.push(row); options.onEvent?.(row);
   };
   for (let pass = 0; pass < PLANES.length; pass++) {
     const target = [...PLANES].reverse().find(p => p.currency === 'silver' && !profile.owned.includes(p.id) && planeUnlocked(profile, p));
     if (profile.selected !== 'skate' && target && profile.silver >= target.price) { buyPlane(profile, target.id); event('aircraft', target.name); }
     const phoenix = PLANES.find(model => model.id === 'skate')!;
-    if (options.paidPhoenix && !profile.owned.includes(phoenix.id) && planeUnlocked(profile, phoenix)) { buyPlane(profile, phoenix.id); event('paid-aircraft', phoenix.name); }
+    if (options.paidPhoenix && !profile.owned.includes(phoenix.id) && profile.gold >= phoenix.price && planeUnlocked(profile, phoenix)) { buyPlane(profile, phoenix.id); event('paid-aircraft', phoenix.name); }
     if (options.upgradePolicy === 'none') return;
+    if (profile.selected === 'skate') {
+      for (const branch of ['gun', 'hull', 'engine'] as const) {
+        let request = phoenixPartRequirements(profile, branch);
+        while (request.canBuy) {
+          buyPhoenixPart(profile, branch, request.level); event('phoenix-part', branch + ' ' + request.level);
+          request = phoenixPartRequirements(profile, branch);
+        }
+      }
+      if (Object.values(profile.phoenixParts!).every(n => n === PHOENIX_PART_LEVELS) && !timeline.some(e => e.kind === 'full-upgrade' && e.model === 'skate')) event('full-upgrade', '6/6/6 gold parts');
+      return;
+    }
     let changed = false;
     while (true) {
       const u = profile.upgrades[profile.selected] ?? {hull:0, engine:0, gun:0};
@@ -265,13 +296,14 @@ export function runCampaign(options: PlaythroughOptions): PlaythroughResult {
   const endLevel = options.endLevel ?? ZONE.length, profile = freshProfile('campaign-measurement-' + options.seed);
   if (!Number.isInteger(options.seed) || !Number.isInteger(endLevel) || endLevel < 1 || endLevel > ZONE.length) throw new Error('Use an integer seed and a campaign end level between 1 and ' + ZONE.length);
   const account: CareerAccount = {profile};
-  const paidGoldCredit = options.paidPhoenix ? PLANES.find(model => model.id === 'skate')!.price : 0;
+  if (options.paidGoldBudget !== undefined && (!options.paidPhoenix || !Number.isSafeInteger(options.paidGoldBudget) || options.paidGoldBudget < 0)) throw new Error('A non-negative paid gold budget requires the explicit paid Phoenix scenario');
+  const paidGoldCredit = options.paidPhoenix ? options.paidGoldBudget ?? PLANES.find(model => model.id === 'skate')!.price : 0;
   profile.gold += paidGoldCredit;
   const result: PlaythroughResult = {seed: options.seed, completed: false, reachedLevel: 1, stoppedReason: '', finalPhase: 'flight', activeSeconds: 0, flightSeconds: 0, bossSeconds: 0, deaths: 0, bossDeaths: 0, rollbacks: 0, bossVictories: [], earned: {silver: 0, xp: 0}, finalProfile: profile, timeline: [], visits: [], missions: [], scenario: {modifierChoice: options.modifierChoice ?? 'priority', upgradePolicy: options.upgradePolicy ?? 'balanced', paidGoldCredit, controls: {reactionSeconds:DT,keyboardTurns:false,firingRetention:1,sustainedEscape:true,...options.controls}}};
   const controller = sampledPilot(options.controls);
   result.economyCosts = campaignEconomyCosts();
   const event = (kind: string, level: number, detail: string) => {
-    const row = {kind, level, seconds: result.activeSeconds, model: profile.selected, silver: profile.silver, xp: profile.xp, detail};
+    const row = {kind, level, seconds: result.activeSeconds, model: profile.selected, silver: profile.silver, xp: profile.xp, gold:profile.gold, detail};
     result.timeline.push(row); options.onEvent?.(row);
   };
   let sortie = 0, battle = createBattle('campaign-seed-' + options.seed + '-sortie-' + sortie, 'pve', [makePlane(profile.id, planeStats(profile, true))]);
@@ -386,14 +418,14 @@ export function campaignEconomyTimeline(run: PlaythroughResult) {
     const start=startIndex<0?undefined:run.timeline[startIndex],next=nextIndex<0?undefined:run.timeline[nextIndex];
     const events=run.timeline.slice(Math.max(0,startIndex),nextIndex<0?undefined:nextIndex).filter(e=>e.model===m.id);
     const last=events.at(-1),cost=costs[m.id];
-    const upgrades=events.filter(e=>e.kind==='upgrade');
+    const upgrades=events.filter(e=>e.kind==='upgrade'||e.kind==='phoenix-part');
     const gaps=upgrades.slice(1).map((e,index)=>e.seconds-upgrades[index].seconds).sort((a,b)=>a-b);
     const stops=[...new Set(upgrades.map(e=>e.seconds))],stopGaps=stops.slice(1).map((seconds,index)=>seconds-stops[index]).sort((a,b)=>a-b);
     const median=(values:number[])=>values.length?values.length%2?values[Math.floor(values.length/2)]:(values[values.length/2-1]+values[values.length/2])/2:0;
     const spent=upgrades.reduce((sum,e)=>{
       const level=Number(e.detail.split(' ')[1]);
-      return {silver:sum.silver+cost.silver[level-1],xp:sum.xp+cost.xp[level-1]};
-    },{silver:0,xp:0});
+      return {silver:sum.silver+(e.kind==='phoenix-part'?0:cost.silver[level-1]),xp:sum.xp+(e.kind==='phoenix-part'?0:cost.xp[level-1]),gold:sum.gold+(e.kind==='phoenix-part'?cost.goldParts![level-1]:0)};
+    },{silver:0,xp:0,gold:0});
     const endSeconds=next?.seconds??run.activeSeconds,endSilver=next ? (last?.silver??0) : run.finalProfile.silver,endXp=next ? (last?.xp??0) : run.finalProfile.xp;
     const startSilver=start?.silver??200,startXp=start?.xp??0;
     return {...m,startSilver,startXp,endSeconds,endSilver,endXp,upgradeSpending:spent,
@@ -425,6 +457,12 @@ export function auditCampaign(run: PlaythroughResult) {
   for(const [model,build] of Object.entries(run.finalProfile.upgrades)) for(const level of Object.values(build)) {
     silver-=costs[model].silver.slice(0,level).reduce((n,v)=>n+v,0); xp-=costs[model].xp.slice(0,level).reduce((n,v)=>n+v,0);
   }
+  const phoenixGold = costs.skate.goldParts;
+  if(phoenixGold && run.finalProfile.owned.includes('skate')) for(const level of Object.values(run.finalProfile.phoenixParts ?? {hull:0,engine:0,gun:0})) gold-=phoenixGold.slice(0,level).reduce((n,v)=>n+v,0);
+  for(const [model,equipment] of Object.entries(run.finalProfile.planeEquipment ?? {})) for(const id of equipment.owned) {
+    const module=costs[model].equipment?.find(item=>item.id===id);
+    if(!module)errors.push('Unknown purchased equipment '+model+'/'+id);else gold-=module.gold;
+  }
   if(silver!==run.finalProfile.silver||xp!==run.finalProfile.xp||gold!==run.finalProfile.gold||run.earned.xp!==run.finalProfile.totalXp) errors.push('Earned wallet does not reconcile with aircraft and upgrades');
   const completedBosses=new Set<number>(),fullAircraft=new Set<string>();
   for(const event of run.timeline) {
@@ -433,8 +471,12 @@ export function auditCampaign(run: PlaythroughResult) {
     if(['aircraft','paid-aircraft'].includes(event.kind)) {
       const model=PLANES.find(p=>p.id===event.model)!;
       const previous=PLANES.filter(p=>p.currency==='silver').find((p,index,list)=>list[index+1]?.id===model.id);
-      if(!completedBosses.has(model.unlockBoss)) errors.push('Aircraft purchased before boss '+model.unlockBoss);
+      if(model.unlockBoss&&!completedBosses.has(model.unlockBoss)) errors.push('Aircraft purchased before boss '+model.unlockBoss);
       if(model.currency==='silver'&&previous&&!fullAircraft.has(previous.id)) errors.push('Aircraft purchased before full predecessor '+previous.id);
+    }
+    if(event.kind==='phoenix-part') {
+      const level=Number(event.detail.split(' ')[1]),stage=PHOENIX_PART_STAGES[level-1];
+      if(!stage||!completedBosses.has(stage.bossLevel))errors.push('Phoenix part purchased before its boss gate: '+event.detail);
     }
   }
   return {passed:errors.length===0,errors,missionAttempts:run.missions.length,successfulMissions:passed.length,
@@ -449,7 +491,7 @@ export function estimateHumanTime(runs: PlaythroughResult[]) {
   const active = mean(r => r.activeSeconds), flights = mean(r => r.flightSeconds), bosses = mean(r => r.bossSeconds);
   const passedMissions = mean(r => r.missions.filter(m => m.outcome === 'passed').length);
   const native = mean(r => campaignMinimumSeconds(r.reachedLevel));
-  const purchases = mean(r => r.timeline.filter(e => ['upgrade', 'aircraft', 'paid-aircraft'].includes(e.kind)).length);
+  const purchases = mean(r => r.timeline.filter(e => ['upgrade', 'phoenix-part', 'aircraft', 'paid-aircraft'].includes(e.kind)).length);
   const intermissions=mean(r=>ZONE.slice(0,r.reachedLevel).reduce((n,z)=>n+operationPlan(z.level).sorties-1,0));
   const operations=mean(r=>r.reachedLevel);
   const briefings=intermissions*2+operations*3,decisions=mean(r => r.bossVictories.length)*35+purchases*15;
@@ -482,12 +524,16 @@ export function estimateHumanTime(runs: PlaythroughResult[]) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const sourceBefore = await campaignSourceFingerprint();
   const seeds = (process.env.CAMPAIGN_SEEDS ?? '7').split(',').map(Number), endLevel = Number(process.env.CAMPAIGN_END ?? ZONE.length);
   const runs = seeds.map(seed => runCampaign({seed, endLevel, onEvent: e => {
     if (['boss-start', 'boss-win', 'death', 'aircraft', 'paid-aircraft', 'full-upgrade'].includes(e.kind)) console.log('seed', seed, e.kind, e.level, Math.round(e.seconds) + 's', e.model, e.detail);
   }}));
   const report = {generatedAt: new Date().toISOString(), version: 'v0.8', levels: endLevel, timestep: DT, nativeMinimumSeconds: campaignMinimumSeconds(endLevel), method: 'Authoritative stepBattle at 30 Hz, only ordinary player controls. Every mission timer and kill/special-target/pickup objective completes through real movement and hits; boss HP is actually defeated. Economy starts with freshProfile: 200 silver / 0 XP / 0 gold; research and purchases use server helpers, including full predecessor aircraft and boss gates. Boss choices are drawn from actual earned offers. Ordinary deaths restore only the official completed-sortie checkpoint; three boss losses use the real stage rollback. No debug commands, skipped fights, HP/shield edits, extra immunity, premium, tasks, ads or login bonuses. Standard spawn shields and intermission/level repairs are applied only by gameplay helpers. Menus are instant in automation and included as explicit human-estimate assumptions.', metrics: 'shots counts launched primary/side/rocket projectiles. triggerPulls counts primary weapon discharges. landedProjectiles counts observed first impacts against the boss; a newly launched projectile removed in the same frame can be absent, so observedHitRate is a lower bound. hitFrames counts simulation frames with boss damage, which can contain several impacts. shotDutyFraction uses triggerPulls times 0.18s/visit duration. healthRemaining is the observed post-step value and includes a normal repair when stepBattle transitions into the next level; it is not a pre-repair damage gauge. Firing references are isolated stationary weapon fixtures, never campaign victories.', runs, audits:runs.map(auditCampaign), humanEstimate: estimateHumanTime(runs)};
-  await mkdir('design-review', {recursive: true}); await writeFile('design-review/campaign-v08-playthrough.json', JSON.stringify(report, null, 2) + '\n');
+  const sourceAfter = await campaignSourceFingerprint();
+  const source = {files:sourceBefore, unchangedDuringRun:JSON.stringify(sourceBefore)===JSON.stringify(sourceAfter)};
+  const currentReport = {...report, version:'v0.9', source};
+  await mkdir('design-review', {recursive: true}); await writeFile('design-review/campaign-v09-playthrough.json', JSON.stringify(currentReport, null, 2) + '\n');
   console.log(JSON.stringify({runs: runs.map(r => ({seed:r.seed,completed:r.completed,reachedLevel:r.reachedLevel,finalPhase:r.finalPhase,activeSeconds:r.activeSeconds,deaths:r.deaths,missionAttempts:r.missions.length,bossVictories:r.bossVictories,aircraft:campaignMilestones(r)})),humanEstimate: report.humanEstimate}, null, 2));
-  if (runs.some(r => !r.completed)||report.audits.some(a=>!a.passed)) process.exitCode = 1;
+  if (runs.some(r => !r.completed)||report.audits.some(a=>!a.passed)||!source.unchangedDuringRun) process.exitCode = 1;
 }

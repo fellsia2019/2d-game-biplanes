@@ -1,8 +1,8 @@
 import { createHmac, createHash, timingSafeEqual } from 'node:crypto';
 import { GOLD_PACKS, Profile } from '../shared/data';
-import { hasPremium, PREMIUM_PRODUCT_ID } from '../shared/premium';
+import { premiumExpiresAt, PREMIUM_DURATION_MS, PREMIUM_PRODUCT_ID } from '../shared/premium';
 export interface Order { sku: string; createdAt: number }
-export interface Receipt { sku: string; order: string; grantedAt: number }
+export interface Receipt { sku: string; order: string; grantedAt: number; premiumExpiresAt?: number; premiumPurchasedAt?: number }
 export interface PaymentAccount { profile: Profile; orders?: Record<string, Order>; receipts?: Record<string, Receipt> }
 // SDK signatures use HMAC over the decoded JSON bytes, not the base64 text.
 // https://yandex.ru/dev/games/doc/ru/sdk/sdk-purchases
@@ -29,35 +29,47 @@ export function redeemPurchases(account: PaymentAccount, all: PaymentAccount[], 
   account.receipts ??= {}; account.orders ??= {};
   const consume = new Set<string>(), pending = new Set<string>();
   const grants = new Map<string, { purchase: typeof purchases[number]; gold: number; receipt: Receipt }>();
-  let premiumSince: number | undefined;
+  let premiumUntil = premiumExpiresAt(account.profile), premiumSince = premiumUntil === undefined ? undefined : account.profile.premium!.purchasedAt;
+  const legacyDates = Object.values(account.receipts).filter(r => r.sku === PREMIUM_PRODUCT_ID && r.premiumExpiresAt === undefined && Number.isFinite(r.grantedAt) && r.grantedAt > 0).map(r => r.grantedAt);
+  const legacySince = Math.min(premiumSince ?? Infinity, ...legacyDates);
+  // Stored receipts preserve the exact granted term even after consumption.
+  // Legacy receipts restore their original month, never a month from this login.
+  for (const receipt of Object.values(account.receipts)) {
+    if (receipt.sku !== PREMIUM_PRODUCT_ID || !Number.isFinite(receipt.grantedAt) || receipt.grantedAt <= 0) continue;
+    const expiresAt = receipt.premiumExpiresAt ?? legacySince + PREMIUM_DURATION_MS;
+    const purchasedAt = receipt.premiumPurchasedAt ?? (receipt.premiumExpiresAt === undefined ? legacySince : receipt.grantedAt);
+    if (!Number.isFinite(expiresAt) || expiresAt <= purchasedAt) continue;
+    if (!Number.isFinite(purchasedAt) || purchasedAt <= 0 || purchasedAt > receipt.grantedAt) continue;
+    premiumUntil = Math.max(premiumUntil ?? 0, expiresAt); premiumSince = Math.min(premiumSince ?? Infinity, purchasedAt);
+  }
   // Validate the complete list before granting. The server persists this change
   // atomically; a conflicting receipt must not leave a partial grant behind.
   for (const purchase of purchases) {
     const pack = GOLD_PACKS.find(x => x.id === purchase.productID);
-    const permanent = purchase.productID === PREMIUM_PRODUCT_ID;
-    if (!pack && !permanent) { pending.add(purchase.productID); continue; }
+    const premium = purchase.productID === PREMIUM_PRODUCT_ID;
+    if (!pack && !premium) { pending.add(purchase.productID); continue; }
     const hash = createHash('sha256').update(purchase.purchaseToken).digest('hex');
     const owner = all.find(a => a.receipts?.[hash]) ?? (account.receipts[hash] ? account : undefined);
     const staged = grants.get(hash), receipt = owner?.receipts![hash] ?? staged?.receipt;
     if (receipt) {
       if ((owner && owner !== account) || receipt.sku !== purchase.productID || receipt.order !== purchase.developerPayload) throw new Error('Покупка принадлежит другому ангару');
-      if (permanent) premiumSince = Math.min(premiumSince ?? Infinity, receipt.grantedAt);
-      else consume.add(purchase.purchaseToken);
+      consume.add(purchase.purchaseToken);
       continue;
     }
     const order = account.orders[purchase.developerPayload];
     if (!order || order.sku !== purchase.productID) { pending.add(purchase.productID); continue; }
     grants.set(hash, { purchase, gold: pack?.gold ?? 0, receipt: { sku: purchase.productID, order: purchase.developerPayload, grantedAt: now } });
-    if (permanent) premiumSince = Math.min(premiumSince ?? Infinity, now);
-    else consume.add(purchase.purchaseToken);
+    consume.add(purchase.purchaseToken);
   }
   for (const [hash, grant] of grants) {
+    if (grant.purchase.productID === PREMIUM_PRODUCT_ID) {
+      premiumUntil = Math.max(now, premiumUntil ?? 0) + PREMIUM_DURATION_MS;
+      premiumSince = Math.min(premiumSince ?? Infinity, now);
+      grant.receipt.premiumExpiresAt = premiumUntil; grant.receipt.premiumPurchasedAt = premiumSince;
+    }
     account.profile.gold += grant.gold;
     account.receipts[hash] = grant.receipt;
   }
-  if (premiumSince !== undefined) {
-    const purchasedAt = hasPremium(account.profile) ? Math.min(account.profile.premium!.purchasedAt, premiumSince) : premiumSince;
-    account.profile.premium = { active: true, purchasedAt };
-  }
+  if (premiumUntil !== undefined && premiumSince !== undefined) account.profile.premium = { active: true, purchasedAt:premiumSince, expiresAt:premiumUntil };
   return { consume: [...consume], pending: [...pending] };
 }

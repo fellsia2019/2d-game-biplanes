@@ -245,7 +245,7 @@ test('Разрыв связи во время сохранения выбора 
 });
 
 test('Возврат к сохранённому боссу применяет любой самолёт, апгрейд, модуль и новый премиум', { timeout: 15000 }, async () => {
-  const server = await fixture();
+  const server = await fixture(p => {p.defeatedBosses=[10,25];p.modifierBosses=[10,25];});
   try {
     const peer = await server.connect(); await peer.auth();
     let start = (await peer.message('pve', { resume: true }, 'start')).battle;
@@ -254,12 +254,18 @@ test('Возврат к сохранённому боссу применяет �
     const purchase = { productID: 'premium', purchaseToken: 'runtime-audit-premium', developerPayload: order.id };
     const bytes = Buffer.from(JSON.stringify({ algorithm: 'HMAC-SHA256', issuedAt: Math.floor(Date.now() / 1000), data: [purchase] }));
     const signature = createHmac('sha256', SECRET).update(bytes).digest('base64') + '.' + bytes.toString('base64');
-    assert.deepEqual(await peer.call('payment-redeem', { signature }), { consume: [], pending: [] });
-    await peer.message('module-buy', { id: 'radiator', nonce: randomUUID() });
+    assert.deepEqual(await peer.call('payment-redeem', { signature }), { consume: [purchase.purchaseToken], pending: [] });
     for (const model of PLANES) {
       await peer.message('select', { id: model.id });
-      await peer.message('research', { branch: 'hull', level: 1, nonce: randomUUID() });
-      const state = (await peer.message('upgrade', { branch: 'hull', level: 1, nonce: randomUUID() })).profile as Profile;
+      const withModule = (await peer.message('module-buy', { id: 'radiator', model:model.id, nonce: randomUUID() })).profile as Profile;
+      let state:Profile;
+      if (model.id === 'skate') {
+        state=(await peer.message('phoenix-part',{branch:'hull',level:1,nonce:randomUUID()})).profile as Profile;
+        assert.equal(state.gold,withModule.gold-30);assert.equal(state.silver,withModule.silver);assert.equal(state.xp,withModule.xp);assert.equal(state.phoenixParts?.hull,1);
+      } else {
+        await peer.message('research', { branch: 'hull', level: 1, nonce: randomUUID() });
+        state = (await peer.message('upgrade', { branch: 'hull', level: 1, nonce: randomUUID() })).profile as Profile;
+      }
       start = (await peer.message('pve', { resume: true }, 'start')).battle;
       const actual = start.planes[0], expected = planeStats(state, true);
       assert.equal(start.id, 'runtime-audit-boss'); assert.equal(start.phase, 'boss-intro'); assert.equal(start.bossAttempt, 1);

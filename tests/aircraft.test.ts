@@ -11,7 +11,7 @@ test('Пять моделей: четыре за серебро и Феникс 
   const silverCost = PLANES.filter(plane => plane.currency === 'silver' && !p.owned.includes(plane.id)).reduce((sum, plane) => sum + plane.price, 0);
   for (const plane of PLANES) buyPlane(p, plane.id);
   assert.equal(p.owned.length, 5); assert.equal(p.silver, 100000-silverCost); assert.equal(p.gold, 0); assert.equal(p.xp,850);
-  assert.equal(p.selected, 'skate'); assert.equal(planeStats(p).speed, 300);
+  assert.equal(p.selected, 'skate'); assert.equal(planeStats(p).speed, 210);
   buyPlane(p, 'skate'); assert.equal(p.gold, 0);
 });
 test('Янтарь требует босса 100, полностью купленные улучшения Стрижа и серебро до списания средств', () => {

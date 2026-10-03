@@ -7,7 +7,8 @@ import { freshOperation, operationPlan, operationMission, missionComplete, sorti
 export interface Controls { turn: number; horizontal?: number; fire: boolean; boost: boolean; skill?: boolean }
 export const IDLE: Controls = { turn: 0, fire: false, boost: false };
 export interface Stats { model: string; hp: number; speed: number; turn: number; damage: number; boostDuration?: number; boostRecharge?: number; cooling?: number; traits?: ModifierBonuses; rewardMultiplier?: number; phaseSkill?: boolean }
-export interface Plane extends Stats { id: string; x: number; y: number; angle: number; health: number; heat: number; overheated: boolean; energy: number; shot: number; dead: number; shield: number; score: number; bot: boolean; ram: number; boosting?: boolean; boostExhausted?: boolean; lastAttacker?: string; patrolIndex?: number; windup?: number; aimAngle?: number; rocketClock?: number; emergencyUsed?: boolean; phaseSeconds?: number; phaseCooldown?: number; skillHeld?: boolean }
+interface DuelDecision { next: number; turn: number; fire: boolean; boost: boolean; aimError: number; burstUntil: number; nextBurst: number }
+export interface Plane extends Stats { id: string; x: number; y: number; angle: number; health: number; heat: number; overheated: boolean; energy: number; shot: number; dead: number; shield: number; score: number; bot: boolean; ram: number; boosting?: boolean; boostExhausted?: boolean; lastAttacker?: string; patrolIndex?: number; windup?: number; aimAngle?: number; rocketClock?: number; emergencyUsed?: boolean; phaseSeconds?: number; phaseCooldown?: number; skillHeld?: boolean; duelDecision?: DuelDecision }
 export interface Bullet { id: number; owner: string; x: number; y: number; vx: number; vy: number; life: number; damage: number; kind?: 'rocket' | 'bomb'; piercing?: number; hitTargets?: string[] }
 export interface Obstacle { id: number; kind: 'rock' | 'pvo' | 'fighter' | 'heavy'; x: number; y: number; radius: number; hp: number; fire: number; damage: number; height?: number; pvoModel?: PvoModel; terrainVariant?: number; elite?: boolean }
 export interface Pickup { id: number; x: number; y: number; kind: 'recon' | 'supply' }
@@ -50,7 +51,9 @@ export function refreshPlaneStats(plane: Plane, stats: Stats) {
   const healthRatio = clamp(plane.health / plane.hp, 0, 1);
   Object.assign(plane, stats); plane.health = plane.hp * healthRatio;
 }
-export const CAMPAIGN_X = 220, FLIGHT_LEFT = CAMPAIGN_X, FLIGHT_RIGHT = WIDTH - 100, FLIGHT_TOP = 75, FLIGHT_BOTTOM = GROUND_Y - 22;
+// A 400px aircraft texture at .32 scale fits entirely inside this equal edge margin.
+export const FLIGHT_EDGE_MARGIN = 64;
+export const CAMPAIGN_X = 220, FLIGHT_LEFT = FLIGHT_EDGE_MARGIN, FLIGHT_RIGHT = WIDTH - FLIGHT_EDGE_MARGIN, FLIGHT_TOP = 75, FLIGHT_BOTTOM = GROUND_Y - 22;
 export function normalizeCampaignPlane(p: Plane) { p.x = clamp(p.x, FLIGHT_LEFT, FLIGHT_RIGHT); p.angle = 0; p.y = clamp(p.y, FLIGHT_TOP, FLIGHT_BOTTOM); }
 export function createBattle(id: string, mode: Battle['mode'], planes: Plane[], level = 1): Battle {
   if (mode === 'pve') { planes[0].x = CAMPAIGN_X; normalizeCampaignPlane(planes[0]); planes[0].y = HEIGHT / 2; }
@@ -76,11 +79,37 @@ function botControls(s: Battle, p: Plane): Controls {
     const delta = angleDiff(desired, p.angle);
     return { turn: Math.abs(delta) < .08 ? 0 : Math.sign(delta), fire: true, boost: false };
   }
+  if (s.mode === 'duel') return duelBotControls(s, p, target);
   const dx = target.x - p.x, dy = target.y - p.y;
   const aim = Math.atan2(dy, dx) + Math.sin(s.time * 2 + p.x * .002) * .12;
   const desired = p.y > 490 ? -.8 : p.y < 130 ? .8 : aim;
   const d = angleDiff(desired, p.angle);
   return { turn: Math.abs(d) < .12 ? 0 : Math.sign(d), fire: Math.abs(d) < .28 && Math.hypot(dx, dy) < 900, boost: Math.hypot(dx, dy) > 450 && Math.abs(d) < .3 };
+}
+function duelBotControls(s: Battle, p: Plane, target: Plane): Controls {
+  const decision = p.duelDecision ??= {next:0, turn:0, fire:false, boost:false, aimError:0, burstUntil:0, nextBurst:0};
+  if (s.time >= decision.next) {
+    const reaction = .25 + random(s) * .05;
+    decision.next = s.time + reaction;
+    decision.aimError = (random(s) * 2 - 1) * Math.PI / 18;
+    const dx = target.x - p.x, dy = target.y - p.y;
+    const delta = angleDiff(Math.atan2(dy, dx) + decision.aimError, p.angle);
+    // Hold a decision between observations without overshooting a small turn.
+    decision.turn = Math.abs(delta) < .05 ? 0 : clamp(delta / (p.turn * reaction), -1, 1);
+    decision.fire = Math.abs(delta) < .3 && Math.hypot(dx, dy) < 900;
+    decision.boost = Math.hypot(dx, dy) > 550 && Math.abs(delta) < .25;
+  }
+  if (s.time >= decision.nextBurst) {
+    decision.burstUntil = s.time + .55 + random(s) * .3;
+    decision.nextBurst = decision.burstUntil + .4 + random(s) * .25;
+  }
+  // Safety stays immediate: a slower target reaction must not cause ground crashes.
+  if (p.y > 490 || p.y < 125) {
+    const heading = p.y > 490 ? -Math.PI / 2 : Math.PI / 2;
+    const delta = angleDiff(heading, p.angle);
+    return {turn:Math.abs(delta) < .08 ? 0 : Math.sign(delta), fire:false, boost:false};
+  }
+  return {turn:decision.turn, fire:decision.fire && s.time < decision.burstUntil, boost:decision.boost};
 }
 function award(s: Battle, rewards: Reward[], player: string, silver: number, xp: number, kind: Reward['kind'], win?: boolean, bossLevel?: number) {
   if (!s.earned[player]) return;

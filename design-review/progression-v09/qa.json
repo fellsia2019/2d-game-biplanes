@@ -1,0 +1,44 @@
+{
+  "version": "0.9.0",
+  "automatedTests": {
+    "passed": 246,
+    "failed": 0
+  },
+  "productionBuild": "passed",
+  "viewports": [
+    [
+      1280,
+      720
+    ],
+    [
+      844,
+      390
+    ],
+    [
+      390,
+      250
+    ]
+  ],
+  "browserChecks": [
+    "Settings control heading has 24px section spacing",
+    "Swiper navigation advances stages with explicit stage/range/boss labels",
+    "Modifiers opens My modifiers, including after leaving Catalogue",
+    "Fresh Phoenix purchase at level1 spends300 testgold, keepsXP/silver, displays175HP/18damage/6 bossgatedpartsteps",
+    "Gold module descriptions have no penalties and identify their aircraft",
+    "Skills has its own menu tab and shows global ownership",
+    "Premium copy states30days with no automaticrenewal",
+    "First campaign training runs4keyboardsteps",
+    "New boss controls run4safe duelsteps while realboss remains paused at650HP",
+    "Tutorial card moves around aircraft and active touchfocus at844x390 and390x250",
+    "Joystick up/down, fire and boost advance all4touchsteps",
+    "Replay training returns to help without starting matchmaking",
+    "Debug nextlevel advances2..10 and opensbossintro",
+    "Instantbot button hides when botsdisabled",
+    "Instantbot button startsserverbattle within292ms in localtest",
+    "CompactHUD has iconmeters, no accumulatedcurrency, faded6secondtitle and persistentscore/time/botlabel"
+  ],
+  "limitations": [
+    "Physical mobile devices and real Yandex payment catalogue were not tested locally",
+    "46.21-52.71 hour human duration is a scenario estimate, not a participant measurement"
+  ]
+}

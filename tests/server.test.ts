@@ -6,8 +6,8 @@ import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { WebSocket } from 'ws';
 import { randomUUID, createHmac } from 'node:crypto';
-import { createBattle, makePlane, beginBoss } from '../shared/simulation';
-import { MAX_UPGRADE_LEVEL, PLANES, bossBalance, freshProfile, resetTasks, planeStats, researchXp, upgradeSilver } from '../shared/data';
+import { createBattle, makePlane, beginBoss, FLIGHT_LEFT } from '../shared/simulation';
+import { MAX_UPGRADE_LEVEL, PLANES, bossBalance, freshProfile, resetTasks, planeStats, researchXp, upgradeSilver, equippedModule } from '../shared/data';
 class Peer {
   ws: WebSocket; messages: any[] = []; waiters: { predicate: (m: any) => boolean; resolve: (m: any) => void }[] = [];
   constructor() {
@@ -70,7 +70,7 @@ test('Сервер: онлайн 1×1, кошелёк, сохранение, о�
     const forward = shop.wait(m => m.type === 'state' && m.battle.planes[0].x > 240);
     shop.send({type: 'input', turn: 0, horizontal: 1, fire: false, boost: false});
     const advanced = (await forward).battle.planes[0]; assert.equal(advanced.angle, 0);
-    const backward = shop.wait(m => m.type === 'state' && m.battle.planes[0].x === 220);
+    const backward = shop.wait(m => m.type === 'state' && m.battle.planes[0].x === FLIGHT_LEFT);
     shop.send({type: 'input', turn: 0, horizontal: -1, fire: false, boost: false}); await backward;
     shop.send({type: 'input', turn: 0, horizontal: 'invalid', fire: false, boost: false});
     const shopMenu = shop.wait(m => m.type === 'profile'); shop.send({ type: 'leave' }); assert.equal((await shopMenu).profile.silver, silverAfterClaim);
@@ -101,9 +101,9 @@ test('Сервер: онлайн 1×1, кошелёк, сохранение, о�
     const exchangeProfile = shop.wait(m => m.type === 'profile'); shop.send({ type: 'exchange', nonce: exchangeNonce, amount: 50, currency: 'silver' }); assert.equal((await exchangeProfile).profile.gold, 250);
     const duplicateExchange = shop.wait(m => m.type === 'profile'); shop.send({ type: 'exchange', nonce: exchangeNonce, amount: 50, currency: 'silver' }); assert.equal((await duplicateExchange).profile.gold, 250);
     const mod = shop.wait(m => m.type === 'profile'); shop.send({ type: 'module-buy', id: 'carburetor' }); const modProfile = (await mod).profile;
-    assert.equal(modProfile.gold, 130); assert.equal(modProfile.module, 'carburetor');
+    assert.equal(modProfile.gold, 130); assert.equal(equippedModule(modProfile), 'carburetor');
     const moduleRun = shop.wait(m => m.type === 'start'); shop.send({ type: 'pve', resume: false }); const equipped = (await moduleRun).battle;
-    assert.equal(equipped.planes[0].boostDuration, 3); assert.equal(equipped.planes[0].boostRecharge, 7.5);
+    assert.equal(equipped.planes[0].boostDuration, 3); assert.equal(equipped.planes[0].boostRecharge, 6);
     const modMenu = shop.wait(m => m.type === 'profile'); shop.send({ type: 'leave' }); await modMenu;
     // Inject a disk failure inside the freshly created test directory.
     const storeFile = join(dir, 'profiles.json'); assert.ok(resolve(storeFile).startsWith(resolve(dir)));

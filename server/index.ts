@@ -4,13 +4,13 @@ import { mkdir, readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { Profile, freshProfile, resetTasks, claimTask, planeStats, bossBalance, GOLD_PACKS, pilotRank, addExperience, ZONE } from '../shared/data';
 import { Battle, Controls, IDLE, Reward, createBattle, makePlane, stepBattle, forfeitDuel, approachBoss, startBossFight, finishBossReward, finishSortie, restoreOperationProgress, normalizeCampaignPlane, refreshPlaneStats } from '../shared/simulation';
-import { buyPlane, buyModule, equipModule, exchange, researchUpgrade, buyUpgrade } from './economy';
+import { buyPlane, buyModule, equipModule, exchange, researchUpgrade, buyUpgrade, buyPhoenixPart } from './economy';
 import { duelBotStats } from './duel-bot';
 import { pvoModelsForLevel } from '../shared/terrain';
 import { migrateCareer, prepareBossAttempt, finishCareer, ensureModifierOffer, chooseModifier, awardBossModifier, type CareerAccount } from './career';
 import { AtomicStore } from './storage';
 import { PaymentAccount, verifyPurchases, redeemPurchases } from './payments';
-import { hasPremium, PREMIUM_PRODUCT_ID } from '../shared/premium';
+import { hasPremium, normalizePremium, PREMIUM_EARNINGS_MULTIPLIER, PREMIUM_PRODUCT_ID } from '../shared/premium';
 import { buySkill } from './skills';
 const port = Number(process.env.PORT ?? 5187), host = process.env.HOST ?? '127.0.0.1';
 const debugEnabled = process.env.BIPLANES_DEBUG === '1' && process.env.NODE_ENV !== 'production' && ['127.0.0.1', 'localhost', '::1'].includes(host);
@@ -19,7 +19,7 @@ await mkdir(storePath.replace(/[/\\][^/\\]+$/, ''), { recursive: true });
 type Account = PaymentAccount & CareerAccount & { token: string; checkpoint?: Battle; restartLevel?: number; restartBoss?: boolean; operations?: Record<string, string> };
 let accounts: Account[];
 try { accounts = JSON.parse(await readFile(storePath, 'utf8')); } catch (e) { if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e; accounts = []; }
-for (const a of accounts) { a.profile.modules ??= []; a.profile.module ??= ''; migrateCareer(a); }
+for (const a of accounts) { a.profile.modules ??= []; a.profile.module ??= ''; migrateCareer(a); normalizePremium(a.profile); }
 const paymentSecret = process.env.YANDEX_PAYMENT_SECRET ?? '';
 const disk = new AtomicStore(storePath, () => accounts);
 let dirty = false, writing = false, financialBusy = false, financialTail: Promise<unknown> = Promise.resolve();
@@ -69,7 +69,7 @@ async function financial<T>(c: Client, work: () => T, diskError = 'Не удал
 }
 async function spend(c: Client, m: any, work: () => void) {
   if (typeof m.nonce !== 'string' || !/^[a-f0-9-]{36}$/i.test(m.nonce)) throw new Error('Повторите покупку в магазине');
-  const fingerprint = JSON.stringify({ type: m.type, id: m.id, amount: m.amount, currency: m.currency, branch: m.branch, level: m.level });
+  const fingerprint = JSON.stringify({ type: m.type, id: m.id, model: m.model, amount: m.amount, currency: m.currency, branch: m.branch, level: m.level });
   await financial(c, () => {
     const ops = c.account!.operations ??= {};
     if (ops[m.nonce]) { if (ops[m.nonce] !== fingerprint) throw new Error('Некорректный повтор операции'); return; }
@@ -92,6 +92,12 @@ function applyRewards(rewards: Reward[], participants: Client[]) {
   }
 }
 function assign(c: Client, battle: Battle) { c.battle = battle; c.queued = 0; c.input = { ...IDLE }; send(c, { type: 'start', battle, you: c.account!.profile.id }); }
+function syncPremiumRewards(battle: Battle, participants: Client[], now = Date.now()) {
+  for (const c of participants) {
+    const pilot = battle.planes.find(p => p.id === c.account!.profile.id);
+    if (pilot) pilot.rewardMultiplier = hasPremium(c.account!.profile, now) ? PREMIUM_EARNINGS_MULTIPLIER : 1;
+  }
+}
 function launchDuel(a: Client, b?: Client) {
   const ap = a.account!.profile, bp = b?.account!.profile;
   const enemy = bp ? makePlane(bp.id, planeStats(bp), false, 1) : makePlane('bot', duelBotStats(ap), true, 1);
@@ -133,7 +139,7 @@ function leave(c: Client, disconnected = false) {
   if (battle.mode === 'pve') { if (battle.phase !== 'ended') { battle.paused = true; c.account!.checkpoint = structuredClone(battle); } battles.delete(battle); }
   else {
     const other = [...clients].find(x => x !== c && x.battle === battle);
-    if (other && battle.phase !== 'ended') { applyRewards(forfeitDuel(battle, c.account!.profile.id), participants); battle.result = disconnected ? 'Противник отключился' : 'Противник покинул бой'; send(other, { type: 'state', battle }); }
+    if (other && battle.phase !== 'ended') { syncPremiumRewards(battle, participants); applyRewards(forfeitDuel(battle, c.account!.profile.id), participants); battle.result = disconnected ? 'Противник отключился' : 'Противник покинул бой'; send(other, { type: 'state', battle }); }
     battles.delete(battle);
   }
   dirty = true;
@@ -196,7 +202,7 @@ wss.on('connection', ws => {
             if (current.phase === 'flight') approachBoss(current);
             if (current.phase === 'boss-intro') startBossFight(current);
             current.paused = false; c.input = {...IDLE}; current.planes[1].health = 0;
-            applyRewards(stepBattle(current, {}, 0), [c]);
+            syncPremiumRewards(current, [c]); applyRewards(stepBattle(current, {}, 0), [c]);
             a.restartLevel = current.level; a.restartBoss = false; a.checkpoint = structuredClone(current); dirty = true;
             send(c, {type:'state', battle:current});
           } else throw new Error('Неизвестное debug-действие');
@@ -237,6 +243,13 @@ wss.on('connection', ws => {
         c.battle.paused = ['boss-intro', 'reward', 'sortie-reward'].includes(c.battle.phase) || m.paused === true; c.input = { ...IDLE }; dirty = true; return;
       }
       if (m.type === 'bots') { c.allowBots = p.allowBots = m.allowed === true; dirty = true; return; }
+      if (m.type === 'queue-bot') {
+        if (!c.queued || c.battle) throw new Error('Сначала встаньте в очередь 1×1');
+        if (!c.allowBots || !p.allowBots) throw new Error('Сначала разрешите ботов в настройках');
+        launchDuel(c);
+        if (m.requestId) send(c, {type:'reply', requestId:m.requestId, ok:true, result:{started:true}});
+        return;
+      }
       if (m.type === 'refresh') { dirty = true; profile(c); return; }
       if (c.battle || c.queued) {
         if (m.type === 'cancel' && c.queued) { c.queued = 0; send(c, { type: 'cancelled' }); }
@@ -251,13 +264,13 @@ wss.on('connection', ws => {
       if (m.type === 'buy') {
         await spend(c, m, () => buyPlane(c.account!.profile, m.id)); return;
       }
-      if (m.type === 'module-buy') { await spend(c, m, () => buyModule(c.account!.profile, m.id)); return; }
+      if (m.type === 'module-buy') { await spend(c, m, () => buyModule(c.account!.profile, m.id, m.model)); return; }
+      if (m.type === 'phoenix-part') { await spend(c, m, () => buyPhoenixPart(c.account!.profile, m.branch, m.level)); return; }
       if (m.type === 'skill-buy') { await spend(c, m, () => buySkill(c.account!.profile, m.id)); return; }
-      if (m.type === 'module-equip') { equipModule(p, m.id); changed(c); return; }
+      if (m.type === 'module-equip') { equipModule(p, m.id, m.model); changed(c); return; }
       if (m.type === 'exchange') { await spend(c, m, () => exchange(c.account!.profile, m.amount, m.currency)); return; }
       if (m.type === 'payment-order') {
         if (!paymentSecret || !(GOLD_PACKS.some(x => x.id === m.sku) || m.sku === PREMIUM_PRODUCT_ID)) throw new Error('Покупки ещё не подключены');
-        if (m.sku === PREMIUM_PRODUCT_ID && hasPremium(p)) throw new Error('Премиум-доступ уже активен');
         const order = await financial(c, () => { const id = randomUUID(); (a.orders ??= {})[id] = { sku: m.sku, createdAt: Date.now() }; return { id }; });
         send(c, { type: 'reply', requestId: m.requestId, ok: true, result: order }); return;
       }
@@ -303,6 +316,7 @@ setInterval(() => {
   for (const battle of battles) {
     const participants = [...clients].filter(c => c.battle === battle);
     const inputs = Object.fromEntries(participants.map(c => [c.account!.profile.id, c.input]));
+    syncPremiumRewards(battle, participants);
     const rewards = stepBattle(battle, inputs, 1 / 30);
     applyRewards(rewards, participants);
     if (battle.mode === 'pve' && participants[0]) {

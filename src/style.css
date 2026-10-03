@@ -104,6 +104,7 @@ p { line-height: 1.5; } small { display: block; }
 .task-reward .button { min-width: 0; width: 100%; padding: 10px 6px; } .task-reward .button:disabled { opacity: 1; color: #aabdc9; background: #233345; border-color: #42566b; } .task-status { color: #a8efcf; font-size: 16px; }
 .help-heading { display: flex; align-items: center; gap: 18px; position: sticky; top: -23px; margin: -23px -24px 18px; padding: 16px 24px; z-index: 1; background: #131e2df5; border-bottom: 1px solid #364c61; }
 .settings-panel { padding: 24px; background: #1b2b3e; border: 1px solid #46627a; border-radius: 13px; } .settings-panel h2 { font-size: 22px; margin-bottom: 18px; }
+.settings-panel > h2:not(:first-child) { margin-top: 24px; }
 .audio-settings { display: grid; gap: 14px; } .audio-setting { display: flex; align-items: center; gap: 16px; padding: 20px; text-align: left; background: #253e50; border: 1px solid #5b9b8e; border-radius: 12px; }
 .setting-symbol { display: flex; color: #9fe5cd; } .setting-symbol .icon { width: 29px; height: 29px; } .setting-copy { flex: 1; min-width: 0; } .setting-copy b { font-size: 19px; } .setting-copy>span { display: block; color: #b2c7d6; font-size: 16px; margin-top: 6px; line-height: 1.4; }
 .audio-state { display: flex; flex-direction: column; align-items: flex-end; gap: 9px; color: #a8eed6; font-size: 16px; } .toggle-track { width: 48px; height: 28px; border-radius: 20px; background: #75d4b9; padding: 4px; } .toggle-track::after { content: ''; display: block; width: 20px; height: 20px; border-radius: 50%; background: #143b37; margin-left: 20px; transition: margin .15s; }
@@ -277,8 +278,6 @@ kbd { display: inline-flex; align-items: center; vertical-align: middle; font-fa
   #debug-controls { max-height: calc(100dvh - 185px); }
 }
 
-.career-route { overflow-x: auto; justify-content: flex-start; padding: 4px 2px 9px; scrollbar-width: thin; scrollbar-color: #446f75 transparent; }
-.career-stage { flex: 1 0 86px; }
 .premium-offer { display: grid; grid-template-columns: 66px minmax(0,1fr); gap: 17px; padding: 23px; border: 1px solid #9f8547; border-radius: 16px; margin-bottom: 23px; background: radial-gradient(ellipse at 100% 0, #b28d332b, transparent 65%), #233344; }
 .premium-offer h2 { font-size: 25px; color: #ffe1a0; margin: 7px 0 12px; }
 .premium-emblem { display: grid; place-items: center; width: 66px; height: 75px; border: 1px solid #957d48; border-radius: 14px; color: #ffd58a; background: #715a352b; }
@@ -296,3 +295,113 @@ kbd { display: inline-flex; align-items: center; vertical-align: middle; font-fa
 
 body:not(.in-flight) #debug-panel { bottom: 72px; }
 @media (max-width: 500px) and (min-height: 501px) { body:not(.in-flight) #debug-panel { bottom: 112px; } body.in-flight #debug-panel { bottom: 12px; } }
+
+/* Readable progression and compact flight instruments. */
+.resource-icon { width: 23px; height: 23px; filter: drop-shadow(0 1px 2px #0005); }
+.wallet .resource-icon { width: 22px; height: 22px; }
+.xp { display: inline-flex; align-items: center; gap: 5px; }
+.menu-nav { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; padding: 7px 8px; }
+.nav-item { flex-direction: column; font-size: 12px; gap: 5px; padding: 6px 2px; min-height: 55px; }
+.career-route { display: block; margin: 15px 0 0; padding: 0; min-width: 0; }
+.career-route-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.career-route-heading h2 { font-size: 16px; }
+.career-route-heading small { color: #9bb3c5; font-size: 12px; margin-top: 4px; }
+.career-navigation { display: flex; gap: 6px; }
+.career-navigation button { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9px; border: 1px solid #436078; background: #203448; color: #c8e3e9; }
+.career-navigation button:disabled { opacity: 1; color: #647b8d; background: #172637; border-color: #304559; }
+.career-swiper { width: 100%; min-width: 0; border-radius: 10px; }
+.career-route .career-stage { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; width: 180px; height: auto; flex: 0 0 180px; padding: 12px 14px; border: 1px solid #354f66; border-radius: 10px; background: #182a3c; color: #b6c9d7; }
+.career-route .career-stage b { font-size: 15px; color: #d5e3ee; }
+.career-route .career-stage>span { display: block; font-size: 14px; }
+.career-route .career-stage small { display: flex; align-items: center; gap: 4px; font-size: 11px; color: #98afc1; }
+.career-route .career-stage small .icon { width: 13px; height: 13px; }
+.career-route .career-stage.current { border-color: #7ecab2; background: #21483f; }
+.career-route .career-stage.current b, .career-route .career-stage.current small { color: #bcf3df; }
+.career-route .career-stage.complete { border-color: #477c6c; }
+.improvement .button:disabled, .detail-action:disabled, .equipment-card .button:disabled, .skill-card .button:disabled { opacity: 1; color: #c5d2df; background: #293d50; border-color: #526b82; border-bottom-color: #354d64; }
+.upgrade-status { grid-column: 2 / -1; font-size: 13px; line-height: 1.5; color: #e4c594; padding: 7px 10px; border-left: 2px solid #be9865; background: #b98c3310; border-radius: 0 5px 5px 0; }
+.upgrade-status.ready { color: #a9e9cd; border-color: #73b999; background: #67b7930d; }
+.equipment-card .upgrade-status { width: 100%; }
+.skills-intro { color: #b1c7d7; line-height: 1.6; }
+.screen-skills .skill-card { margin-top: 18px; }
+.collection-filter { font-size: 14px; font-weight: 700; }
+.modifier-card-foot { font-weight: 700; }
+.queue-panel [data-action="queue-bot"] { width: 100%; margin-top: 18px; }
+.queue-panel [data-action="queue-bot"][hidden] { display: none; }
+.battle-top { display: flex; top: 10px; left: 10px; right: 10px; gap: 8px; }
+.hud-plane { min-width: 0; width: 102px; padding: 6px 8px; background: #10243570; border-color: #b3d9e426; backdrop-filter: none; }
+.hud-plane b { font-size: 12px; margin-bottom: 5px; white-space: nowrap; }
+.hud-plane .icon { width: 14px; height: 14px; }
+.battle-title { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: min(210px, 43%); padding: 6px 8px; background: #10243570; border-color: #b3d9e426; transition: opacity .35s; }
+.battle-title b { font-size: 12px; }
+.battle-title small { font-size: 10px; margin-top: 3px; }
+.battle-title.intro-hidden { opacity: 0; visibility: hidden; }
+.hud-actions { align-items: center; gap: 6px; }
+.hud-button { width: 34px; height: 34px; background: #10243570; border-color: #b3d9e43d; }
+.hud-button .icon { width: 16px; height: 16px; }
+.duel-score { padding: 6px 8px; border-radius: 7px; font-size: 13px; font-weight: 800; background: #10243570; }
+.duel-score[hidden] { display: none; }
+.duel-score b, .duel-score small { display: block; text-align: center; }
+.duel-score small { font-size: 9px; font-weight: normal; color: #bed4df; margin-top: 2px; }
+.phoenix-part .upgrade-price { display: inline-flex; justify-content: flex-start; }
+.battle-bottom { left: 10px; right: auto; bottom: 10px; padding: 6px 8px; gap: 12px; flex-wrap: nowrap; background: #10243570; border-color: #b3d9e426; backdrop-filter: none; }
+.instrument { display: grid; grid-template-columns: 16px 52px; align-items: center; gap: 6px; width: auto; }
+.instrument>.icon { width: 16px; height: 16px; color: #c4e0eb; }
+.instrument.overheated>.icon { color: #ffb366; }
+.instrument .meter { width: 52px; }
+.mission-status { position: absolute; right: 10px; bottom: 10px; max-width: 46%; padding: 5px 7px; border-radius: 6px; background: #10243560; font-size: 11px; color: #e1f3fa; text-align: right; }
+.mission-status[hidden] { display: none; }
+#boss-hud { top: 60px; width: min(175px, 35%); }
+#boss-hud span { font-size: 11px; }
+.boss-meter { height: 5px; background: #263a4e70; }
+.touch-controls { bottom: 44px; }
+.touch-controls button { background: #17334480; backdrop-filter: none; box-shadow: none; }
+.touch-controls .flight-stick { background: #17334465; }
+.touch-controls .fire-control { background: #6c573b90; }
+.touch-controls .skill-control { background: #47365d90; }
+.tutorial-card, .touch-flight .tutorial-card { right: auto; bottom: auto; top: 10px; width: min(300px, 43%); padding: 12px 15px; border-radius: 12px; background: #182e42eb; }
+.tutorial-card .eyebrow { font-size: 11px; }
+.tutorial-card h2, .touch-flight .tutorial-card h2 { font-size: 20px; margin: 6px 0; }
+.tutorial-card p, .touch-flight .tutorial-card p { font-size: 14px; margin: 6px 0 10px; line-height: 1.4; }
+.tutorial-card small { display: block; font-size: 11px; margin-top: 7px; }
+.tutorial-card .lesson-key { font-size: 16px; padding: 5px 10px; }
+.tutorial-spotlight { box-shadow: 0 0 0 200vmax #07101c65; }
+.tutorial-hand { font-size: 28px; }
+body.lesson-rail { --frame-width: min(800px, calc(100vw - 32px), calc((100dvh - var(--lesson-rail-height) - 32px) * 16 / 9)); }
+.lesson-rail #game, .lesson-rail .battle-hud { top: calc((100dvh - var(--lesson-rail-height)) / 2); }
+.lesson-rail #game canvas { width: 100% !important; height: 100% !important; margin: 0 !important; }
+.lesson-rail .battle-hud, .lesson-rail .tutorial-layer { overflow: visible; }
+.lesson-rail .tutorial-spotlight { box-shadow: none; }
+.lesson-rail .tutorial-card { padding: 10px 14px; }
+.lesson-rail .tutorial-card h2 { display: inline-block; margin: 0 0 4px 8px; font-size: 17px; }
+.lesson-rail .tutorial-card .eyebrow { display: inline-block; }
+.lesson-rail .tutorial-card p { display: inline; margin-right: 10px; }
+.lesson-rail .tutorial-card .lesson-key { margin-top: 4px; }
+@container (max-width: 620px) {
+  .upgrade-status { grid-column: 1 / -1; }
+  .improvement .button { grid-row: auto; }
+  .tutorial-card, .touch-flight .tutorial-card { padding: 9px 11px; }
+  .tutorial-card h2, .touch-flight .tutorial-card h2 { font-size: 16px; }
+  .tutorial-card p, .touch-flight .tutorial-card p { font-size: 12px; }
+  .tutorial-card .lesson-key { font-size: 13px; padding: 4px 8px; }
+}
+@container (max-width: 480px) {
+  .menu-nav { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .nav-item, .nav-item:nth-child(n+4) { grid-column: span 3; flex-direction: column; gap: 4px; min-height: 48px; font-size: 12px; }
+  .nav-item:nth-child(n+5) { grid-column: span 4; }
+  .nav-item .icon { width: 19px; height: 19px; }
+  .career-route .career-stage { width: 155px; flex-basis: 155px; padding: 10px 12px; }
+  .career-route-heading small { font-size: 11px; }
+  .battle-title { width: 42%; padding: 5px; }
+  .battle-title b { font-size: 10px; }
+  .battle-title small { font-size: 9px; }
+  .hud-plane { width: 82px; padding: 5px 6px; }
+  .hud-plane b { font-size: 10px; gap: 3px; }
+  .hud-plane .icon { width: 12px; height: 12px; }
+  .hud-button { width: 30px; height: 30px; }
+  .instrument { grid-template-columns: 14px 40px; gap: 4px; }
+  .instrument .meter { width: 40px; }
+  .battle-bottom { padding: 5px 7px; gap: 9px; }
+  .mission-status { font-size: 9px; }
+}
+@media (max-height: 500px) { .career-route-heading { margin-bottom: 6px; }.career-route .career-stage { padding: 8px 12px; }.settings-panel > h2:not(:first-child) { display: block; margin-top: 20px; }.settings-panel>h2 { font-size: 18px; }.screen-settings .audio-settings { grid-template-columns: 1fr 1fr; } }

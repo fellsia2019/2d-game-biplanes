@@ -2,7 +2,7 @@ import test from 'node:test';
 import { readyLastSortie } from './fixtures';
 import assert from 'node:assert/strict';
 import { RenderBuffer } from '../src/render-state';
-import { createBattle, makePlane, stepBattle, IDLE } from '../shared/simulation';
+import { createBattle, makePlane, stepBattle, IDLE, type Controls } from '../shared/simulation';
 import { freshProfile, planeStats, ZONE } from '../shared/data';
 
 function snapshot(time: number) {
@@ -12,6 +12,54 @@ function snapshot(time: number) {
   s.bullets = [{ id: 2, owner: 'pilot', x: 120 + time * 400, y: 330, vx: 400, vy: 0, life: 2, damage: 10 }];
   return s;
 }
+
+function flightTrace(input: Controls, ending: 'stop' | 'reverse' | 'hold') {
+  const state=createBattle('packet-gap-'+ending,'pve',[makePlane('pilot',planeStats(freshProfile('pilot')))]);
+  state.planes[0].x=600;state.planes[0].y=330;
+  const packets=[{state:structuredClone(state),arrival:0}];
+  for(let tick=1;tick<=40;tick++) {
+    const moving=state.time<.35-1e-9||ending==='hold';
+    stepBattle(state,{pilot:moving?input:ending==='stop'?IDLE:{...input,turn:-input.turn,horizontal:-(input.horizontal??0)}},1/30);
+    if(tick%2===0) {
+      const delay=state.time>=.39999&&state.time<=.60001?170:(tick%3)*8;
+      packets.push({state:structuredClone(state),arrival:Math.max(state.time*1000+delay,packets.at(-1)!.arrival+5)});
+    }
+  }
+  const before=structuredClone(packets),buffer=new RenderBuffer(),samples:{time:number;x:number;y:number}[]=[];
+  let next=0;
+  for(let frame=0;frame<80;frame++) {
+    const now=frame*1000/60;
+    while(next<packets.length&&packets[next].arrival<=now) {buffer.push(packets[next].state,packets[next].arrival);next++;}
+    const sample=buffer.sample(now);if(sample)samples.push({time:sample.time,x:sample.planes[0].x,y:sample.planes[0].y});
+  }
+  assert.deepEqual(packets,before,'отрисовка не меняет серверные снимки');
+  return {samples,speed:state.planes[0].speed,endpoint:state.planes[0]};
+}
+const directions=[{turn:-1,fire:false,boost:false},{turn:1,fire:false,boost:false},{turn:0,horizontal:-1,fire:false,boost:false},{turn:0,horizontal:1,fire:false,boost:false}];
+
+test('Отпускание каждой из 4 клавиш при задержанных снимках не возвращает самолёт назад',()=>{
+  for(const input of directions) {
+    const {samples,endpoint}=flightTrace(input,'stop'),axis=input.turn?'y':'x',sign=input.turn||input.horizontal!;
+    for(let i=1;i<samples.length;i++) {
+      assert.ok(sign*(samples[i][axis]-samples[i-1][axis])>=-1e-7,'отпускание '+JSON.stringify(input)+' отбрасывает отрисованную позицию');
+      assert.ok(sign*(samples[i][axis]-endpoint[axis])<=1e-7,'отрисовка выходит за реально достигнутую точку остановки');
+      assert.ok(samples[i].time>=samples[i-1].time);
+    }
+    assert.ok(Math.abs(samples.at(-1)![axis]-endpoint[axis])<1e-7);
+  }
+});
+test('Реверс всех 4 направлений после задержки пакетов ограничен реальной скоростью, без скачка',()=>{
+  for(const input of directions) {
+    const {samples,speed}=flightTrace(input,'reverse'),axis=input.turn?'y':'x';
+    for(let i=1;i<samples.length;i++)assert.ok(Math.abs(samples[i][axis]-samples[i-1][axis])<=speed/60*1.11+1e-7,'скачок при реверсе '+JSON.stringify(input));
+  }
+});
+test('Удержание каждой из 4 клавиш при джиттере не меняет направление отрисовки',()=>{
+  for(const input of directions) {
+    const {samples}=flightTrace(input,'hold'),axis=input.turn?'y':'x',sign=input.turn||input.horizontal!;
+    for(let i=1;i<samples.length;i++)assert.ok(sign*(samples[i][axis]-samples[i-1][axis])>=-1e-7);
+  }
+});
 
 test('Снимки 15 Гц с джиттером дают движение всех объектов на каждом кадре 60 Гц', () => {
   const buffer = new RenderBuffer(), samples: ReturnType<RenderBuffer['sample']>[] = [];
@@ -43,11 +91,11 @@ test('Переход через край арены и угол ±π не тян
   assert.ok(Math.abs(s.planes[0].angle) > 3);
 });
 
-test('Пауза и окончание возвращают точное состояние; потеря пакетов ограничивает прогноз', () => {
+test('Пауза и окончание возвращают точное состояние; потеря пакетов удерживает последний подтверждённый кадр', () => {
   const buffer = new RenderBuffer(), a = snapshot(0), b = snapshot(1 / 15);
   buffer.push(a, 0); buffer.sample(0); buffer.push(b, 67);
   for (let now = 67; now <= 3000; now += 17) buffer.sample(now);
-  assert.ok(buffer.sample(3100)!.time <= b.time + .080001);
+  assert.equal(buffer.sample(3100),b);
   const paused = { ...b, paused: true }; buffer.push(paused, 3200);
   assert.equal(buffer.sample(10000), paused);
   const ended = { ...b, phase: 'ended' as const, planes: [{ ...b.planes[0], health: 0 }] }; buffer.push(ended, 11000);
@@ -66,6 +114,6 @@ test('Обычный новый уровень сохраняет высоту �
   const p = s.planes[0]; p.x = 190; p.y = 270; p.angle = .55; p.shield = 0;
   s.distance = ZONE[0].length - .01; readyLastSortie(s);
   stepBattle(s, { pilot: IDLE }, 1 / 30);
-  assert.equal(s.level, 2); assert.equal(p.x, 220); assert.equal(p.y, 270);
+  assert.equal(s.level, 2); assert.equal(p.x, 190); assert.equal(p.y, 270);
   assert.equal(p.angle, 0); assert.equal(p.shield, 0);
 });

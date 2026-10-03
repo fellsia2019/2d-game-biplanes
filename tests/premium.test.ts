@@ -1,15 +1,17 @@
-import test from 'node:test';
+import test, {before, after, mock} from 'node:test';
 import { readyLastSortie } from './fixtures';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import { freshProfile, campaignReward, planeStats, ZONE, claimTask, resetTasks } from '../shared/data';
-import { combatReward, hasPremium, PREMIUM_PRODUCT_ID, premiumCombatReward } from '../shared/premium';
+import { combatReward, hasPremium, premiumExpiresAt, normalizePremium, PREMIUM_DURATION_MS, PREMIUM_PRODUCT_ID, premiumCombatReward } from '../shared/premium';
 import { type PaymentAccount, redeemPurchases, verifyPurchases } from '../server/payments';
 import { createBattle, makePlane, stepBattle, IDLE, beginBoss, forfeitDuel, finishSortie, refreshPlaneStats, type Battle } from '../shared/simulation';
 import { exchange } from '../server/economy';
 import { operationMission, sortieReward } from '../shared/operations';
 
 const now = 1770000000000, secret = 'premium-unit-tests-only';
+before(() => mock.timers.enable({apis:['Date'],now}));
+after(() => mock.timers.reset());
 const purchase = { productID: PREMIUM_PRODUCT_ID, purchaseToken: 'premium-receipt-1', developerPayload: 'premium-order-1' };
 function account(id = 'a'): PaymentAccount {
   return { profile: freshProfile(id), orders: { [purchase.developerPayload]: { sku: PREMIUM_PRODUCT_ID, createdAt: now - 1000 } } };
@@ -19,11 +21,11 @@ function signed(data: unknown) {
   return createHmac('sha256', secret).update(bytes).digest('base64') + '.' + bytes.toString('base64');
 }
 
-test('Подписанная покупка выдаёт пожизненный премиум без золота и без consumePurchase', () => {
+test('Подписанная покупка выдаёт 30 дней премиума без золота и возвращает токен для consumePurchase', () => {
   const a = account(), before = { gold: a.profile.gold, silver: a.profile.silver, xp: a.profile.xp };
   const result = redeemPurchases(a, [a], verifyPurchases(signed([purchase]), secret, now), now);
-  assert.deepEqual(result, { consume: [], pending: [] });
-  assert.deepEqual(a.profile.premium, { active: true, purchasedAt: now });
+  assert.deepEqual(result, { consume: [purchase.purchaseToken], pending: [] });
+  assert.deepEqual(a.profile.premium, { active: true, purchasedAt: now, expiresAt:now+PREMIUM_DURATION_MS });
   assert.equal(hasPremium(a.profile), true);
   assert.deepEqual({ gold: a.profile.gold, silver: a.profile.silver, xp: a.profile.xp }, before);
   assert.equal(Object.keys(a.receipts!).length, 1);
@@ -33,11 +35,11 @@ test('Повторный чек и его дубликат в списке не 
   const a = account();
   redeemPurchases(a, [a], [purchase, purchase], now);
   const before = JSON.stringify(a);
-  assert.deepEqual(redeemPurchases(a, [a], [purchase], now + 86400000), { consume: [], pending: [] });
+  assert.deepEqual(redeemPurchases(a, [a], [purchase], now + 86400000), { consume: [purchase.purchaseToken], pending: [] });
   assert.equal(JSON.stringify(a), before);
 });
 
-test('Премиум сохраняется после перезапуска и восстанавливается из постоянного чека', () => {
+test('Премиум сохраняется после перезапуска и восстанавливает исходный срок из сохранённого чека', () => {
   const a = account(); redeemPurchases(a, [a], [purchase], now);
   const saved: PaymentAccount = JSON.parse(JSON.stringify(a));
   assert.equal(hasPremium(saved.profile), true);
@@ -45,8 +47,8 @@ test('Премиум сохраняется после перезапуска и
   const nextNow = now + 86400000;
   const bytes = Buffer.from(JSON.stringify({ algorithm: 'HMAC-SHA256', issuedAt: nextNow / 1000, data: [purchase] }));
   const proof = createHmac('sha256', secret).update(bytes).digest('base64') + '.' + bytes.toString('base64');
-  assert.deepEqual(redeemPurchases(saved, [saved], verifyPurchases(proof, secret, nextNow), nextNow), { consume: [], pending: [] });
-  assert.deepEqual(saved.profile.premium, { active: true, purchasedAt: now });
+  assert.deepEqual(redeemPurchases(saved, [saved], verifyPurchases(proof, secret, nextNow), nextNow), { consume: [purchase.purchaseToken], pending: [] });
+  assert.deepEqual(saved.profile.premium, { active: true, purchasedAt: now, expiresAt:now+PREMIUM_DURATION_MS });
   assert.equal(Object.keys(saved.receipts!).length, 1);
 });
 
@@ -77,13 +79,13 @@ test('Подмена премиум-товара, ключа или устаре
   }
 });
 
-test('Постоянный премиум и расходуемое золото в одном списке обрабатываются раздельно', () => {
+test('Премиум и золото в одном списке выдаются один раз и оба чека консумируются', () => {
   const a = account(), gold = { productID: 'gold300', purchaseToken: 'gold-receipt-1', developerPayload: 'gold-order-1' };
   a.orders![gold.developerPayload] = { sku: gold.productID, createdAt: now };
-  assert.deepEqual(redeemPurchases(a, [a], [purchase, gold, purchase, gold], now), { consume: [gold.purchaseToken], pending: [] });
+  assert.deepEqual(redeemPurchases(a, [a], [purchase, gold, purchase, gold], now), { consume: [purchase.purchaseToken,gold.purchaseToken], pending: [] });
   assert.equal(a.profile.gold, 300); assert.equal(hasPremium(a.profile), true);
   const saved: PaymentAccount = JSON.parse(JSON.stringify(a));
-  assert.deepEqual(redeemPurchases(saved, [saved], [purchase, gold], now + 1000), { consume: [gold.purchaseToken], pending: [] });
+  assert.deepEqual(redeemPurchases(saved, [saved], [purchase, gold], now + 1000), { consume: [purchase.purchaseToken,gold.purchaseToken], pending: [] });
   assert.equal(saved.profile.gold, 300);
 });
 
@@ -113,6 +115,46 @@ test('Премиум даёт +50% только через расчёт боев
   assert.equal(a.profile.silver, 200); assert.equal(a.profile.xp, 0);
   assert.equal(hasPremium({ premium: { active: true, purchasedAt: Number.NaN } }), false);
   assert.equal(hasPremium({ premium: { active: true, purchasedAt: 0 } }), false);
+});
+
+test('Ровно на границе 30 дней премиум и бонус прекращаются, legacy срок не зависит от входа', () => {
+  const p=freshProfile('expiry');p.premium={active:true,purchasedAt:now};
+  assert.equal(premiumExpiresAt(p),now+PREMIUM_DURATION_MS);
+  assert.equal(hasPremium(p,now+PREMIUM_DURATION_MS-1),true);
+  assert.equal(premiumCombatReward(45,p,now+PREMIUM_DURATION_MS-1),68);
+  assert.equal(hasPremium(p,now+PREMIUM_DURATION_MS),false);
+  assert.equal(premiumCombatReward(45,p,now+PREMIUM_DURATION_MS),45);
+  normalizePremium(p);assert.equal(p.premium.expiresAt,now+PREMIUM_DURATION_MS);
+  normalizePremium(p);assert.equal(p.premium.expiresAt,now+PREMIUM_DURATION_MS);
+  p.premium.expiresAt=Number.NaN;assert.equal(hasPremium(p,now),false);
+});
+
+test('Новая оплата продлевает активный срок и начинает месяц от оплаты после истечения; повторы не продлевают', () => {
+  const a=account();redeemPurchases(a,[a],[purchase],now);
+  const extension={...purchase,purchaseToken:'extension-1',developerPayload:'extension-order-1'};
+  a.orders![extension.developerPayload]={sku:PREMIUM_PRODUCT_ID,createdAt:now+86400000};
+  redeemPurchases(a,[a],[purchase,extension,extension],now+86400000);
+  assert.equal(a.profile.premium!.expiresAt,now+2*PREMIUM_DURATION_MS);
+  const saved:PaymentAccount=JSON.parse(JSON.stringify(a));delete saved.profile.premium;
+  redeemPurchases(saved,[saved],[purchase],now+3*PREMIUM_DURATION_MS);
+  assert.equal(saved.profile.premium!.expiresAt,now+2*PREMIUM_DURATION_MS);assert.equal(hasPremium(saved.profile,now+3*PREMIUM_DURATION_MS),false);
+  const renewal={...purchase,purchaseToken:'renewal-1',developerPayload:'renewal-order-1'};
+  saved.orders![renewal.developerPayload]={sku:PREMIUM_PRODUCT_ID,createdAt:now+3*PREMIUM_DURATION_MS};
+  redeemPurchases(saved,[saved],[renewal,renewal],now+3*PREMIUM_DURATION_MS);
+  assert.equal(saved.profile.premium!.expiresAt,now+4*PREMIUM_DURATION_MS);
+  const before=JSON.stringify(saved);redeemPurchases(saved,[saved],[purchase,extension,renewal],now+5*PREMIUM_DURATION_MS);assert.equal(JSON.stringify(saved),before);
+});
+
+test('Старый receipt восстанавливает только первоначальные 30 дней и не дарит срок при каждом входе', () => {
+  const a=account();redeemPurchases(a,[a],[purchase],now);
+  const second={...purchase,purchaseToken:'legacy-second-receipt',developerPayload:'legacy-second-order'};
+  a.orders![second.developerPayload]={sku:PREMIUM_PRODUCT_ID,createdAt:now+86400000};redeemPurchases(a,[a],[second],now+86400000);
+  delete a.profile.premium;
+  for(const receipt of Object.values(a.receipts!)){delete receipt.premiumExpiresAt;delete receipt.premiumPurchasedAt;}
+  redeemPurchases(a,[a],[purchase],now+2*PREMIUM_DURATION_MS);
+  assert.deepEqual(a.profile.premium,{active:true,purchasedAt:now,expiresAt:now+PREMIUM_DURATION_MS});
+  assert.equal(hasPremium(a.profile,now+2*PREMIUM_DURATION_MS),false);
+  const before=JSON.stringify(a);redeemPurchases(a,[a],[purchase],now+3*PREMIUM_DURATION_MS);assert.equal(JSON.stringify(a),before);
 });
 
 test('Боевой движок начисляет премиум после уменьшения кампании, включая все гарантии вылетов, босса и HUD', () => {

@@ -22,13 +22,15 @@ function mock(options: { anonymous?: boolean; storageFailure?: boolean } = {}) {
   return { events, cloud };
 }
 test('Клиент консумирует чек только после серверного подтверждения сохранения', async () => {
-  const { events } = mock(), platform = new Platform(); await platform.init(() => {});
-  assert.equal(platform.getToken(), token);
-  await platform.purchase('gold300', async (type, data: any) => {
-    if (type === 'payment-order') { events.push('order-saved'); return { id: 'order-id' }; }
-    assert.equal(data.signature, 'completed-list-response'); events.push('grant-saved'); return { consume: ['receipt'], pending: [] };
-  });
-  assert.deepEqual(events, ['order-saved', 'paid', 'signed-list', 'grant-saved', 'consumed']);
+  for (const sku of ['gold300','premium']) {
+    const { events } = mock(), platform = new Platform(); await platform.init(() => {});
+    assert.equal(platform.getToken(), token);
+    await platform.purchase(sku, async (type, data: any) => {
+      if (type === 'payment-order') { assert.equal(data.sku,sku);events.push('order-saved'); return { id: 'order-id' }; }
+      assert.equal(data.signature, 'completed-list-response'); events.push('grant-saved'); return { consume: ['receipt'], pending: [] };
+    });
+    assert.deepEqual(events, ['order-saved', 'paid', 'signed-list', 'grant-saved', 'consumed']);
+  }
 });
 test('Серверная ошибка после оплаты оставляет чек для восстановления', async () => {
   const { events } = mock(), platform = new Platform(); await platform.init(() => {});

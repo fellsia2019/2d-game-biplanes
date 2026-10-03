@@ -17,6 +17,8 @@ const paths = {
   settings: '<path d="m9.5 3-.6 2.2-1.7 1L5 5.6 2.5 10l1.6 1.6v1.9L2.5 15 5 19.4l2.2-.6 1.7 1 .6 2.2h5l.6-2.2 1.7-1 2.2.6 2.5-4.4-1.6-1.5v-1.9L21.5 10 19 5.6l-2.2.6-1.7-1L14.5 3z"/><circle cx="12" cy="12.5" r="3.5"/>',
   silver: '<path d="m12 3 9 9-9 9-9-9z"/><path d="m12 7 5 5-5 5-5-5z"/>',
   gold: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6.4"/><path d="m12 7 1.4 3 3.3.5-2.4 2.3.6 3.3-2.9-1.6-2.9 1.6.6-3.3-2.4-2.3 3.3-.5z"/>',
+  xp: '<path d="m12 2 9 5v10l-9 5-9-5V7z"/><path d="m12 6 2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/>',
+  lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/>',
   volume: '<path d="M4 9h4l5-4v14l-5-4H4zM16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/>',
   muted: '<path d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6m0-6-5 6"/>',
   music: '<path d="M10 17V5l10-2v12M10 8l10-2"/><ellipse cx="7" cy="18" rx="3" ry="2.5"/><ellipse cx="17" cy="16" rx="3" ry="2.5"/>',
@@ -44,5 +46,11 @@ const paths = {
 } as const;
 export type IconName = keyof typeof paths;
 export function icon(name: IconName, extraClass = '') {
+  const resources = {
+    gold: '<ellipse cx="8" cy="17" rx="6" ry="3" fill="#b77920" stroke="#ffe39a"/><path d="M2 13v4c0 4 12 4 12 0v-4" fill="#dc9a2a" stroke="#ffe39a"/><ellipse cx="8" cy="13" rx="6" ry="3" fill="#ffce61" stroke="#fff0ba"/><circle cx="16" cy="9" r="7" fill="#f9bd43" stroke="#fff0b0"/><circle cx="16" cy="9" r="4.7" stroke="#9f6216"/><path d="m16 5 1.1 2.6 2.9.4-2.2 1.9.6 2.8-2.4-1.5-2.4 1.5.6-2.8-2.2-1.9 2.9-.4z" fill="#fff0ab" stroke="none"/>',
+    silver: '<path d="m5 7 11-3 6 10-4 6-16-3z" fill="#a9c6df" stroke="#eff7ff"/><path d="m5 7 11-3-1 8-13 5z" fill="#e0effb" stroke="#eff7ff"/><path d="m15 12 7 2-4 6-3-8z" fill="#789cb8" stroke="#eff7ff"/><path d="m8 10 5-1" stroke="#819eb5"/><path d="M20 2v4m-2-2h4" stroke="#fff"/>',
+    xp: '<path d="m12 2 9 5v10l-9 5-9-5V7z" fill="#277e73" stroke="#acf5d8"/><path d="m12 5 2.1 4.5L19 12l-4.9 2.5L12 19l-2.1-4.5L5 12l4.9-2.5z" fill="#b2ffcf" stroke="none"/><path d="m12 8 1 3 3 1-3 1-1 3-1-3-3-1 3-1z" fill="#f4ffe8" stroke="none"/>',
+  };
+  if (name in resources) return '<svg class="icon resource-icon icon-' + name + ' ' + extraClass + '" viewBox="0 0 24 24" width="24" height="24" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + resources[name as keyof typeof resources] + '</svg>';
   return '<svg class="icon icon-' + name + ' ' + extraClass + '" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + paths[name] + '</svg>';
 }

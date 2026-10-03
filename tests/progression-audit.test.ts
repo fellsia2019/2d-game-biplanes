@@ -39,7 +39,7 @@ test('Каждый покупаемый самолёт проверяет сво
   }
 });
 
-for (const model of PLANES) test(model.name + ': 15 уровней каждой ветки исследуются и покупаются отдельно без изменения остальных моделей', () => {
+for (const model of PLANES.filter(model => model.currency === 'silver')) test(model.name + ': 15 уровней каждой ветки исследуются и покупаются отдельно без изменения остальных моделей', () => {
   for (const branch of branches) {
     const profile = equipped(model.id), base = planeStats(profile), gold = profile.gold;
     const otherModels = PLANES.filter(other => other.id !== model.id).map(other => planeStats({ ...profile, selected: other.id }));
@@ -77,12 +77,12 @@ for (const model of PLANES) test(model.name + ': 15 уровней каждой 
 
 test('Исследование конкретной модели сохраняется при переключениях и не даёт бесплатное улучшение другой', () => {
   const profile = equipped('universal');
-  for (const model of PLANES) {
+  for (const model of PLANES.filter(model => model.currency === 'silver')) {
     profile.selected = model.id;
     for (const branch of branches) researchUpgrade(profile, branch, 1);
   }
   const xp = profile.xp;
-  for (const model of [...PLANES].reverse()) {
+  for (const model of PLANES.filter(model => model.currency === 'silver').reverse()) {
     profile.selected = model.id;
     for (const branch of branches) { researchUpgrade(profile, branch, 1); buyUpgrade(profile, branch, 1); }
     assert.deepEqual(profile.upgrades[model.id], {hull: 1, engine: 1, gun: 1});
@@ -102,9 +102,9 @@ for (const model of PLANES) test(model.name + ': золотые модули и�
     const owned = snapshot(profile); buyModule(profile, item.id); assert.equal(snapshot(profile), owned);
   }
   equipModule(profile, 'carburetor'); const carb = planeStats(profile);
-  assert.equal(carb.boostDuration, 3); assert.equal(carb.boostRecharge, 7.5); assert.equal(carb.cooling, 1); assert.equal(carb.damage, base.damage);
+  assert.equal(carb.boostDuration, 3); assert.equal(carb.boostRecharge, 6); assert.equal(carb.cooling, 1); assert.equal(carb.damage, base.damage);
   equipModule(profile, 'radiator'); const radiator = planeStats(profile);
-  assert.equal(radiator.boostDuration, 2); assert.equal(radiator.boostRecharge, 6); assert.equal(radiator.cooling, 1.35); close(radiator.damage, base.damage * .9);
+  assert.equal(radiator.boostDuration, 2); assert.equal(radiator.boostRecharge, 6); assert.equal(radiator.cooling, 1.35); close(radiator.damage, base.damage);
   for (const key of ['hp', 'speed', 'turn'] as const) { assert.equal(carb[key], base[key]); assert.equal(radiator[key], base[key]); }
   const before = snapshot(profile); assert.throws(() => equipModule(profile, 'missing')); assert.equal(snapshot(profile), before);
   equipModule(profile, ''); assert.deepEqual(planeStats(profile), base);
@@ -145,7 +145,7 @@ test('Постоянные бонусы переходят между всеми
 
 test('Горизонтальный Феникс охлаждается одинаково вправо и влево; разворот не выдаёт бонус пикирования', () => {
   function firing(angle: number, module: '' | 'radiator') {
-    const profile = equipped('skate'); profile.upgrades.skate = {hull: MAX_UPGRADE_LEVEL, engine: MAX_UPGRADE_LEVEL, gun: MAX_UPGRADE_LEVEL};
+    const profile = equipped('skate'); profile.phoenixParts = {hull: 6, engine: 6, gun: 6};
     if (module) buyModule(profile, module);
     const plane = makePlane(profile.id, planeStats(profile)), battle = createBattle('mirror-heat', 'duel', [plane]);
     plane.y = 100; plane.angle = angle;

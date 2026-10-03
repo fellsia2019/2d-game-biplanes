@@ -31,8 +31,8 @@ test('15 small steps preserve total first-aircraft cost and the old maximum phys
   for (let i = 1; i < MAX_UPGRADE_LEVEL; i++) {
     assert.ok(RESEARCH_XP[i] >= RESEARCH_XP[i - 1]); assert.ok(UPGRADE_SILVER[i] >= UPGRADE_SILVER[i - 1]);
   }
-  assert.deepEqual(MODEL_COST_FACTORS, {universal: 1, swift: 18, yantar: 50, bastion: 38, skate: 38});
-  for (const model of PLANES) {
+  assert.deepEqual(MODEL_COST_FACTORS, {universal: 1, swift: 18, yantar: 50, bastion: 38});
+  for (const model of PLANES.filter(model => model.currency === 'silver')) {
     const p = funded(model.id), initial = planeStats(p); fullyUpgrade(p, model.id); const full = planeStats(p);
     close(full.hp, initial.hp * 1.3); close(full.damage, initial.damage * 1.3);
     close(full.speed, initial.speed * 1.1); close(full.turn, initial.turn * 1.05);
@@ -41,7 +41,7 @@ test('15 small steps preserve total first-aircraft cost and the old maximum phys
   }
 });
 
-for (const model of PLANES) test(model.name + ': each of 45 legal upgrade steps charges its model price and changes only its branch', () => {
+for (const model of PLANES.filter(model => model.currency === 'silver')) test(model.name + ': each of 45 legal upgrade steps charges its model price and changes only its branch', () => {
   for (const branch of branches) {
     const p = funded(model.id), base = planeStats(p);
     for (let level = 1; level <= MAX_UPGRADE_LEVEL; level++) {
@@ -88,22 +88,22 @@ test('Next free aircraft needs its boss and all 45 predecessor upgrades; money a
   }
 });
 
-test('Phoenix requires boss 200 and gold; already purchased aircraft keep access despite the new gates', () => {
+test('Phoenix is available from the start for gold; already purchased aircraft keep access despite the free-plane gates', () => {
   const p = freshProfile('phoenix'); p.gold = 300;
-  assert.throws(() => buyPlane(p, 'skate'), /200/); assert.equal(p.gold, 300);
-  p.defeatedBosses = [200]; buyPlane(p, 'skate'); assert.equal(p.gold, 0); assert.ok(p.owned.includes('skate'));
+  assert.equal(planeUnlocked(p, PLANES[4]), true); buyPlane(p, 'skate'); assert.equal(p.gold, 0); assert.ok(p.owned.includes('skate'));
   p.defeatedBosses = []; p.upgrades = {};
   assert.equal(planeUnlocked(p, PLANES[4]), true); assert.equal(planeLockedReason(p, PLANES[4]), '');
   for (const model of PLANES) { p.owned.push(model.id); assert.equal(planeUnlocked(p, model), true); }
 });
 
-test('Legacy paid levels and research migrate ×3 once while read helpers preserve all five aircraft stats before migration', () => {
+test('Legacy paid levels and research migrate ×3 once while read helpers preserve aircraft stats before migration', () => {
   const p = funded('universal'); delete p.progressionVersion; p.modifiers = [{id: 'reinforced-hull', level: 2}]; p.skills = {phase: true};
   for (const model of PLANES) {
     p.upgrades[model.id] = {hull: 1, engine: 3, gun: 5}; p.research![model.id] = {hull: 2, engine: 4, gun: 5};
   }
   const before = snapshot(p), stats = PLANES.map(model => planeStats({...p, selected: model.id}, true));
   for (const model of PLANES) {
+    if (model.id === 'skate') continue;
     const value = planeStats({...p, selected: model.id}); close(value.hp, model.hp * 1.06); close(value.damage, model.damage * 1.3);
     close(value.speed, model.speed * 1.06); close(value.turn, model.turn * 1.03);
     assert.equal(researchLevel(p, model.id, 'hull'), 6); assert.equal(upgradeLevel(p, model.id, 'engine'), 9);

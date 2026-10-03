@@ -30,7 +30,8 @@ test('Все 15 уровней требуют последовательного
 });
 test('Самолёты открываются боссами, большой запас XP не обходит условие', () => {
   const p = freshProfile('pilot'); p.xp=100000; p.silver=100000; p.gold=1000;
-  for (const plane of PLANES.slice(1)) assert.throws(() => buyPlane(p,plane.id), /босса/);
+  for (const plane of PLANES.filter(plane => plane.currency === 'silver' && plane.unlockBoss)) assert.throws(() => buyPlane(p,plane.id), /босса/);
+  buyPlane(p, 'skate'); assert.equal(p.gold, 700);
   for (const level of [25,100,200]) {
     p.defeatedBosses!.push(level);
     for (const plane of PLANES.filter(m=>m.unlockBoss===level)) {
@@ -70,7 +71,7 @@ test('Награда за победу сообщает точного босс�
 });
 for (const level of [10,25,50]) test('Таран босса '+level+' сразу завершает попытку поражением даже у прокачанного Феникса со щитом', () => {
   const profile=freshProfile('pilot'); profile.selected='skate'; profile.owned.push('skate');
-  profile.upgrades.skate={hull:MAX_UPGRADE_LEVEL,engine:MAX_UPGRADE_LEVEL,gun:MAX_UPGRADE_LEVEL};
+  profile.phoenixParts={hull:6,engine:6,gun:6};
   const account: CareerAccount={profile};
   for(let attempt=1;attempt<=3;attempt++) {
     const battle=createBattle('boss-ram-'+attempt,'pve',[makePlane(profile.id,planeStats(profile))],level);

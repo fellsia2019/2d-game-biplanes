@@ -5,12 +5,14 @@ import { createHmac, randomUUID } from 'node:crypto';
 import { mkdtemp, mkdir, readFile, rename, rm, rmdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { isAbsolute, join, relative, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { WebSocket } from 'ws';
-import { PREMIUM_PRODUCT_ID } from '../shared/premium';
+import { PREMIUM_DURATION_MS, PREMIUM_PRODUCT_ID, hasPremium } from '../shared/premium';
+import { bossBalance, campaignReward, ZONE } from '../shared/data';
 
 const port = 5199, secret = 'premium-websocket-test-only';
-function proof(data: unknown) {
-  const bytes = Buffer.from(JSON.stringify({ algorithm: 'HMAC-SHA256', issuedAt: Math.floor(Date.now() / 1000), data }));
+function proof(data: unknown, now = Date.now()) {
+  const bytes = Buffer.from(JSON.stringify({ algorithm: 'HMAC-SHA256', issuedAt: Math.floor(now / 1000), data }));
   return createHmac('sha256', secret).update(bytes).digest('base64') + '.' + bytes.toString('base64');
 }
 class PremiumPeer {
@@ -47,9 +49,14 @@ class PremiumPeer {
 class PremiumServer {
   proc?: ChildProcess; peers: PremiumPeer[] = [];
   constructor(readonly dir: string, readonly store: string) {}
-  async start(mode = 'production', debug = true) {
-    const proc = this.proc = spawn(process.execPath, ['--import', 'tsx', 'server/index.ts'], {
-      cwd: process.cwd(), env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', NODE_ENV: mode, BIPLANES_DEBUG: debug ? '1' : '0', BIPLANES_DATA: this.store, YANDEX_PAYMENT_SECRET: secret }, stdio: ['ignore', 'pipe', 'pipe'],
+  async start(mode = 'production', debug = true, now?: number) {
+    let entry = 'server/index.ts';
+    if (now !== undefined) {
+      entry = join(this.dir,'clock.mjs');
+      await writeFile(entry, `let clock=${now};Date.now=()=>clock;process.on('message',m=>{if(m.type==='clock'){clock=m.now;process.send({id:m.id});}});await import(${JSON.stringify(pathToFileURL(resolve('server/index.ts')).href)});`);
+    }
+    const proc = this.proc = spawn(process.execPath, ['--import', 'tsx', entry], {
+      cwd: process.cwd(), env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', NODE_ENV: mode, BIPLANES_DEBUG: debug ? '1' : '0', BIPLANES_DATA: this.store, YANDEX_PAYMENT_SECRET: secret }, stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
     });
     let errors = '';
     proc.stderr!.on('data', data => errors += String(data));
@@ -58,6 +65,14 @@ class PremiumServer {
       proc.stdout!.on('data', data => { if (String(data).includes('Сервер Бипланы')) { clearTimeout(timer); resolve(); } });
       proc.once('error', error => { clearTimeout(timer); reject(error); });
       proc.once('exit', code => { clearTimeout(timer); reject(new Error(`Premium server exit ${code}: ${errors}`)); });
+    });
+  }
+  async setClock(now:number) {
+    const id=randomUUID(), proc=this.proc!;
+    await new Promise<void>((resolve,reject)=>{
+      const listener=(m:any)=>{if(m.id===id){clearTimeout(timer);proc.off('message',listener);resolve();}};
+      const timer=setTimeout(()=>{proc.off('message',listener);reject(new Error('Clock ACK timeout'));},5000);
+      proc.on('message',listener);proc.send({type:'clock',now,id});
     });
   }
   async connect() { const peer = new PremiumPeer(); this.peers.push(peer); await peer.open(); return peer; }
@@ -83,15 +98,21 @@ test('Сервер премиума: подписанная покупка, disk
     assert.equal(first.welcome.paymentsEnabled, true); assert.equal(first.welcome.debugEnabled, false);
     const order = await a.call('payment-order', { sku: PREMIUM_PRODUCT_ID });
     const purchase = { productID: PREMIUM_PRODUCT_ID, purchaseToken: 'server-premium-receipt-1', developerPayload: order.id };
-    assert.deepEqual(await a.call('payment-redeem', { signature: proof([purchase]) }), { consume: [], pending: [] });
+    assert.deepEqual(await a.call('payment-redeem', { signature: proof([purchase]) }), { consume: [purchase.purchaseToken], pending: [] });
     const stored = JSON.parse(await readFile(server.store, 'utf8')).find((x: any) => x.token === first.welcome.token);
     assert.equal(stored.profile.premium.active, true); assert.ok(stored.profile.premium.purchasedAt > 0);
     assert.equal(stored.profile.gold, 0); assert.equal(stored.profile.silver, 200); assert.equal(stored.profile.xp, 0);
     assert.equal(Object.keys(stored.receipts).length, 1);
     const purchasedAt = stored.profile.premium.purchasedAt;
-    await assert.rejects(a.call('payment-order', { sku: PREMIUM_PRODUCT_ID }), /уже активен/);
-    assert.deepEqual(await a.call('payment-redeem', { signature: proof([purchase, purchase]) }), { consume: [], pending: [] });
+    assert.equal(stored.profile.premium.expiresAt,purchasedAt+PREMIUM_DURATION_MS);
+    const extensionOrder=await a.call('payment-order', { sku: PREMIUM_PRODUCT_ID });
+    const extension={...purchase,purchaseToken:'server-premium-extension',developerPayload:extensionOrder.id};
+    assert.deepEqual(await a.call('payment-redeem',{signature:proof([extension,extension])}),{consume:[extension.purchaseToken],pending:[]});
+    const expiresAt=purchasedAt+2*PREMIUM_DURATION_MS;
+    assert.equal(a.last('profile').profile.premium.expiresAt,expiresAt);
+    assert.deepEqual(await a.call('payment-redeem', { signature: proof([purchase, purchase]) }), { consume: [purchase.purchaseToken], pending: [] });
     assert.equal(a.last('profile').profile.premium.purchasedAt, purchasedAt);
+    assert.equal(a.last('profile').profile.premium.expiresAt, expiresAt);
     await assert.rejects(b.call('payment-redeem', { signature: proof([purchase]) }), /другому ангару/);
     assert.equal((await b.refresh()).premium, undefined);
     const unknown = { ...purchase, purchaseToken: 'unbound-premium', developerPayload: 'unbound-order' };
@@ -104,16 +125,18 @@ test('Сервер премиума: подписанная покупка, disk
     const run = a.wait(m => m.type === 'start'); a.send({ type: 'pve' });
     assert.equal((await run).battle.planes[0].rewardMultiplier, 1.5);
     const left = a.wait(m => m.type === 'profile'); a.send({ type: 'leave' }); await left;
-    // Real process restart, then a signed permanent purchase restores a missing
-    // profile entitlement from its owned receipt without a second payment.
+    // Consumed purchases disappear from getPurchases(); owned server receipts
+    // still restore the recorded extended term after a real restart.
     await server.stop();
     const accounts = JSON.parse(await readFile(server.store, 'utf8'));
     delete accounts.find((x: any) => x.token === first.welcome.token).profile.premium;
     await writeFile(server.store, JSON.stringify(accounts)); await server.start();
     const restored = await server.connect(), unauthorized = await server.connect();
     assert.equal((await restored.auth(first.welcome.token)).state.profile.premium, undefined);
-    assert.deepEqual(await restored.call('payment-redeem', { signature: proof([purchase]) }), { consume: [], pending: [] });
-    assert.deepEqual(restored.last('profile').profile.premium, { active: true, purchasedAt });
+    assert.deepEqual(await restored.call('payment-redeem', { signature: proof([]) }), { consume: [], pending: [] });
+    assert.deepEqual(restored.last('profile').profile.premium, { active: true, purchasedAt, expiresAt });
+    assert.deepEqual(await restored.call('payment-redeem',{signature:proof([purchase])}),{consume:[purchase.purchaseToken],pending:[]});
+    assert.equal(restored.last('profile').profile.premium.expiresAt,expiresAt);
     const persisted = JSON.parse(await readFile(server.store, 'utf8')).find((x: any) => x.token === first.welcome.token);
     assert.equal(persisted.profile.premium.purchasedAt, purchasedAt); assert.equal(persisted.profile.gold, 0);
     await unauthorized.auth(second.welcome.token); await assert.rejects(unauthorized.call('payment-redeem', { signature: proof([purchase]) }), /другому ангару/);
@@ -133,10 +156,19 @@ test('Сервер не подтверждает премиум при отка�
     await assert.rejects(peer.call('payment-redeem', { signature: proof([purchase]) }), /Не удалось сохранить/);
     assert.equal((await peer.refresh()).premium, undefined);
     await rmdir(server.store); await rename(server.store + '.backup', server.store);
-    assert.deepEqual(await peer.call('payment-redeem', { signature: proof([purchase]) }), { consume: [], pending: [] });
+    assert.deepEqual(await peer.call('payment-redeem', { signature: proof([purchase]) }), { consume: [purchase.purchaseToken], pending: [] });
     const stored = JSON.parse(await readFile(server.store, 'utf8')).find((x: any) => x.token === auth.welcome.token);
     assert.equal(stored.profile.premium.active, true); assert.equal(Object.keys(stored.receipts).length, 1);
     await peer.call('payment-redeem', { signature: proof([purchase]) }); assert.equal(peer.last('profile').profile.gold, 0);
+    const expiry=stored.profile.premium.expiresAt, extensionOrder=await peer.call('payment-order',{sku:PREMIUM_PRODUCT_ID});
+    const extension={...purchase,purchaseToken:'premium-extension-disk-retry',developerPayload:extensionOrder.id};
+    await rename(server.store,server.store+'.backup');await mkdir(server.store);
+    await assert.rejects(peer.call('payment-redeem',{signature:proof([extension])}),/Не удалось сохранить/);
+    assert.equal((await peer.refresh()).premium.expiresAt,expiry);
+    await rmdir(server.store);await rename(server.store+'.backup',server.store);
+    assert.deepEqual(await peer.call('payment-redeem',{signature:proof([extension,extension])}),{consume:[extension.purchaseToken],pending:[]});
+    assert.equal(peer.last('profile').profile.premium.expiresAt,expiry+PREMIUM_DURATION_MS);
+    await peer.call('payment-redeem',{signature:proof([purchase,extension])});assert.equal(peer.last('profile').profile.premium.expiresAt,expiry+PREMIUM_DURATION_MS);
   } finally { await server.cleanup(); }
 });
 
@@ -154,4 +186,40 @@ test('Debug и произвольные клиентские поля не мо�
     const run = peer.wait(m => m.type === 'start'); peer.send({ type: 'pve', ...injected });
     assert.equal((await run).battle.planes[0].rewardMultiplier, 1);
   } finally { await server.cleanup(); }
+});
+
+test('30-дневный срок истекает в активном бою ровно на границе, не восстанавливается при reconnect и продлевается новой оплатой', {timeout:18000}, async()=>{
+  const server=await fixture(), start=1770000000000;
+  try {
+    await server.start('test',true,start);const peer=await server.connect(), auth=await peer.auth();
+    const order=await peer.call('payment-order',{sku:PREMIUM_PRODUCT_ID});
+    const purchase={productID:PREMIUM_PRODUCT_ID,purchaseToken:'expiry-in-flight',developerPayload:order.id};
+    await peer.call('payment-redeem',{signature:proof([purchase],start)});
+    const expiresAt=start+PREMIUM_DURATION_MS;assert.equal(peer.last('profile').profile.premium.expiresAt,expiresAt);
+    const launching=peer.wait(m=>m.type==='start');peer.send({type:'pve'});const first=(await launching).battle;
+    assert.equal(first.planes[0].rewardMultiplier,1.5);
+    const active=peer.wait(m=>m.type==='state'&&m.battle.id===first.id&&m.battle.planes[0].rewardMultiplier===1.5);
+    await server.setClock(expiresAt-1);await active;
+    const expired=peer.wait(m=>m.type==='state'&&m.battle.id===first.id&&m.battle.planes[0].rewardMultiplier===1);
+    await server.setClock(expiresAt);const expiredState=(await expired).battle;
+    assert.deepEqual(expiredState.earned[first.planes[0].id],first.earned[first.planes[0].id]);
+    const leaving=peer.wait(m=>m.type==='profile');peer.send({type:'leave'});await leaving;
+    await server.stop();await server.start('test',true,expiresAt);
+    const restored=await server.connect(), reconnect=await restored.auth(auth.welcome.token);
+    assert.equal(hasPremium(reconnect.state.profile,expiresAt),false);assert.equal(reconnect.state.profile.premium.expiresAt,expiresAt);
+    await restored.call('payment-redeem',{signature:proof([purchase],expiresAt)});
+    assert.equal(restored.last('profile').profile.premium.expiresAt,expiresAt);
+    const resuming=restored.wait(m=>m.type==='start');restored.send({type:'pve',resume:true});
+    assert.equal((await resuming).battle.planes[0].rewardMultiplier,1);
+    for(let n=0;n<9;n++)await restored.call('debug',{action:'next-level',paused:true});
+    const before=await restored.refresh();await restored.call('debug',{action:'win-boss',paused:true});const after=restored.last('profile').profile;
+    assert.equal(after.silver-before.silver,campaignReward(bossBalance(10).silver)+campaignReward(ZONE[9].rewardSilver));
+    assert.equal(after.xp-before.xp,campaignReward(bossBalance(10).xp)+campaignReward(ZONE[9].rewardXp));
+    const left=restored.wait(m=>m.type==='profile');restored.send({type:'leave'});await left;
+    const renewalOrder=await restored.call('payment-order',{sku:PREMIUM_PRODUCT_ID});
+    const renewal={...purchase,purchaseToken:'expiry-renewed',developerPayload:renewalOrder.id};
+    await restored.call('payment-redeem',{signature:proof([renewal],expiresAt)});
+    assert.equal(restored.last('profile').profile.premium.expiresAt,expiresAt+PREMIUM_DURATION_MS);
+    assert.equal(hasPremium(restored.last('profile').profile,expiresAt),true);
+  } finally {await server.cleanup();}
 });

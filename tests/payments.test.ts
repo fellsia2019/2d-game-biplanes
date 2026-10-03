@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
-import { freshProfile, planeStats } from '../shared/data';
+import { freshProfile, planeStats, equippedModule } from '../shared/data';
 import { buyModule, equipModule, exchange, buyPlane } from '../server/economy';
 import { verifyPurchases, redeemPurchases, PaymentAccount } from '../server/payments';
 const secret = 'unit-test-secret-only', now = Date.now();
@@ -37,14 +37,18 @@ test('Неизвестный заказ/товар остаётся необра
   const result = redeemPurchases(a, [a], purchases, now);
   assert.equal(a.profile.gold, 0); assert.deepEqual(result.consume, []); assert.deepEqual(result.pending, ['gold300']);
 });
-test('Платный самолёт и модули покупаются за золото, экипировка имеет один слот', () => {
+test('Платный самолёт и модули покупаются за золото, отдельный слот каждого самолёта не даёт штрафов', () => {
   const p = freshProfile('pilot'); p.gold = 1000; p.defeatedBosses = [200];
   buyPlane(p, 'skate'); assert.equal(p.gold, 700); assert.equal(p.selected, 'skate');
   buyPlane(p, 'skate'); assert.equal(p.gold, 700);
-  buyModule(p, 'carburetor'); assert.equal(p.gold, 580); assert.equal(planeStats(p).boostDuration, 3); assert.equal(planeStats(p).boostRecharge, 7.5);
-  buyModule(p, 'radiator'); assert.equal(p.gold, 460); assert.equal(p.module, 'radiator'); assert.equal(planeStats(p).cooling, 1.35); assert.equal(planeStats(p).damage, 102 * .9);
+  buyModule(p, 'carburetor'); assert.equal(p.gold, 580); assert.equal(planeStats(p).boostDuration, 3); assert.equal(planeStats(p).boostRecharge, 6);
+  const originalDamage = planeStats(p).damage;
+  buyModule(p, 'radiator'); assert.equal(p.gold, 460); assert.equal(equippedModule(p), 'radiator'); assert.equal(planeStats(p).cooling, 1.35); assert.equal(planeStats(p).damage, originalDamage);
   buyModule(p, 'radiator'); assert.equal(p.gold, 460);
   equipModule(p, ''); assert.equal(planeStats(p).cooling, 1); assert.equal(planeStats(p).boostDuration, 2);
+  buyModule(p,'radiator','universal');assert.equal(p.gold,340);assert.equal(equippedModule(p,'universal'),'radiator');assert.equal(equippedModule(p,'skate'),'');assert.equal(planeStats(p).cooling,1);
+  buyModule(p,'radiator','universal');assert.equal(p.gold,340);
+  assert.equal(planeStats({...p,selected:'universal'}).cooling,1.35);
   assert.throws(() => equipModule(p, 'unknown'));
 });
 test('Обмен валидирует пакет и баланс до списания золота', () => {

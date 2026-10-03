@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BOSS_LEVELS, ZONE, freshProfile, planeStats, bossBalance } from '../shared/data';
-import { createBattle, makePlane, stepBattle, beginBoss, IDLE } from '../shared/simulation';
+import { createBattle, makePlane, stepBattle, beginBoss, IDLE, angleDiff } from '../shared/simulation';
 const human = () => makePlane('pilot', planeStats(freshProfile('pilot')));
 const forward = (vx: number, vy: number, angle: number) => {
   assert.ok(Math.abs(vx * Math.sin(angle) - vy * Math.cos(angle)) < 1e-8);
@@ -30,14 +30,30 @@ test('Игрок стреляет только по текущему напра�
   }
 });
 test('Боты дуэли стреляют по носу, а цель позади требует разворота', () => {
-  for (const mode of ['duel'] as const) {
-    const s = createBattle('bot-fire', mode === 'duel' ? 'duel' : 'pve', [human(), makePlane('bot', planeStats(freshProfile('bot')), true, 1)], 10);
-    const [p, bot] = s.planes; p.x = 300; p.y = 330; bot.x = 700; bot.y = 330; bot.angle = Math.PI;
-    stepBattle(s, { pilot: IDLE }, 1 / 30);
-    const b = s.bullets.find(b => b.owner === bot.id)!; assert.ok(b); forward(b.vx, b.vy, bot.angle);
-    s.bullets = []; bot.shot = 0; bot.angle = 0;
-    stepBattle(s, { pilot: IDLE }, 1 / 30); assert.equal(s.bullets.filter(b => b.owner === bot.id).length, 0);
+  const behind = createBattle('bot-behind', 'duel', [human(), makePlane('bot', planeStats(freshProfile('bot')), true, 1)]);
+  behind.planes[0].x = 300; behind.planes[0].y = 330;
+  const turning = behind.planes[1]; turning.x = 700; turning.y = 330; turning.angle = 0;
+  stepBattle(behind, {pilot: IDLE}, 1 / 30);
+  assert.equal(behind.bullets.filter(b => b.owner === turning.id).length, 0, 'Цель изначально за спиной не разрешает огонь');
+  assert.ok(Math.abs(turning.angle) <= turning.turn / 30 + 1e-12, 'Разворот ограничен скоростью самолёта');
+
+  const s = createBattle('bot-fire', 'duel', [human(), makePlane('bot', planeStats(freshProfile('bot')), true, 1)]);
+  const [p, bot] = s.planes; p.x = 300; p.y = 330; p.speed = 0;
+  bot.x = 700; bot.y = 330; bot.angle = Math.PI; bot.speed = 0;
+  let shots = 0, delayedMiss = false;
+  for (let frame = 0; frame < 60; frame++) {
+    // Change the observed target, not the bot's angle, cooldown or decision.
+    if (frame === 1) p.x = 1000;
+    const seq = s.seq, previousAngle = bot.angle;
+    stepBattle(s, {pilot: IDLE}, 1 / 30);
+    assert.ok(Math.abs(angleDiff(bot.angle, previousAngle)) <= bot.turn / 30 + 1e-12);
+    for (const bullet of s.bullets.filter(b => b.owner === bot.id && b.id > seq)) {
+      shots++; forward(bullet.vx, bullet.vy, bot.angle);
+      if (frame > 0 && frame < 8 && bullet.vx < 0) delayedMiss = true;
+    }
   }
+  assert.ok(shots > 0, 'Бот продолжает стрелять после разворота');
+  assert.ok(delayedMiss, 'До следующего решения бот может выстрелить мимо новой цели, строго по своему носу');
 });
 
 test('Боссы целятся в игрока во всех направлениях независимо от носа; выстрел имеет длинный КД', () => {
