@@ -1,0 +1,30 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Biplanes — запись материалов</title></head><body>
+<div id="game"></div><div id="app"></div><div id="toast" role="status"></div><div id="orientation-guard" hidden></div>
+<div id="media-tools" style="position:fixed;z-index:10000;bottom:8px;left:8px"><button id="record">Записать 18 секунд геймплея</button><a id="download" hidden>Скачать видео</a></div>
+<script type="module">
+// Isolated recording of the real simulation and renderer. No server, SDK,
+// purchases, cheats, or writes to the user's career. Not included in release ZIP.
+import {freshProfile,planeStats} from '/shared/data.ts';
+import {createBattle,makePlane,stepBattle} from '/shared/simulation.ts';
+const values=new Map(); Object.defineProperty(window,'localStorage',{value:{getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)}});
+const profile=freshProfile('media-pilot'); let socket, battle, running=false;
+if(new URLSearchParams(location.search).has('still'))document.querySelector('#media-tools').hidden=true;
+class MediaSocket {
+  static OPEN=1;readyState=1;
+  constructor(){socket=this;queueMicrotask(()=>this.onopen?.());}
+  emit(value){this.onmessage?.({data:JSON.stringify(value)});}
+  send(payload){const m=JSON.parse(payload);if(m.type==='auth'){this.emit({type:'profile',profile,operationCompleted:0,restartLevel:1,resume:false});}}
+}
+window.WebSocket=MediaSocket;
+function begin(){battle=createBattle('media-flight','pve',[makePlane(profile.id,planeStats(profile))],7);socket.emit({type:'start',battle,you:profile.id});running=true;}
+setInterval(()=>{if(!running)return;stepBattle(battle,new Map([[profile.id,{turn: Math.sin(battle.time*.8)*.45,horizontal:0,fire:true,boost:false}]]),1/30);socket.emit({type:'state',battle});},1000/30);
+document.querySelector('#record').onclick=()=>{
+  begin();document.body.classList.add('yandex-release');document.querySelector('#media-tools').hidden=true;
+  const stream=document.querySelector('#game canvas').captureStream(30),parts=[];
+  const recorder=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:6000000});
+  recorder.ondataavailable=e=>{if(e.data.size)parts.push(e.data)};
+  recorder.onstop=()=>{running=false;stream.getTracks().forEach(track=>track.stop());const a=document.querySelector('#download');a.href=URL.createObjectURL(new Blob(parts,{type:'video/webm'}));a.download='biplanes-gameplay.webm';a.hidden=false;document.querySelector('#media-tools').hidden=false;};
+  recorder.start();setTimeout(()=>recorder.stop(),18000);
+};
+await import('/src/main.ts');
+</script></body></html>

@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-04",
+  "tests": {
+    "passed": 302,
+    "failed": 0
+  },
+  "build": "TypeScript + Vite release:draft passed",
+  "archive": {
+    "files": 18,
+    "unpackedBytes": 16485851,
+    "crc": "Python zipfile.testzip passed",
+    "requiredArt": "aircraft and all three PVO PNGs included",
+    "secretsAndSourcePrompts": "excluded",
+    "uploadable": false,
+    "reason": "No public WSS server yet"
+  },
+  "deployment": {
+    "composeSyntax": "docker compose config --quiet passed with a dummy domain",
+    "containerBuild": "not run: Docker Engine unavailable",
+    "publicServer": "not created"
+  },
+  "sdkConsoleChecks": "pending: no Yandex game draft yet",
+  "productionDependencies": "npm audit --omit=dev: 0 vulnerabilities",
+  "listing": {
+    "seoCharacters": 141,
+    "shortCharacters": 55,
+    "descriptionCharacters": 459,
+    "howToPlayCharacters": 521
+  },
+  "media": {
+    "icon": "512x512 PNG",
+    "cover": "800x470 PNG",
+    "video": "1280x720 H.264 MP4, 17.944 sec, 727157 bytes; actual simulation + renderer recorded in isolated scene; no HTML HUD in canvas video",
+    "screenshot": "PNG from actual recording + separate screenshot with HUD",
+    "userCareer": "unchanged"
+  }
+}

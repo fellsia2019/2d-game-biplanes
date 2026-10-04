@@ -1,0 +1,5 @@
+{$GAME_DOMAIN} {
+  @game path /socket /
+  reverse_proxy @game game:5187
+  respond "Not found" 404
+}

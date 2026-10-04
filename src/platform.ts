@@ -1,6 +1,6 @@
 import { hasPremium, type PremiumState } from '../shared/premium';
 
-export interface Product { id: string; price: string; priceValue: string; priceCurrencyCode: string }
+export interface Product { id: string; price: string; priceValue: string; priceCurrencyCode: string; getPriceCurrencyImage?(size: 'small'): string }
 interface Player { isAuthorized(): boolean; getData(keys: string[]): Promise<{ biplanesToken?: string }>; setData(data: object, flush: boolean): Promise<void> }
 interface Payments { getCatalog(): Promise<Product[]>; purchase(options: { id: string; developerPayload: string }): Promise<{ signature: string }>; getPurchases(): Promise<{ signature: string }>; consumePurchase(token: string): Promise<void> }
 interface AdCallbacks { onOpen(): void; onClose(wasShown?: boolean): void; onError(error: object): void; onRewarded(): void }
@@ -10,6 +10,7 @@ interface Advertising {
   hideBannerAdv?(): Promise<unknown>;
 }
 interface Sdk {
+  environment?: { i18n?: { lang?: string } };
   features: { LoadingAPI?: { ready(): void }; GameplayAPI?: { start(): void; stop(): void } };
   on(event: 'game_api_pause' | 'game_api_resume', callback: () => void): void;
   getPlayer(): Promise<Player>; getPayments(options: { signed: true }): Promise<Payments>;
@@ -49,6 +50,10 @@ export class Platform {
       }
       if (!window.YaGames) return;
       this.sdk = await deadline(window.YaGames.init());
+      // Russian is the only declared translation. Unsupported portal languages
+      // fall back to it; never advertise English in the console for this build.
+      const language = this.sdk.environment?.i18n?.lang ?? 'ru';
+      if (typeof document !== 'undefined') document.documentElement.lang = ['ru'].includes(language) ? language : 'ru';
       void this.refreshAds();
       this.sdk.on('game_api_pause', () => pause(true)); this.sdk.on('game_api_resume', () => pause(false));
       this.notifyReady();

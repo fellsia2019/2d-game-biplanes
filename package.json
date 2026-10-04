@@ -12,7 +12,9 @@
     "balance": "tsx scripts/balance-report.ts",
     "campaign:playthrough": "tsx scripts/campaign-playthrough.ts",
     "campaign:audit": "tsx scripts/campaign-audit.ts",
-    "preview": "vite preview --host 127.0.0.1 --port 4186 --strictPort"
+    "preview": "vite preview --host 127.0.0.1 --port 4186 --strictPort",
+    "release:draft": "tsx scripts/package-yandex.ts --draft",
+    "release:yandex": "tsx scripts/package-yandex.ts"
   },
   "dependencies": {
     "phaser": "3.90.0",
@@ -22,6 +24,7 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/ws": "^8.18.0",
+    "fflate": "^0.8.3",
     "tsx": "^4.20.0",
     "typescript": "5.9.3",
     "vite": "7.3.6"

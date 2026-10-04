@@ -1,4 +1,7 @@
 import Phaser from 'phaser';
+import { AdSchedule } from './ad-schedule';
+const adSchedule = new AdSchedule();
+let returningHome = false;
 import './style.css';
 import { FlightLesson, tutorialKey, needsBossLesson, lessonInput, createTrainingBattle, stepTrainingBattle, type TutorialMode } from './tutorial';
 import { flightControls, joystickTurn, joystickHorizontal } from './controls';
@@ -22,6 +25,7 @@ import { MissionIntroClock } from '../shared/mission-intro';
 import { saveProjectileContrast } from './preferences';
 import { countTaskRewards, ModifierInbox } from './menu-notifications';
 const app = document.querySelector<HTMLDivElement>('#app')!, toastEl = document.querySelector<HTMLDivElement>('#toast')!;
+if (import.meta.env.VITE_YANDEX_RELEASE === '1') document.body.classList.add('yandex-release');
 const scene = new SkyScene(), platform = new Platform(() => p);
 const modifierInbox = new ModifierInbox();
 const missionIntroClock = new MissionIntroClock();
@@ -305,10 +309,10 @@ function setPause(reason: string, value: boolean) {
   syncAudio();
   clearControls(); if (!lesson) send({ type: 'input', turn: 0, fire: false, boost: false });
   if (!battle || battle.phase === 'ended') return;
+  platform.gameplay(pauseReasons.size === 0 && !document.hidden && !['boss-intro', 'reward', 'sortie-reward'].includes(battle.phase));
   if (onlineDuel) return;
   if (lesson) { battle.paused = pauseReasons.size > 0; scene.accept(structuredClone(battle), you); renderOverlay(); return; }
   send({ type: 'pause', paused: pauseReasons.size > 0 });
-  platform.gameplay(pauseReasons.size === 0 && !['boss-intro', 'reward'].includes(battle.phase));
 }
 function finishIntro() {
   const key = missionIntroClock.finish(); if (!key) return;
@@ -317,6 +321,7 @@ function finishIntro() {
 }
 function home(destination = 'play') { const training = !!lesson; if (!training || lessonBoss) send({type:'leave'}); lesson = undefined; afterLesson = undefined; lessonBoss = undefined; tab = destination; if (destination === 'fleet') inspectedPlane = p?.selected ?? ''; battle = undefined; finished = false; pauseReasons.clear(); clearControls(); syncOrientation(); renderMenu(); }
 document.addEventListener('click', e => {
+  if (returningHome) return;
   const target = (e.target as HTMLElement).closest<HTMLElement>('button, a'); if (!target) return;
   scene.audio.unlock();
   if (target.dataset.modifierFilter) { modifierFilter = target.dataset.modifierFilter as 'all' | 'owned'; renderMenu(); return; }
@@ -375,7 +380,14 @@ document.addEventListener('click', e => {
     case 'mission-ready': finishIntro(); break;
     case 'pause': setPause('manual', true); break;
     case 'resume': setPause('manual', false); break;
-    case 'home': home(); break;
+    case 'home': {
+      if (returningHome) break;
+      if (!lesson && battle?.phase === 'ended' && platform.canShowAds && adSchedule.claim()) {
+        returningHome = true;
+        void platform.showFullscreenAd().finally(() => { returningHome = false; home(); });
+      } else home();
+      break;
+    }
     case 'retry': home(); send({ type: 'pve', resume: false }); break;
   }
 });
@@ -497,8 +509,8 @@ function connect() {
     }
     if (m.type === 'queued') { queueStarted = Date.now(); renderQueue(); }
     if (m.type === 'cancelled') { queueStarted = 0; renderMenu(); }
-    if (m.type === 'start') { missionIntroClock.reset(); battle = m.battle; you = m.you; queueStarted = 0; finished = false; lastPhase = ''; pauseReasons.clear(); if (debug?.isOpen) { pauseReasons.add('debug'); send({type:'pause',paused:true}); } clearControls(); renderBattle(); scene.accept(battle!, you); platform.gameplay(!battle!.paused && !['ended', 'boss-intro', 'reward'].includes(battle!.phase)); syncOrientation(); }
-    if (m.type === 'state' && battle?.id === m.battle.id) { battle = m.battle; scene.accept(battle!, you); updateHud(); platform.gameplay(!battle!.paused && !['ended', 'boss-intro', 'reward'].includes(battle!.phase)); }
+    if (m.type === 'start') { missionIntroClock.reset(); battle = m.battle; you = m.you; queueStarted = 0; finished = false; lastPhase = ''; pauseReasons.clear(); if (debug?.isOpen) { pauseReasons.add('debug'); send({type:'pause',paused:true}); } clearControls(); renderBattle(); scene.accept(battle!, you); platform.gameplay(!pauseReasons.size && !document.hidden && !battle!.paused && !['ended', 'boss-intro', 'reward'].includes(battle!.phase)); syncOrientation(); }
+    if (m.type === 'state' && battle?.id === m.battle.id) { battle = m.battle; adSchedule.observe(battle!, !document.hidden && !pauseReasons.size && !battle!.paused && !['ended', 'boss-intro', 'reward', 'sortie-reward'].includes(battle!.phase)); scene.accept(battle!, you); updateHud(); platform.gameplay(!pauseReasons.size && !document.hidden && !battle!.paused && !['ended', 'boss-intro', 'reward'].includes(battle!.phase)); }
     if (m.type === 'error') toast(m.message);
   };
   ws.onclose = e => {
