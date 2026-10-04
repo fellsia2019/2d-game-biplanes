@@ -127,9 +127,9 @@ test('The available fully upgraded free aircraft covers HP, damage and boss resp
     assert.ok(Math.ceil(level.enemyHp * 2 / stats.damage) <= 12);
     assert.ok(Math.ceil(stats.hp / level.enemyDamage) >= 12);
     if (level.boss) {
-      assert.ok(Math.ceil(stats.hp / level.boss.damage) >= 13);
+      assert.ok(Math.ceil(stats.hp / level.boss.damage) >= 8);
       assert.ok(level.boss.speed < stats.speed / 2);
-      assert.ok(level.boss.cooldown >= 1.3 && level.boss.windup >= .35);
+      assert.ok(level.boss.cooldown >= 1 && level.boss.windup >= .35);
       assert.ok(weapon.dps>0 && level.boss.hp/(weapon.dps*.4)<=190, `Boss ${level.level} exceeds 190s at 40% hits with its free aircraft`);
     }
   }

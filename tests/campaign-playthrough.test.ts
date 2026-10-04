@@ -34,7 +34,7 @@ test('Уклонение на миссии ПВО не зажимает прог
   assert.ok(s.planes[0].health>0);
 });
 
-test('Заработанный маршрут до25 проходит цели всех типов и покупает Стриж только после полной15/15/15 прокачки Сокола', {timeout:60000}, () => {
+test('Заработанный маршрут до25 проходит цели всех типов и покупает Стриж после босса25 в сценарии с полной прокачкой Сокола', {timeout:60000}, () => {
   const run = runCampaign({seed:7,endLevel:25,maxDeaths:50,maxActiveSeconds:8*3600});
   assert.equal(run.completed,true, 'level' + run.reachedLevel + ': ' + run.stoppedReason);
   assert.deepEqual(run.bossVictories,[10,25]);

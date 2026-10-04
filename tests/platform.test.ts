@@ -1,11 +1,24 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Platform } from '../src/platform';
+import { PREMIUM_DURATION_MS, type PremiumState } from '../shared/premium';
 const token = 'a'.repeat(64);
-function mock(options: { anonymous?: boolean; storageFailure?: boolean } = {}) {
+function mock(options: { anonymous?: boolean; storageFailure?: boolean; ads?: 'reward' | 'close' | 'error' } = {}) {
   const events: string[] = [], cloud = { biplanesToken: token };
   const sdk = {
     features: {LoadingAPI:{ready(){events.push('ready');}},GameplayAPI:{start(){events.push('start');},stop(){events.push('stop');}}}, on() {}, auth: { async openAuthDialog() {} },
+    adv: options.ads ? {
+      showFullscreenAdv({callbacks}: any) {
+        events.push('fullscreen'); callbacks.onOpen();
+        if (options.ads === 'error') callbacks.onError({}); else callbacks.onClose(true);
+      },
+      showRewardedVideo({callbacks}: any) {
+        events.push('rewarded'); callbacks.onOpen();
+        if (options.ads === 'error') callbacks.onError({});
+        else { if (options.ads === 'reward') callbacks.onRewarded(); callbacks.onClose(); }
+      },
+      async hideBannerAdv() { events.push('banner-hidden'); return { stickyAdvIsShowing: false }; },
+    } : undefined,
     async getPlayer() { return {
       isAuthorized: () => !options.anonymous,
       async getData() { if (options.storageFailure) throw new Error('Cloud unavailable'); return cloud; },
@@ -63,4 +76,54 @@ test('LoadingAPI.ready ждёт готового интерфейса и выз�
 test('Интерфейс, готовый раньше SDK, отправляет готовность после инициализации один раз', async () => {
   const {events}=mock(), platform=new Platform(); platform.markReady(); assert.deepEqual(events,[]);
   await platform.init(()=>{}); platform.markReady(); assert.deepEqual(events,['ready']);
+});
+
+test('Действующий премиум блокирует обе рекламы до обращения к SDK и скрывает баннер', async () => {
+  const { events } = mock({ ads: 'reward' }), pauses: boolean[] = [];
+  const now = Date.now(), profile: PremiumState = { premium: { active: true, purchasedAt: now - 1000, expiresAt: now + PREMIUM_DURATION_MS } };
+  const platform = new Platform(() => profile); await platform.init(() => {}, value => pauses.push(value));
+  assert.equal(platform.canShowAds, false);
+  assert.equal(await platform.showFullscreenAd(), false);
+  assert.equal(await platform.showRewardedAd(), false);
+  assert.deepEqual(events, ['banner-hidden']); assert.deepEqual(pauses, []);
+});
+
+test('Запрет рекламы обновляется при истечении, продлении и восстановлении профиля без перезагрузки', async () => {
+  const { events } = mock({ ads: 'reward' }), now = Date.now();
+  let profile: PremiumState | undefined;
+  const platform = new Platform(() => profile); await platform.init(() => {});
+  assert.equal(await platform.showFullscreenAd(), false);
+  profile = {};
+  assert.equal(platform.canShowAds, true);
+  assert.equal(await platform.showFullscreenAd(), true);
+  profile = { premium: { active: true, purchasedAt: now - 1000, expiresAt: now + PREMIUM_DURATION_MS } };
+  await platform.refreshAds();
+  assert.equal(await platform.showFullscreenAd(), false);
+  assert.equal(await platform.showRewardedAd(), false);
+  profile.premium = { active: true, purchasedAt: now - PREMIUM_DURATION_MS - 1000, expiresAt: now - 1 };
+  assert.equal(platform.canShowAds, true);
+  assert.equal(await platform.showRewardedAd(), true);
+  profile.premium.expiresAt = now + PREMIUM_DURATION_MS;
+  assert.equal(await platform.showRewardedAd(), false);
+  assert.equal(events.filter(event => event === 'fullscreen').length, 1);
+  assert.equal(events.filter(event => event === 'rewarded').length, 1);
+  profile = undefined;
+  assert.equal(await platform.showFullscreenAd(), false);
+});
+
+test('Rewarded подтверждает награду только onRewarded; закрытие и ошибка восстанавливают паузу', async () => {
+  for (const outcome of ['reward', 'close', 'error'] as const) {
+    const { events } = mock({ ads: outcome }), pauses: boolean[] = [];
+    const platform = new Platform(() => ({})); await platform.init(() => {}, value => pauses.push(value));
+    assert.equal(await platform.showRewardedAd(), outcome === 'reward');
+    assert.deepEqual(pauses, [true, false]); assert.equal(platform.canShowAds, true);
+    assert.deepEqual(events, ['rewarded']);
+  }
+});
+
+test('Без SDK вызов рекламы безопасно пропускается даже с бесплатным профилем', async () => {
+  const platform = new Platform(() => ({}));
+  assert.equal(platform.canShowAds, false);
+  assert.equal(await platform.showFullscreenAd(), false);
+  assert.equal(await platform.showRewardedAd(), false);
 });

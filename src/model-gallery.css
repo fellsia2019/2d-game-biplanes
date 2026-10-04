@@ -3,3 +3,4 @@
 section{scroll-margin-top:90px}#flight-canvas{position:relative}
 
 .flight-tools{flex-wrap:wrap}.flight-tools select{font:inherit;color:inherit;background:#294d57;border:1px solid #5c9794;border-radius:8px;padding:8px}#flight-canvas{width:min(100%,900px)}
+.flight-contrast{display:inline-flex;align-items:center;gap:8px}.flight-contrast input{width:20px;height:20px;accent-color:#9cd9cd}

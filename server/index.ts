@@ -1,4 +1,5 @@
 import { WebSocketServer, WebSocket } from 'ws';
+import { armMissionIntro, finishMissionIntro, missionKey } from '../shared/mission-intro';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { mkdir, readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -10,7 +11,7 @@ import { pvoModelsForLevel } from '../shared/terrain';
 import { migrateCareer, prepareBossAttempt, finishCareer, ensureModifierOffer, chooseModifier, awardBossModifier, type CareerAccount } from './career';
 import { AtomicStore } from './storage';
 import { PaymentAccount, verifyPurchases, redeemPurchases } from './payments';
-import { hasPremium, normalizePremium, PREMIUM_EARNINGS_MULTIPLIER, PREMIUM_PRODUCT_ID } from '../shared/premium';
+import { hasPremium, normalizePremium, PREMIUM_DURATION_MS, PREMIUM_EARNINGS_MULTIPLIER, PREMIUM_PRODUCT_ID } from '../shared/premium';
 import { buySkill } from './skills';
 const port = Number(process.env.PORT ?? 5187), host = process.env.HOST ?? '127.0.0.1';
 const debugEnabled = process.env.BIPLANES_DEBUG === '1' && process.env.NODE_ENV !== 'production' && ['127.0.0.1', 'localhost', '::1'].includes(host);
@@ -91,7 +92,7 @@ function applyRewards(rewards: Reward[], participants: Client[]) {
     changed(c);
   }
 }
-function assign(c: Client, battle: Battle) { c.battle = battle; c.queued = 0; c.input = { ...IDLE }; send(c, { type: 'start', battle, you: c.account!.profile.id }); }
+function assign(c: Client, battle: Battle) { armMissionIntro(battle); c.battle = battle; c.queued = 0; c.input = { ...IDLE }; send(c, { type: 'start', battle, you: c.account!.profile.id }); }
 function syncPremiumRewards(battle: Battle, participants: Client[], now = Date.now()) {
   for (const c of participants) {
     const pilot = battle.planes.find(p => p.id === c.account!.profile.id);
@@ -184,6 +185,18 @@ wss.on('connection', ws => {
             else if (m.action === 'gold') p.gold += m.amount;
             else p.silver += m.amount;
           }, 'Не удалось сохранить debug-ресурсы. Повторите действие.');
+        } else if (m.action === 'premium-on' || m.action === 'premium-off') {
+          await financial(c, () => {
+            const now = Date.now();
+            p.premium = m.action === 'premium-on' ? {active:true, purchasedAt:now, expiresAt:now + PREMIUM_DURATION_MS} : undefined;
+          }, 'Не удалось сохранить debug-премиум. Повторите действие.');
+          if (c.battle) {
+            syncPremiumRewards(c.battle, [c]);
+            prepareBossAttempt(a, c.battle);
+            if (c.battle.mode === 'pve' && c.battle.phase !== 'ended') a.checkpoint = structuredClone(c.battle);
+            dirty = true;
+            send(c, {type:'state', battle:c.battle});
+          }
         } else {
           const current = c.battle;
           if (!current || current.mode !== 'pve') throw new Error('Сначала запустите кампанию');
@@ -223,7 +236,7 @@ wss.on('connection', ws => {
         if (!current || current.phase !== 'sortie-reward') throw new Error('Сначала завершите вылет');
         await financial(c, () => { a.checkpoint = structuredClone(current); return true; }, 'Не удалось сохранить вылет. Повторите продолжение.');
         if (c.ws.readyState !== WebSocket.OPEN || c.battle !== current) return;
-        finishSortie(current); current.paused = m.paused === true; c.input = {...IDLE}; a.checkpoint = structuredClone(current); dirty = true;
+        finishSortie(current); current.paused = m.paused === true; armMissionIntro(current); c.input = {...IDLE}; a.checkpoint = structuredClone(current); dirty = true;
         send(c, {type:'state', battle:current}); if (m.requestId) send(c, {type:'reply', requestId:m.requestId, ok:true, result:{continued:true}}); return;
       }
       if (m.type === 'modifier-choose') {
@@ -231,17 +244,21 @@ wss.on('connection', ws => {
         if (c.queued || c.battle && c.battle.phase !== 'reward') throw new Error('Выбор доступен после победы или в меню');
         await financial(c, () => chooseModifier(a, m.offerId, m.id), 'Не удалось сохранить выбор. Карточка не получена; повторите выбор.');
         if (c.battle?.phase === 'reward' && !a.modifierOffer) {
-          refreshPlaneStats(c.battle.planes[0], planeStats(a.profile, true)); finishBossReward(c.battle); c.battle.paused = m.paused === true;
+          refreshPlaneStats(c.battle.planes[0], planeStats(a.profile, true)); finishBossReward(c.battle); c.battle.paused = m.paused === true; armMissionIntro(c.battle);
           a.checkpoint = structuredClone(c.battle); c.input = {...IDLE}; dirty = true;
           send(c, {type:'state', battle:c.battle});
         }
         if (m.requestId) send(c, {type:'reply', requestId:m.requestId, ok:true, result:{saved:true}});
         return;
       }
+      if (m.type === 'mission-ready' && c.battle) {
+        if (finishMissionIntro(c.battle, m.key, m.paused === true)) { c.input = {...IDLE}; dirty = true; send(c, {type:'state', battle:c.battle}); }
+        return;
+      }
       if (m.type === 'pause' && c.battle) {
         const hasHumanOpponent = c.battle.mode === 'duel' && c.battle.planes.every(x => !x.bot);
         if (hasHumanOpponent) { fail(c, 'Онлайн-дуэль продолжается. Возвращайтесь в бой.'); return; }
-        c.battle.paused = ['boss-intro', 'reward', 'sortie-reward'].includes(c.battle.phase) || m.paused === true; c.input = { ...IDLE }; dirty = true; return;
+        c.battle.paused = !!c.battle.missionIntro || ['boss-intro', 'reward', 'sortie-reward'].includes(c.battle.phase) || m.paused === true; c.input = { ...IDLE }; dirty = true; return;
       }
       if (m.type === 'bots') { c.allowBots = p.allowBots = m.allowed === true; dirty = true; return; }
       if (m.type === 'queue-bot') {
@@ -318,6 +335,7 @@ setInterval(() => {
     const participants = [...clients].filter(c => c.battle === battle);
     const inputs = Object.fromEntries(participants.map(c => [c.account!.profile.id, c.input]));
     syncPremiumRewards(battle, participants);
+    const previousMission = missionKey(battle);
     const rewards = stepBattle(battle, inputs, 1 / 30);
     applyRewards(rewards, participants);
     if (battle.mode === 'pve' && participants[0]) {
@@ -329,6 +347,7 @@ setInterval(() => {
         finishCareer(a, battle); dirty = true;
       } else if (tick % 30 === 0 || rewards.length) { a.checkpoint = structuredClone(battle); dirty = true; }
     }
+    if (missionKey(battle) !== previousMission || !missionKey(battle) && battle.missionIntro) { armMissionIntro(battle); for (const c of participants) c.input = {...IDLE}; }
     if (tick % 2 === 0) for (const c of participants) send(c, { type: 'state', battle });
     if (battle.phase === 'ended') { for (const c of participants) { send(c, { type: 'state', battle }); profile(c); } battles.delete(battle); }
   }

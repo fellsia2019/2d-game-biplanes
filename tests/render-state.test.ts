@@ -13,6 +13,33 @@ function snapshot(time: number) {
   return s;
 }
 
+test('Duplicate snapshot corrections cannot rewind a straight enemy projectile',()=>{
+  for(const [vx,vy,kind] of [[-360,0,undefined],[420,0,undefined],[0,180,'bomb'],[-585,0,undefined]] as const){
+    const buffer=new RenderBuffer(), state=snapshot(1);
+    state.bullets=[{id:7,owner:'enemy',x:600,y:200,vx,vy,life:4,damage:15,...(kind?{kind}: {})}];
+    buffer.push(state,1000);const before=buffer.sample(1000)!.bullets[0];
+    const correction=structuredClone(state);correction.bullets[0].x-=vx/30;correction.bullets[0].y-=vy/30;
+    const untouched=structuredClone(correction);buffer.push(correction,1010);
+    const after=buffer.sample(1017)!.bullets[0];assert.equal(after.x,before.x);assert.equal(after.y,before.y);
+    assert.deepEqual(correction,untouched);
+    const next=structuredClone(state);next.time+=.2;next.bullets[0].x+=vx*.2;next.bullets[0].y+=vy*.2;
+    buffer.push(next,1200);for(let now=1200;now<=1450;now+=17)buffer.sample(now);
+    const caughtUp=buffer.sample(1450)!.bullets[0];
+    assert.ok((caughtUp.x-before.x)*vx+(caughtUp.y-before.y)*vy>0);
+    const gone=structuredClone(next);gone.bullets=[];gone.time+=.1;buffer.push(gone,1500);
+    for(let now=1500;now<=1800;now+=17)buffer.sample(now);
+    assert.equal(buffer.sample(1800)!.bullets.length,0);
+  }
+});
+
+test('An older phase snapshot does not rewind projectiles or the render clock',()=>{
+  const buffer=new RenderBuffer(), current=snapshot(1);buffer.push(current,1000);
+  const before=buffer.sample(1000)!;
+  const stale=snapshot(.5);stale.phase='boss';buffer.push(stale,1010);
+  const after=buffer.sample(1017)!;
+  assert.equal(after.phase,current.phase);assert.ok(after.time>=before.time);assert.ok(after.bullets[0].x>=before.bullets[0].x);
+});
+
 function flightTrace(input: Controls, ending: 'stop' | 'reverse' | 'hold') {
   const state=createBattle('packet-gap-'+ending,'pve',[makePlane('pilot',planeStats(freshProfile('pilot')))]);
   state.planes[0].x=600;state.planes[0].y=330;

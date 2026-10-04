@@ -141,7 +141,7 @@ test('Phase passes solid terrain for 2 seconds, then collides; holding the key c
 test('Phase does not grant bullet immunity and cannot activate without an owned skill',()=>{
   const s=flight(8,true),p=s.planes[0];p.shield=0;
   s.bullets=[{id:1,owner:'bomber',x:p.x,y:p.y,vx:0,vy:0,life:1,damage:10,kind:'bomb'}];
-  stepBattle(s,{pilot:{...IDLE,skill:true}},dt);assert.equal(p.health,p.hp-10);assert.equal(p.phaseSeconds,2);
+  stepBattle(s,{pilot:{...IDLE,skill:true}},dt);assert.equal(p.health,p.hp*.5);assert.equal(p.phaseSeconds,2);
   const noSkill=flight(8);stepBattle(noSkill,{pilot:{...IDLE,skill:true}},dt);assert.equal(noSkill.planes[0].phaseSeconds,0);
 });
 test('New pickups and bomber warnings interpolate without mutating server snapshots',()=>{

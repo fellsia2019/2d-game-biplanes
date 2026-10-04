@@ -9,15 +9,19 @@ import { AIRCRAFT_ART, bossAircraft, aircraftAsset, prepareAircraft, paintAircra
 import { PVO_MODELS, pvoAsset, preparePvo } from './pvo-art';
 import { drawGoldenTrail } from './aircraft-effects';
 import { BOMBER, bomberBombLanes, bombsDropped } from '../shared/bombers';
+import { CLOUD_VARIANTS, paintCloud } from './cloud-art';
+import { paintBomb } from './bomb-art';
+import { readProjectileContrast } from './preferences';
 type Particle = { x: number; y: number; vx: number; vy: number; age: number; life: number; size: number; color: number; smoke?: boolean };
 export class SkyScene extends Phaser.Scene {
   onReady?: () => void;
   onLoadProgress?: (progress: number) => void; onLoadError?: () => void;
   private loadFailed = false;
   state?: Battle; you = ''; active = false;
+  projectileContrast = readProjectileContrast();
   private sky!: Phaser.GameObjects.Graphics; private landscape!: Phaser.GameObjects.Graphics; private ground!: Phaser.GameObjects.Graphics; private ink!: Phaser.GameObjects.Graphics; private sparks!: Phaser.GameObjects.Graphics;
   private sprites = new Map<string, Phaser.GameObjects.Image>(); private particles: Particle[] = []; private seen = new Set<number>(); private match = '';
-  private clouds: { x: number; y: number; scale: number; speed: number }[] = [];
+  private clouds: { image: Phaser.GameObjects.Image; speed: number }[] = [];
   private textEffects: { text: Phaser.GameObjects.Text; screenSize: number }[] = []; private textScale = 1; private exhaust = 0; private scroll = 0;
   private buffer = new RenderBuffer(); private queuedEffects: { time: number; effect: Effect }[] = [];
   private engineEnergy = new Map<string, number>();
@@ -57,8 +61,14 @@ export class SkyScene extends Phaser.Scene {
       const body = preparePvo(this.textures.get('raw-pvo-' + model).getSourceImage() as HTMLImageElement, model);
       const texture = this.textures.createCanvas('pvo-' + model, 640, 448)!; texture.context.drawImage(body, 0, 0); texture.refresh(); this.textures.remove('raw-pvo-' + model);
     }
+    const bombTexture = this.textures.createCanvas('aerial-bomb', 96, 192)!;
+    paintBomb(bombTexture.context); bombTexture.refresh();
     this.golden = this.add.graphics().setDepth(8);
-    this.sky = this.add.graphics(); this.landscape = this.add.graphics(); this.ground = this.add.graphics().setDepth(11.5); this.ink = this.add.graphics().setDepth(11); this.sparks = this.add.graphics().setDepth(12);
+    this.sky = this.add.graphics().setDepth(-30); this.landscape = this.add.graphics().setDepth(-10); this.ground = this.add.graphics().setDepth(11.5); this.ink = this.add.graphics().setDepth(11); this.sparks = this.add.graphics().setDepth(12);
+    for (let i = 0; i < CLOUD_VARIANTS; i++) {
+      const texture = this.textures.createCanvas('cloud-' + i, 512, 224)!;
+      paintCloud(texture.context, i); texture.refresh();
+    }
     // Keep flight labels readable in CSS pixels as the entire world scales to fit.
     const resizeText = () => {
       this.textScale = Math.max(.1, this.game.canvas.getBoundingClientRect().width / 1200);
@@ -66,7 +76,13 @@ export class SkyScene extends Phaser.Scene {
     };
     const textObserver = new ResizeObserver(resizeText); textObserver.observe(this.game.canvas); resizeText();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => textObserver.disconnect());
-    for (let i = 0; i < 12; i++) this.clouds.push({ x: (i * 157) % 1300, y: 70 + (i * 97) % 340, scale: .55 + (i % 4) * .3, speed: 7 + i % 3 * 9 });
+    this.clouds = [];
+    for (let i = 0; i < 11; i++) {
+      const distant = i % 3 === 0, scale = .5 + (i % 4) * .18;
+      const image = this.add.image((i * 271 + 90) % 1500 - 150, 95 + (i * 83) % 280, 'cloud-' + i % CLOUD_VARIANTS)
+        .setOrigin(.5, .75).setScale(scale / 2).setAlpha(distant ? .4 : .76).setDepth(distant ? -22 : -20);
+      this.clouds.push({ image, speed: distant ? 5 : 10 + i % 3 * 5 });
+    }
     this.onReady?.();
   }
   accept(state: Battle, you: string) {
@@ -98,10 +114,6 @@ export class SkyScene extends Phaser.Scene {
       this.textEffects.push({ text: t, screenSize }); this.tweens.add({ targets: t, y: e.y - 45, alpha: 0, delay: banner ? 1400 : 250, duration: 1000, onComplete: () => { t.destroy(); this.textEffects = this.textEffects.filter(x => x.text !== t); } });
     }
   }
-  private cloud(x: number, y: number, scale: number) {
-    const g = this.sky; g.fillStyle(0xffffff, .67);
-    g.fillEllipse(x, y, 160 * scale, 35 * scale); g.fillCircle(x - 32 * scale, y - 11 * scale, 26 * scale); g.fillCircle(x + 6 * scale, y - 22 * scale, 36 * scale); g.fillCircle(x + 44 * scale, y - 9 * scale, 25 * scale);
-  }
   private scenery(dt: number, state?: Battle) {
     const g = this.sky; g.clear();
     const palette = state?.mode === 'pve' ? ZONE[state.level - 1]?.scenery : undefined;
@@ -109,7 +121,11 @@ export class SkyScene extends Phaser.Scene {
     for (let y = 0; y < 675; y += 8) { const t = y / 675; g.fillStyle(Phaser.Display.Color.GetColor(...top.map((value,i) => Math.round(value + (bottom[i]-value)*t)) as [number,number,number])); g.fillRect(0, y, 1200, 8); }
     g.fillStyle(palette?.sun ?? 0xffe7a9, .18); g.fillCircle(965, 120, 160); g.fillStyle(palette?.sun ?? 0xffedba, .3); g.fillCircle(965, 120, 108); g.fillStyle(palette?.sun ?? 0xfff8d5); g.fillCircle(965, 120, 50);
     const moving = this.active && !state?.paused && state?.phase === 'flight';
-    for (const c of this.clouds) { if (!this.active || moving) c.x -= c.speed * dt; if (c.x < -160) c.x = 1360; this.cloud(c.x, c.y, c.scale); }
+    for (const c of this.clouds) {
+      if (!document.hidden && (!this.active || moving)) c.image.x -= c.speed * dt;
+      const margin = c.image.displayWidth / 2 + 24;
+      if (c.image.x < -margin) c.image.x = 1200 + margin;
+    }
     if (state) this.scroll = state.totalDistance;
     const land = this.landscape; land.clear();
     for (const layer of [{ y: 490, color: palette?.farHills ?? 0x82b9c1, parallax: .09, h: 80 }, { y: 540, color: palette?.nearHills ?? 0x61a79c, parallax: .18, h: 65 }]) {
@@ -213,6 +229,7 @@ export class SkyScene extends Phaser.Scene {
       this.queuedEffects = this.queuedEffects.filter(item => item.time > state.time + .001 && state.phase !== 'ended');
     }
     const visibleIds = new Set([...(state?.planes.map(p => p.id) ?? []), ...(state?.bombers?.map(b => 'bomber-' + b.id) ?? []), ...(state?.obstacles.filter(o => o.kind === 'fighter' || o.kind === 'heavy' || o.kind === 'pvo').map(o => 'obstacle-' + o.id) ?? [])]);
+    for (const b of state?.bullets ?? []) if (b.kind === 'bomb') visibleIds.add('bomb-' + b.id);
     for (const [id, sprite] of this.sprites) if (!visibleIds.has(id)) { sprite.destroy(); this.sprites.delete(id); this.engineEnergy.delete(id); }
     if (state) {
       for (const p of state.planes) this.drawPlane(p, state.level);
@@ -238,7 +255,28 @@ export class SkyScene extends Phaser.Scene {
         }
       }
       for (const b of state.bullets) {
-        if (b.kind === 'bomb') { this.ink.fillStyle(0xffe0a4); this.ink.fillEllipse(b.x,b.y,18,32); this.ink.lineStyle(3,0x593821); this.ink.strokeEllipse(b.x,b.y,18,32); this.ink.fillStyle(0xee7353); this.ink.fillTriangle(b.x-11,b.y-20,b.x+11,b.y-20,b.x,b.y-9); }
+        if (this.projectileContrast && b.owner !== this.you) {
+          // CSS-pixel sizing keeps the aid visible on a small phone. This is
+          // only a drawing halo; the server's projectile and hitbox stay intact.
+          const g = this.ink, unit = 1 / this.textScale;
+          if (b.kind === 'bomb') {
+            g.lineStyle(6 * unit, 0x172338); g.strokeEllipse(b.x, b.y, 22 + 7 * unit, 44 + 7 * unit);
+            g.lineStyle(2.5 * unit, 0xfff174); g.strokeEllipse(b.x, b.y, 22 + 7 * unit, 44 + 7 * unit);
+          } else {
+            const angle = Math.atan2(b.vy, b.vx), length = Math.max(Math.hypot(b.vx, b.vy) * .025, 9 * unit);
+            const tailX = b.x - Math.cos(angle) * length, tailY = b.y - Math.sin(angle) * length;
+            g.lineStyle(7 * unit, 0x172338); g.lineBetween(tailX, tailY, b.x, b.y);
+            g.fillStyle(0x172338); g.fillCircle(b.x, b.y, 4 * unit);
+            g.lineStyle(4 * unit, 0xfff174); g.lineBetween(tailX, tailY, b.x, b.y);
+            g.fillStyle(0xfff174); g.fillCircle(b.x, b.y, 2.5 * unit);
+          }
+        }
+        if (b.kind === 'bomb') {
+          const id = 'bomb-' + b.id;
+          let image = this.sprites.get(id);
+          if (!image) { image = this.add.image(b.x, b.y, 'aerial-bomb').setDepth(11.2).setScale(.27); this.sprites.set(id, image); }
+          image.setPosition(b.x, b.y).setRotation(Math.atan2(b.vy, b.vx) - Math.PI / 2);
+        }
         else if (b.kind === 'rocket') {
           const angle = Math.atan2(b.vy, b.vx), c = Math.cos(angle), sn = Math.sin(angle);
           this.ink.lineStyle(5, 0xffa950, .7); this.ink.lineBetween(b.x - c * 9, b.y - sn * 9, b.x - c * 30, b.y - sn * 30);

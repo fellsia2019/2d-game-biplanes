@@ -31,19 +31,15 @@ const normalizedUpgradeLevel = (level: number | undefined, legacy: boolean) => M
 export const upgradeLevel = (p: Profile, model: string, branch: Upgrade) => normalizedUpgradeLevel(p.upgrades[model]?.[branch], (p.progressionVersion ?? 1) < CURRENT_PROGRESSION_VERSION);
 export const researchLevel = (p: Profile, model: string, branch: Upgrade) => Math.max(normalizedUpgradeLevel(p.research?.[model]?.[branch], (p.progressionVersion ?? 1) < CURRENT_PROGRESSION_VERSION), upgradeLevel(p, model, branch));
 export type PlaneDefinition = typeof PLANES[number];
-const previousFree: Readonly<Record<string, string>> = {swift: 'universal', yantar: 'swift', bastion: 'yantar'};
 export function planeUnlockRequirements(p: Profile, plane: PlaneDefinition) {
   const owned = p.owned.includes(plane.id), bossDefeated = plane.unlockBoss === 0 || (p.defeatedBosses ?? []).includes(plane.unlockBoss);
-  const previousPlane = PLANES.find(model => model.id === previousFree[plane.id]);
-  const missingUpgrades = owned || !previousPlane ? [] : branches.map(branch => ({branch, current: upgradeLevel(p, previousPlane.id, branch), required: MAX_UPGRADE_LEVEL})).filter(item => item.current < item.required);
-  return {owned, bossLevel: plane.unlockBoss, bossDefeated, previousPlane, upgradeLevel: MAX_UPGRADE_LEVEL, missingUpgrades, unlocked: owned || bossDefeated && missingUpgrades.length === 0};
+  return {owned, bossLevel: plane.unlockBoss, bossDefeated, unlocked: owned || bossDefeated};
 }
 export const planeUnlocked = (p: Profile, plane: PlaneDefinition) => planeUnlockRequirements(p, plane).unlocked;
 export function planeLockedReason(p: Profile, plane: PlaneDefinition) {
   const requirement = planeUnlockRequirements(p, plane); if (requirement.unlocked) return '';
   const reasons: string[] = [];
   if (!requirement.bossDefeated) reasons.push('Победите босса уровня ' + requirement.bossLevel);
-  if (requirement.missingUpgrades.length) reasons.push('Полностью улучшите ' + requirement.previousPlane!.name + ': корпус, двигатель и оружие до ' + MAX_UPGRADE_LEVEL + '/' + MAX_UPGRADE_LEVEL);
   return reasons.join(' · ');
 }
 export const pilotRank = (p: Profile) => rankOf(Math.max(p.totalXp ?? 0, p.xp));
@@ -150,17 +146,17 @@ export const CAMPAIGN_REGIONS: readonly CampaignRegion[] = [
   {id: 'summit', name: 'Небесный рубеж', start: 226, end: 250, scenery: {skyTop: [116, 144, 184], skyBottom: [221, 224, 231], farHills: 0xa0adc1, nearHills: 0x7d91a9, trees: 0x4d6c80, ground: 0x93959c, grass: 0xb1bdc5, edge: 0x687583, stones: 0xb8b8bb, sun: 0xffe4b5}},
 ];
 export const BOSS_BALANCE: Readonly<Record<number, BossDefinition>> = {
-  10: {name: 'Капитан Буря', hp: 650, speed: 65, turn: 1.7, damage: 5, cooldown: 2, bulletSpeed: 240, windup: .65, silver: 600, xp: 100, appearance: 'enemy-boss-10', pattern: 'orbit'},
-  25: {name: 'Алый охотник', hp: 2200, speed: 70, turn: 1.8, damage: 7, cooldown: 1.75, bulletSpeed: 280, windup: .55, silver: 1400, xp: 240, appearance: 'enemy-boss-25', pattern: 'weave'},
-  50: {name: 'Командор', hp: 3600, speed: 80, turn: 1.9, damage: 12, cooldown: 1.65, bulletSpeed: 300, windup: .55, silver: 2600, xp: 400, appearance: 'enemy-boss-50', pattern: 'cross'},
-  75: {name: 'Шкипер Туман', hp: 4600, speed: 84, turn: 1.95, damage: 13, cooldown: 1.6, bulletSpeed: 310, windup: .55, silver: 3600, xp: 550, appearance: 'enemy-boss-10', pattern: 'sweep'},
-  100: {name: 'Железный маршал', hp: 5600, speed: 88, turn: 2, damage: 15, cooldown: 1.55, bulletSpeed: 320, windup: .5, silver: 5000, xp: 700, appearance: 'enemy-boss-50', pattern: 'weave'},
-  125: {name: 'Полярный страж', hp: 7500, speed: 92, turn: 2.05, damage: 23, cooldown: 1.5, bulletSpeed: 335, windup: .5, silver: 6200, xp: 850, appearance: 'enemy-boss-25', pattern: 'orbit'},
-  150: {name: 'Песчаный сокол', hp: 8200, speed: 96, turn: 2.1, damage: 25, cooldown: 1.5, bulletSpeed: 340, windup: .5, silver: 7600, xp: 1000, appearance: 'enemy-boss-10', pattern: 'cross'},
-  175: {name: 'Горный барон', hp: 9000, speed: 100, turn: 2.15, damage: 27, cooldown: 1.45, bulletSpeed: 350, windup: .5, silver: 9000, xp: 1150, appearance: 'enemy-boss-50', pattern: 'weave'},
-  200: {name: 'Адмирал Вихрь', hp: 10000, speed: 104, turn: 2.2, damage: 30, cooldown: 1.4, bulletSpeed: 360, windup: .45, silver: 11000, xp: 1350, appearance: 'enemy-boss-25', pattern: 'sweep'},
-  225: {name: 'Красная комета', hp: 11500, speed: 108, turn: 2.25, damage: 42, cooldown: 1.4, bulletSpeed: 375, windup: .45, silver: 13000, xp: 1600, appearance: 'enemy-boss-25', pattern: 'cross'},
-  250: {name: 'Небесный властелин', hp: 13000, speed: 112, turn: 2.3, damage: 48, cooldown: 1.35, bulletSpeed: 390, windup: .45, silver: 15000, xp: 1800, appearance: 'enemy-boss-50', pattern: 'orbit'},
+  10: {name: 'Капитан Буря', hp: 650, speed: 65, turn: 1.7, damage: 5, cooldown: 2, bulletSpeed: 360, windup: .65, silver: 600, xp: 100, appearance: 'enemy-boss-10', pattern: 'orbit'},
+  25: {name: 'Алый охотник', hp: 2200, speed: 70, turn: 1.8, damage: 15, cooldown: 1.75, bulletSpeed: 420, windup: .55, silver: 1400, xp: 240, appearance: 'enemy-boss-25', pattern: 'weave'},
+  50: {name: 'Командор', hp: 3600, speed: 80, turn: 1.9, damage: 20, cooldown: 1.65, bulletSpeed: 450, windup: .55, silver: 2600, xp: 400, appearance: 'enemy-boss-50', pattern: 'cross'},
+  75: {name: 'Шкипер Туман', hp: 4600, speed: 84, turn: 1.95, damage: 25, cooldown: 1.6, bulletSpeed: 465, windup: .55, silver: 3600, xp: 550, appearance: 'enemy-boss-10', pattern: 'sweep'},
+  100: {name: 'Железный маршал', hp: 5600, speed: 88, turn: 2, damage: 30, cooldown: 1.55, bulletSpeed: 480, windup: .5, silver: 5000, xp: 700, appearance: 'enemy-boss-50', pattern: 'weave'},
+  125: {name: 'Полярный страж', hp: 7500, speed: 92, turn: 2.05, damage: 34, cooldown: 1.5, bulletSpeed: 503, windup: .5, silver: 6200, xp: 850, appearance: 'enemy-boss-25', pattern: 'orbit'},
+  150: {name: 'Песчаный сокол', hp: 8200, speed: 96, turn: 2.1, damage: 38, cooldown: 1.5, bulletSpeed: 510, windup: .5, silver: 7600, xp: 1000, appearance: 'enemy-boss-10', pattern: 'cross'},
+  175: {name: 'Горный барон', hp: 9000, speed: 100, turn: 2.15, damage: 41, cooldown: 1.45, bulletSpeed: 525, windup: .5, silver: 9000, xp: 1150, appearance: 'enemy-boss-50', pattern: 'weave'},
+  200: {name: 'Адмирал Вихрь', hp: 10000, speed: 104, turn: 2.2, damage: 45, cooldown: 1.25, bulletSpeed: 540, windup: .45, silver: 11000, xp: 1350, appearance: 'enemy-boss-25', pattern: 'sweep'},
+  225: {name: 'Красная комета', hp: 11500, speed: 108, turn: 2.25, damage: 58, cooldown: 1.125, bulletSpeed: 563, windup: .45, silver: 13000, xp: 1600, appearance: 'enemy-boss-25', pattern: 'cross'},
+  250: {name: 'Небесный властелин', hp: 13000, speed: 112, turn: 2.3, damage: 70, cooldown: 1, bulletSpeed: 585, windup: .45, silver: 15000, xp: 1800, appearance: 'enemy-boss-50', pattern: 'orbit'},
 };
 export const BOSS_LEVELS = Object.keys(BOSS_BALANCE).map(Number).sort((a, b) => a - b);
 export function bossBalance(level: number): BossDefinition {

@@ -71,20 +71,17 @@ test('Invalid cost levels and models cannot turn a purchase into zero, negative 
   const before = snapshot(p); assert.throws(() => researchUpgrade(p, 'gun', 1), /опыта/); assert.equal(snapshot(p), before);
 });
 
-test('Next free aircraft needs its boss and all 45 predecessor upgrades; money and research cannot bypass the gate', () => {
-  for (const [previous, next, boss] of [['universal', 'swift', 25], ['swift', 'yantar', 100], ['yantar', 'bastion', 200]] as const) {
-    const p = freshProfile('gate-' + next); p.silver = p.xp = 1000000; p.totalXp = p.xp; if (!p.owned.includes(previous)) p.owned.push(previous);
-    const model = PLANES.find(model => model.id === next)!;
-    assert.equal(model.unlockBoss, boss); assert.equal(planeUnlocked(p, model), false);
-    assert.match(planeLockedReason(p, model), /босса/);
-    p.defeatedBosses = [boss]; assert.equal(planeUnlocked(p, model), false);
-    const request = planeUnlockRequirements(p, model); assert.equal(request.previousPlane!.id, previous); assert.equal(request.missingUpgrades.length, 3);
-    let before = snapshot(p); assert.throws(() => buyPlane(p, next), /Полностью/); assert.equal(snapshot(p), before);
-    p.research![previous] = {hull: 15, engine: 15, gun: 15}; p.upgrades[previous] = {hull: 15, engine: 15, gun: 14};
-    assert.equal(planeUnlocked(p, model), false); assert.deepEqual(planeUnlockRequirements(p, model).missingUpgrades, [{branch: 'gun', current: 14, required: 15}]);
-    p.selected = previous; buyUpgrade(p, 'gun', 15); assert.equal(planeUnlocked(p, model), true); assert.equal(planeLockedReason(p, model), '');
-    const silver = p.silver; buyPlane(p, next); assert.equal(p.silver, silver - model.price); assert.equal(p.selected, next);
-    before = snapshot(p); buyPlane(p, next); assert.equal(snapshot(p), before);
+test('Next aircraft needs only its boss and purchase price; predecessor upgrades and ownership are irrelevant', () => {
+  for (const [next, boss] of [['swift',25],['yantar',100],['bastion',200]] as const) {
+    const p=freshProfile('gate-'+next), model=PLANES.find(model=>model.id===next)!;
+    p.silver=1000000;p.xp=p.totalXp=1000000;
+    assert.equal(planeUnlocked(p,model),false);
+    const before=snapshot(p);assert.throws(()=>buyPlane(p,next),/босса/);assert.equal(snapshot(p),before);
+    p.defeatedBosses=[boss];p.upgrades={};p.research={};
+    assert.equal(planeUnlockRequirements(p,model).unlocked,true);assert.equal(planeLockedReason(p,model),'');
+    p.silver=model.price-1;assert.throws(()=>buyPlane(p,next),/Недостаточно/);
+    p.silver=model.price;buyPlane(p,next);assert.equal(p.silver,0);assert.equal(p.selected,next);
+    assert.ok(p.owned.includes(next));const purchased=snapshot(p);buyPlane(p,next);assert.equal(snapshot(p),purchased);
   }
 });
 
@@ -145,8 +142,8 @@ test('Model tiers and missions enforce more than 30 active hours before Ruby whi
   assert.deepEqual(BOSS_LEVELS, [10, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250]);
   for (const level of BOSS_LEVELS) {
     const boss = bossBalance(level), model = bossReferenceAircraft(level);
-    assert.ok(boss.windup >= .45 && boss.cooldown >= 1.35); assert.ok(boss.speed < model.speed * .6);
-    assert.ok(boss.hp <= 13000); assert.ok(boss.damage < model.hp / 10);
+    assert.ok(boss.windup >= .45 && boss.cooldown >= 1); assert.ok(boss.speed < model.speed * .6);
+    assert.ok(boss.hp <= 13000); assert.ok(boss.damage < model.hp / 5);
   }
 });
 

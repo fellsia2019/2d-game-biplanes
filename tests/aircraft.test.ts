@@ -14,13 +14,11 @@ test('Пять моделей: четыре за серебро и Феникс 
   assert.equal(p.selected, 'skate'); assert.equal(planeStats(p).speed, 210);
   buyPlane(p, 'skate'); assert.equal(p.gold, 0);
 });
-test('Янтарь требует босса 100, полностью купленные улучшения Стрижа и серебро до списания средств', () => {
+test('Янтарь требует только босса 100 и серебро, без улучшений или покупки Стрижа', () => {
   const p = freshProfile('pilot'); p.silver = 2000;
   assert.throws(() => buyPlane(p, 'yantar')); assert.equal(p.silver, 2000); assert.deepEqual(p.owned, ['universal']);
   const yantar = PLANES.find(plane => plane.id === 'yantar')!;
-  p.xp = 500; p.defeatedBosses = [100]; p.silver = yantar.price; p.owned.push('swift');
-  assert.throws(() => buyPlane(p,'yantar'), /улучш|прокач/i); assert.equal(p.silver,yantar.price);
-  p.upgrades.swift = { hull: MAX_UPGRADE_LEVEL, engine: MAX_UPGRADE_LEVEL, gun: MAX_UPGRADE_LEVEL };
+  p.xp = 500; p.defeatedBosses = [100]; p.silver = yantar.price;
   p.silver = yantar.price - 1; assert.throws(() => buyPlane(p, 'yantar'), /Недостаточно/); assert.equal(p.silver, yantar.price - 1);
   p.silver = yantar.price; buyPlane(p, 'yantar'); assert.equal(p.silver, 0); assert.equal(p.selected, 'yantar');
 });

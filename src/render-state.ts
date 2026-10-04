@@ -31,8 +31,12 @@ function frameBetween(a: Battle, b: Battle, t: number): Battle {
 /** One delayed, monotonic render clock for every entity. Server state stays untouched. */
 export class RenderBuffer {
   private frames: Battle[] = []; private arrival = 0; private clock = 0; private now = 0;
+  private projectilePositions = new Map<number, {x:number; y:number; vx:number; vy:number}>();
   push(state: Battle, now: number) {
     const previous = this.frames.at(-1);
+    // An older phase snapshot must not reset the render clock either.
+    if (previous?.id === state.id && state.time < previous.time) return;
+    if (previous?.id !== state.id) this.projectilePositions.clear();
     if (!previous || previous.id !== state.id || previous.paused !== state.paused || previous.phase !== state.phase) {
       this.frames = [state]; this.clock = state.time - DELAY; this.now = now;
     } else if (state.time > previous.time) {
@@ -43,7 +47,7 @@ export class RenderBuffer {
   }
   sample(now: number): Battle | undefined {
     const latest = this.frames.at(-1); if (!latest) return;
-    if (latest.paused || latest.phase === 'ended') { this.now = now; return latest; }
+    if (latest.paused || latest.phase === 'ended') { this.now = now; this.projectilePositions.clear(); return latest; }
     const elapsed = Math.max(0, Math.min(.1, (now - this.now) / 1000)); this.now = now;
     const target = latest.time + Math.min(DELAY, Math.max(0, (now - this.arrival) / 1000)) - DELAY;
     const drift = target - this.clock;
@@ -54,11 +58,28 @@ export class RenderBuffer {
     // Keep the delayed clock on confirmed motion; one late packet may exhaust
     // the buffer briefly, but cannot invent a position requiring a rewind.
     this.clock = Math.min(this.clock, latest.time);
-    if (this.clock <= this.frames[0].time) return this.frames[0];
+    if (this.clock <= this.frames[0].time) return this.projectileFrame(this.frames[0]);
     for (let i = 1; i < this.frames.length; i++) {
       const a = this.frames[i - 1], b = this.frames[i];
-      if (this.clock < b.time) return frameBetween(a, b, (this.clock - a.time) / (b.time - a.time));
+      if (this.clock < b.time) return this.projectileFrame(frameBetween(a, b, (this.clock - a.time) / (b.time - a.time)));
     }
-    return latest;
+    return this.projectileFrame(latest);
+  }
+  private projectileFrame(frame: Battle): Battle {
+    let corrected = false;
+    const present = new Set(frame.bullets.map(b => b.id));
+    for (const id of this.projectilePositions.keys()) if (!present.has(id)) this.projectilePositions.delete(id);
+    const bullets = frame.bullets.map(b => {
+      const previous = this.projectilePositions.get(b.id);
+      // Projectiles fly straight. A corrected/duplicate snapshot can briefly
+      // place one behind its last drawn position: hold it until confirmed motion
+      // catches up, instead of drawing a backwards jump. No extrapolation.
+      if (previous && previous.vx === b.vx && previous.vy === b.vy && (b.x-previous.x)*b.vx+(b.y-previous.y)*b.vy < -1e-7) {
+        corrected = true; return {...b, x:previous.x, y:previous.y};
+      }
+      this.projectilePositions.set(b.id,{x:b.x,y:b.y,vx:b.vx,vy:b.vy});
+      return b;
+    });
+    return corrected ? {...frame,bullets} : frame;
   }
 }

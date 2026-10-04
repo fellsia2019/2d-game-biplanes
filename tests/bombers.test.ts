@@ -4,6 +4,7 @@ import { WIDTH, ZONE, freshProfile, planeStats } from '../shared/data';
 import { BOMBER, bomberBombLanes } from '../shared/bombers';
 import { createBattle, makePlane, stepBattle, restoreOperationProgress, IDLE, type Battle } from '../shared/simulation';
 import { operationPlan, operationMission } from '../shared/operations';
+import { modifierBonuses } from '../shared/modifiers';
 
 const dt=1/30;
 function flight(level=7) {
@@ -26,8 +27,8 @@ for(const [level,count,bombs] of [[7,1,1],[26,2,1],[51,2,2],[101,3,2],[151,3,3],
       seen.add(bomb.id);const id=Number(bomb.owner.slice(7)),parent=s.bombers!.find(b=>b.id===id)!;
       assert.ok(parent,'the bomber remains in flight after releasing');
       assert.ok(Math.abs(bomb.x-parent.x)<=BOMBER.speed*dt+.001,'bomb leaves the moving bay');
-      assert.ok(Math.abs(bomb.y-parent.y-BOMBER.bayOffset)<=120*dt+.001);
-      assert.equal(bomb.vx,0);assert.ok(bomb.vy>=100&&bomb.vy<=120);
+      assert.ok(Math.abs(bomb.y-parent.y-BOMBER.bayOffset)<=180*dt+.001);
+      assert.equal(bomb.vx,0);assert.ok(bomb.vy>=150&&bomb.vy<=180);
       const row=launched.get(id)??[];row.push({x:bomb.x,time:s.time,owner:bomb.owner});launched.set(id,row);
     }
   }
@@ -56,15 +57,35 @@ test('Bombers aim during approach, lock the visible warning and stop following a
   a.paused=true;const before=structuredClone(a);for(let i=0;i<30;i++)tick(a);assert.deepEqual(a,before);
 });
 
-for(const level of [7,201])for(const targetX of [64,600,1136])test(`Operation ${level}: a stationary pilot at X=${targetX} is hit by one aimed bomb per aircraft`,()=>{
+for(const level of [7,201])for(const targetX of [64,600,1136])test(`Operation ${level}: a stationary pilot at X=${targetX} is hit by one aimed bomb from a single aircraft`,()=>{
   const s=flight(level),p=s.planes[0];p.x=targetX;p.shield=0;p.hp=10000;p.health=p.hp;tick(s);
-  const count=s.bombers!.length,lanes=bomberBombLanes(s.bombers![0]);
+  const lanes=bomberBombLanes(s.bombers![0]);
+  // Isolate one payload: with half-HP bombs a second aircraft's hit is lethal.
+  s.bombers=s.bombers!.slice(0,1);
   assert.ok(lanes.includes(targetX));
   assert.ok(Math.abs((lanes[0]+lanes.at(-1)!)/2-targetX)<.001,'an odd carpet centers on the pilot');
   assert.ok(s.bombers!.every(b=>b.warning>BOMBER.warningSeconds),'even the right edge leaves time for a warning');
   for(let frame=0;frame<20/dt;frame++)tick(s);
-  const bombDamage=ZONE[level-1].enemyDamage*1.8;
-  assert.ok(Math.abs(p.health-(p.hp-count*bombDamage))<.001,'the targeted bomb crosses the aircraft, without hitting it with the whole carpet');
+  assert.ok(Math.abs(p.health-p.hp*.5)<.001,'one targeted bomb costs half maximum HP, without hitting with the whole carpet');
+});
+
+test('Bomb hits cost exactly half current maximum HP across hulls, levels and legacy payload damage',()=>{
+  for(const level of [7,201])for(const hp of [100,350,801])for(const resistance of [0,.5]) {
+    const s=flight(level),p=s.planes[0];s.bomberClock=9999;p.shield=0;p.hp=hp;p.health=hp*.75;p.traits={...modifierBonuses(),resistance};
+    const drop=()=>s.bullets.push({id:++s.seq,owner:'bomber-old-save',kind:'bomb',x:p.x,y:p.y,vx:0,vy:0,life:2,damage:99999});
+    drop();tick(s);assert.equal(p.health,hp*.25);assert.equal(s.bullets.length,0,'bomb only hits once');
+    tick(s);assert.equal(p.health,hp*.25);
+    drop();tick(s);assert.equal(p.health,-hp*.25);assert.equal(s.phase,'ended');
+  }
+});
+
+test('Bombs respect the spawn shield while ordinary bullets still use resistance',()=>{
+  const s=flight(),p=s.planes[0];s.bomberClock=9999;p.shield=2;
+  s.bullets.push({id:++s.seq,owner:'bomber',kind:'bomb',x:p.x,y:p.y,vx:0,vy:0,life:2,damage:1});
+  tick(s);assert.equal(p.health,p.hp);
+  s.bullets=[];p.shield=0;p.traits={...modifierBonuses(),resistance:.5};
+  s.bullets.push({id:++s.seq,owner:'enemy',x:p.x,y:p.y,vx:0,vy:0,life:2,damage:20});
+  tick(s);assert.equal(p.health,p.hp-10);
 });
 
 test('An even payload aligns a middle bomb with the pilot instead of aiming a gap between two bombs',()=>{

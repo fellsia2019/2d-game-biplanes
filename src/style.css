@@ -4,6 +4,9 @@
   --frame-width: min(800px, calc(100vw - 32px), calc((100dvh - 32px) * 16 / 9));
   color: var(--ink); background: #080e18;
 }
+@media (min-width: 1024px) and (min-height: 600px) {
+  :root { --frame-width: min(88vw, calc((100dvh - 64px) * 16 / 9)); }
+}
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; height: 100dvh; overflow: hidden; background: radial-gradient(ellipse at 50% 20%, #1b2b40, #080e18 75%); }
 button, input, a { -webkit-tap-highlight-color: transparent; }
@@ -181,7 +184,7 @@ kbd { display: inline-flex; align-items: center; vertical-align: middle; font-fa
   .audio-setting { flex-wrap: wrap; } .audio-state { flex-direction: row; width: 100%; justify-content: flex-end; margin-top: 4px; }
 }
 @container (max-width: 480px) {
-  .topbar { padding: 0 12px; gap: 8px; height: 50px; } .brand { font-size: 16px; } .shell:not(.screen-play):not(.screen-settings):not(.screen-help) .brand span { display: none; } .wallet { gap: 11px; } .wallet b { font-size: 16px; }
+  .topbar { padding: 0 12px; gap: 8px; height: 50px; } .brand { font-size: 16px; } .shell:not(.screen-settings):not(.screen-help) .brand span { display: none; } .wallet { gap: 11px; } .wallet b { font-size: 16px; }
   .menu-content { padding: 18px 16px; } .menu-nav { grid-template-columns: repeat(6, 1fr); padding: 6px; gap: 4px; } .nav-item { grid-column: span 2; gap: 3px; font-size: 16px; min-height: 50px; } .nav-item:nth-child(n+4) { grid-column: span 3; flex-direction: row; gap: 8px; }
   .screen-play .menu-content { padding: 10px 15px; } .launch-aircraft { margin-bottom: 12px; } .launch-aircraft>canvas { width: 200px; height: 100px; } .launch-aircraft>span { flex-direction: column; gap: 2px; } .launch-aircraft b { font-size: 17px; }
   .launch-modes { gap: 11px; } .launch-mode { padding: 14px 12px 0; min-height: 180px; border-radius: 12px; } .launch-mode>strong { font-size: 22px; min-height: 48px; } .launch-mode>small { font-size: 16px; line-height: 1.4; margin-bottom: 13px; } .mode-mark .icon { width: 24px; height: 24px; } .mode-mark { margin-bottom: 8px; } .launch-cta { margin-left: -12px; margin-right: -12px; padding: 10px 12px; font-size: 16px; } .launch-cta .icon { width: 20px; height: 20px; }
@@ -296,14 +299,20 @@ kbd { display: inline-flex; align-items: center; vertical-align: middle; font-fa
 .premium-emblem .icon { width: 38px; height: 38px; }
 .premium-perks { display: flex; gap: 9px; flex-wrap: wrap; font-size: 17px; font-weight: 800; }
 .premium-perks span { padding: 7px 11px; border: 1px solid #798b803f; border-radius: 8px; background: #111e2a7a; }
-.premium-offer p { margin: 12px 0 7px; line-height: 1.5; font-size: 14px; color: #c6d3de; }
-.premium-offer small { display: block; color: #91a8bc; font-size: 12px; line-height: 1.5; }
+.premium-perks .ad-free { color: #b3efd7; }
+.projectile-setting { width: 100%; }
+.projectile-setting[aria-pressed=false] { background: #233143; border-color: #435c72; }
+.projectile-setting[aria-pressed=false] .setting-symbol, .projectile-setting[aria-pressed=false] .audio-state { color: #a2b6c8; }
+.projectile-setting[aria-pressed=false] .toggle-track { background: #4d647b; }
+.projectile-setting[aria-pressed=false] .toggle-track::after { background: #d2dfeb; margin-left: 0; }
+.premium-offer p { margin: 12px 0 7px; line-height: 1.5; font-size: 16px; color: #c6d3de; }
+.premium-offer small { display: block; color: #91a8bc; font-size: 16px; line-height: 1.5; }
 .premium-purchase { grid-column: 2; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 .premium-purchase .button { padding: 12px 19px; }
 .premium-offer.active { border-color: #719775; }
 .premium-purchase b { color: #a4e3c1; display: flex; align-items: center; gap: 7px; }
 .premium-earned { color: #f9d28a; font-size: 8px; letter-spacing: .5px; }
-@container (max-width: 480px) { .premium-offer { grid-template-columns: 44px minmax(0,1fr); gap: 12px; padding: 15px; }.premium-emblem { width: 44px; height: 52px; }.premium-emblem .icon { width: 27px; height: 27px; }.premium-offer h2 { font-size: 21px; }.premium-perks { font-size: 14px; gap: 6px; }.premium-perks span { padding: 6px 7px; }.premium-purchase { grid-column: 1 / -1; }.premium-offer p { font-size: 13px; }.career-stage { flex-basis: 80px; } }
+@container (max-width: 480px) { .premium-offer { grid-template-columns: 44px minmax(0,1fr); gap: 12px; padding: 15px; }.premium-emblem { width: 44px; height: 52px; }.premium-emblem .icon { width: 27px; height: 27px; }.premium-offer h2 { font-size: 21px; }.premium-perks { font-size: 16px; gap: 6px; }.premium-perks span { padding: 6px 7px; }.premium-purchase { grid-column: 1 / -1; }.premium-offer p { font-size: 16px; }.career-stage { flex-basis: 80px; } }
 
 body:not(.in-flight) #debug-panel { bottom: 72px; }
 @media (max-width: 500px) and (min-height: 501px) { body:not(.in-flight) #debug-panel { bottom: 112px; } body.in-flight #debug-panel { bottom: 12px; } }
@@ -330,6 +339,11 @@ body:not(.in-flight) #debug-panel { bottom: 72px; }
 .career-route .career-stage.current { border-color: #7ecab2; background: #21483f; }
 .career-route .career-stage.current b, .career-route .career-stage.current small { color: #bcf3df; }
 .career-route .career-stage.complete { border-color: #477c6c; }
+.career-route .career-stage b { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; }
+.career-route .career-stage.locked { background: #162334; border-color: #3b495b; color: #91a7ba; }
+.career-route .career-stage.locked b { color: #a5b7c8; }
+.career-lock { display: grid; place-items: center; width: 23px; height: 23px; flex-shrink: 0; border-radius: 6px; background: #c9974b1f; color: #e0bb7a; }
+.career-lock .icon { width: 16px; height: 16px; }
 .improvement .button:disabled, .detail-action:disabled, .equipment-card .button:disabled, .skill-card .button:disabled { opacity: 1; color: #c5d2df; background: #293d50; border-color: #526b82; border-bottom-color: #354d64; }
 .upgrade-status { grid-column: 2 / -1; font-size: 13px; line-height: 1.5; color: #e4c594; padding: 7px 10px; border-left: 2px solid #be9865; background: #b98c3310; border-radius: 0 5px 5px 0; }
 .upgrade-status.ready { color: #a9e9cd; border-color: #73b999; background: #67b7930d; }
@@ -348,13 +362,62 @@ body:not(.in-flight) #debug-panel { bottom: 72px; }
 .battle-title b { font-size: 12px; }
 .battle-title small { font-size: 10px; margin-top: 3px; }
 .battle-title.intro-hidden { opacity: 0; visibility: hidden; }
+.mission-intro-shade { position: fixed; inset: 0; z-index: 50; padding: 18px; background: #071b2a99; }
+.mission-intro-panel { width: min(760px, 92%); max-height: calc(100dvh - 24px); overflow-y: auto; padding: clamp(20px, 3vw, 42px); border: 1px solid #b7d6df80; border-top: 4px solid #efd08b; border-radius: 18px; background: linear-gradient(135deg, #183b50, #102636); box-shadow: 0 18px 60px #07121c80; text-align: left; }
+.mission-intro-kicker { color: #eed197; font-size: clamp(12px, 1.3vw, 18px); font-weight: 800; letter-spacing: .12em; }
+.mission-intro-panel h1 { margin: 12px 0 16px; color: #fff9e8; font-size: clamp(28px, 3.4vw, 54px); line-height: 1.1; }
+.mission-intro-brief { margin: 0; color: #e6f0f4; font-size: clamp(16px, 1.6vw, 24px); line-height: 1.45; }
+.mission-intro-target { margin: 18px 0 24px; color: #f4d59a; font-size: clamp(16px, 1.6vw, 23px); font-weight: 700; line-height: 1.4; }
+.mission-intro-target span { color: #bcd4df; white-space: nowrap; }
+.mission-intro-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid #b7d6df30; padding-top: 18px; }
+.mission-intro-footer>span { color: #bcd4df; font-size: clamp(12px, 1.2vw, 17px); }
+.mission-intro-footer .button { flex-shrink: 0; }
+@media (max-height: 500px), (max-width: 480px) {
+  .mission-intro-shade { padding: 12px; }
+  .mission-intro-panel { width: min(680px, 100%); padding: 16px 20px; border-radius: 12px; }
+  .mission-intro-panel h1 { margin: 8px 0 10px; font-size: clamp(26px, 4vw, 34px); }
+  .mission-intro-brief { font-size: 16px; line-height: 1.35; }
+  .mission-intro-target { margin: 10px 0 12px; font-size: 16px; }
+  .mission-intro-footer { gap: 10px; padding-top: 12px; }
+  .mission-intro-footer .button { padding: 10px 16px; min-height: 40px; }
+}
 .hud-actions { align-items: center; gap: 6px; }
 .hud-button { width: 34px; height: 34px; background: #10243570; border-color: #b3d9e43d; }
 .hud-button .icon { width: 16px; height: 16px; }
-.duel-score { padding: 6px 8px; border-radius: 7px; font-size: 13px; font-weight: 800; background: #10243570; }
+.duel-hud .battle-title { display: none; }
+.duel-score { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: min(360px, calc(100% - 144px)); padding: 9px 14px; border: 1px solid #b3d9e426; border-top: 3px solid #eed197; border-radius: 10px; font-weight: 800; background: #10243570; }
 .duel-score[hidden] { display: none; }
-.duel-score b, .duel-score small { display: block; text-align: center; }
-.duel-score small { font-size: 9px; font-weight: normal; color: #bed4df; margin-top: 2px; }
+.duel-score-line { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.duel-score-line>span { font-size: 12px; color: #bdd4e1; }
+.duel-score-line .duel-you { color: #94e6cb; }
+.duel-score b { font-size: clamp(26px, 2.4vw, 42px); line-height: 1.1; white-space: nowrap; color: #fff4d9; }
+.duel-score small { display: block; text-align: center; font-size: 13px; font-weight: 500; color: #bed4df; margin-top: 5px; }
+.duel-score #duel-respawn { font-size: 11px; color: #e8d7b3; }
+.duel-score-winning { border-top-color: #94e6cb; }
+.duel-score-losing { border-top-color: #eead92; }
+@media (max-height: 500px), (pointer: coarse) {
+  .duel-hud .duel-score { width: min(220px, calc(100% - 144px)); padding: 4px 8px; border-top-width: 1px; border-radius: 7px; }
+  .duel-hud .duel-score-line { gap: 9px; }
+  .duel-hud .duel-score-line>span { font-size: 10px; }
+  .duel-hud .duel-score b { font-size: 22px; }
+  .duel-hud .duel-score small { font-size: 10px; margin-top: 2px; }
+  .duel-hud .duel-score #duel-respawn { display: none; }
+  .duel-hud .duel-score.respawning #duel-respawn { display: block; font-size: 9px; }
+}
+.duel-final-score { display: flex; align-items: center; justify-content: center; gap: 16px; font-size: 16px; color: #bed4df; }
+.duel-final-score b { font-size: 36px; color: #fff4d9; }
+.duel-queue-rule { color: #e6d4a8; font-size: 15px; line-height: 1.5; }
+@container (max-width: 600px) {
+  .duel-hud .hud-plane { width: 68px; padding: 6px 5px; }
+  .duel-hud .hud-plane b { font-size: 10px; gap: 3px; }
+  .duel-hud .hud-plane .icon { display: none; }
+  .duel-score { padding: 6px; }
+  .duel-score-line { gap: 6px; }
+  .duel-score-line>span { font-size: 10px; }
+  .duel-score b { font-size: 26px; }
+  .duel-score small { font-size: 11px; }
+  .duel-score #duel-respawn { font-size: 10px; }
+}
 .phoenix-part .upgrade-price { display: inline-flex; justify-content: flex-start; }
 .battle-bottom { left: 10px; right: auto; bottom: 10px; padding: 6px 8px; gap: 12px; flex-wrap: nowrap; background: #10243570; border-color: #b3d9e426; backdrop-filter: none; }
 .instrument { display: grid; grid-template-columns: 16px 52px; align-items: center; gap: 6px; width: auto; }
@@ -430,3 +493,34 @@ body.lesson-rail { --frame-width: min(800px, calc(100vw - 32px), calc((100dvh - 
   .screen-help .lesson-choice-cta { flex-wrap: nowrap; padding: 8px; gap: 6px; }
   .screen-help .lesson-choice-cta .icon { width: 18px; height: 18px; }
 }
+
+/* A quiet invitation in the hangar; flight instruments stay unchanged. */
+.nav-symbol { position: relative; }
+.nav-item.has-notice { color: #ffe2a2; border-color: #be95594d; background: linear-gradient(150deg, #74522b3d, #342b253d); }
+.nav-item.has-notice:hover { background: #55422b; }
+.nav-item.has-notice.selected { border-color: #c6a267; background: #4a3e29; }
+.nav-badge { position: absolute; left: calc(100% - 3px); top: -7px; display: grid; place-items: center; min-width: 19px; height: 19px; padding: 0 4px; border: 2px solid #172332; border-radius: 10px; background: #ffcc77; color: #38250c; font-size: 11px; line-height: 1; box-shadow: 0 2px 8px #0005; }
+.modifier-new { display: inline-flex; align-items: center; align-self: flex-start; gap: 5px; padding: 4px 8px; margin-top: 10px; border: 1px solid #d2ad6b66; border-radius: 6px; background: #6e502433; color: #ffdf9a; font-size: 14px; font-weight: bold; }
+.modifier-new .icon { width: 16px; height: 16px; }
+@media (min-width: 1024px) and (min-height: 600px) {
+  .shell { width: min(1120px, calc(100vw - 64px)); height: min(820px, calc(100dvh - 64px)); margin: max(32px, calc((100dvh - 820px) / 2)) auto 0; }
+  body.lesson-rail { --frame-width: min(88vw, calc((100dvh - var(--lesson-rail-height) - 64px) * 16 / 9)); }
+}
+@container (min-width: 900px) { .nav-item { font-size: 16px; min-height: 64px; }.nav-item .icon { width: 23px; height: 23px; } }
+.aircraft-pick.fleet-locked { background: #202735; border-color: #654853; color: #aab1be; }
+.aircraft-pick.fleet-locked canvas, .aircraft-detail.fleet-locked .detail-portrait canvas { filter: grayscale(.9) brightness(.6); }
+.aircraft-pick.fleet-available { background: linear-gradient(160deg, #163e38, #18302e); border-color: #4ba990; }
+.aircraft-pick.fleet-shortfall { background: linear-gradient(160deg, #413522, #292b33); border-color: #9d7843; }
+.aircraft-pick.fleet-owned { background: #1b3449; border-color: #497f9b; }
+.aircraft-pick.viewed { outline: 2px solid #e8f3fc; outline-offset: 2px; }
+.fleet-state { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 7px; padding: 5px 7px; border-radius: 6px; font-size: 11px; font-weight: 800; line-height: 1.25; text-align: center; }
+.fleet-state .icon { width: 14px; height: 14px; flex-shrink: 0; }
+.fleet-locked .fleet-state, .fleet-locked .fleet-detail-state { color: #e5a8ad; background: #542f3b80; }
+.fleet-available .fleet-state, .fleet-available .fleet-detail-state { color: #9ff3ce; background: #215945a0; }
+.fleet-shortfall .fleet-state, .fleet-shortfall .fleet-detail-state { color: #ffd38c; background: #61481e80; }
+.fleet-owned .fleet-state, .fleet-owned .fleet-detail-state { color: #abd9fa; background: #234b6880; }
+.fleet-detail-state { display: flex; align-items: center; gap: 7px; width: fit-content; padding: 7px 12px; border-radius: 8px; font-size: 14px; font-weight: 800; }
+.detail-action.fleet-purchase.fleet-available { background: linear-gradient(#63e8bc, #28ad85); color: #082e25; border-color: #a9ffdc; border-bottom-color: #157556; box-shadow: 0 3px 0 #123e32, 0 0 18px #43d7a52a; }
+.detail-action.fleet-purchase.fleet-available span { color: inherit; }
+.detail-action.fleet-purchase.fleet-locked:disabled { background: #292a35; border-color: #76515d; border-bottom-color: #45313b; color: #daa0a8; box-shadow: none; }
+.detail-action.fleet-purchase.fleet-shortfall:disabled { background: #393128; border-color: #937547; border-bottom-color: #594426; color: #e4bd80; box-shadow: none; }

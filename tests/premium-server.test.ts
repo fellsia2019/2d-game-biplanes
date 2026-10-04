@@ -8,7 +8,8 @@ import { isAbsolute, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { WebSocket } from 'ws';
 import { PREMIUM_DURATION_MS, PREMIUM_PRODUCT_ID, hasPremium } from '../shared/premium';
-import { bossBalance, campaignReward, ZONE } from '../shared/data';
+import { bossBalance, campaignReward, ZONE, freshProfile, planeStats } from '../shared/data';
+import { createBattle, makePlane, beginBoss } from '../shared/simulation';
 
 const port = 5199, secret = 'premium-websocket-test-only';
 function proof(data: unknown, now = Date.now()) {
@@ -89,6 +90,40 @@ class PremiumServer {
   }
 }
 async function fixture() { const dir = await mkdtemp(join(tmpdir(), 'biplanes-premium-test-')); return new PremiumServer(dir, join(dir, 'profiles.json')); }
+
+test('Server keeps active premium at the boss after a third loss; free/expired accounts reset and cannot forge unlimited attempts', {timeout:15000}, async()=>{
+  const server=await fixture(), now=Date.now();
+  const accounts=['active','free','expired'].map(kind=>{
+    const profile=freshProfile('boss-'+kind);
+    if(kind!=='free')profile.premium={active:true,purchasedAt:now-1000,expiresAt:kind==='active'?now+60000:now};
+    const checkpoint=createBattle('third-loss-'+kind,'pve',[makePlane(profile.id,planeStats(profile,true))],10);
+    beginBoss(checkpoint);checkpoint.planes[0].health=0;
+    return{token:'boss-token-'+kind,profile,checkpoint,restartLevel:10,restartBoss:true,bossFailures:{level:10,count:2},campaignLength:250};
+  });
+  await writeFile(server.store,JSON.stringify(accounts));
+  try{
+    await server.start();
+    for(const kind of ['active','free','expired']){
+      const peer=await server.connect();await peer.auth('boss-token-'+kind);
+      const start=peer.wait(m=>m.type==='start');peer.send({type:'pve',resume:true});
+      assert.equal((await start).battle.bossAttemptsUnlimited,kind==='active');
+      const end=peer.wait(m=>m.type==='state'&&m.battle.phase==='ended');
+      const profile=peer.wait(m=>m.type==='profile');
+      peer.send({type:'boss-start',bossAttemptsUnlimited:true});
+      const loss=(await end).battle,state=await profile;
+      assert.equal(loss.bossAttemptsExhausted,kind==='active'?undefined:true);
+      assert.equal(state.restartLevel,kind==='active'?10:1);
+    }
+    // Allow the server's normal checkpoint writer to persist the actual outcomes.
+    await new Promise(resolve=>setTimeout(resolve,650));
+    const saved=JSON.parse(await readFile(server.store,'utf8'));
+    for(const kind of ['active','free','expired']){
+      const a=saved.find((a:any)=>a.token==='boss-token-'+kind);
+      assert.equal(a.restartLevel,kind==='active'?10:1);
+      assert.equal(a.restartBoss,kind==='active');
+    }
+  }finally{await server.cleanup();}
+});
 
 test('Сервер премиума: подписанная покупка, disk ACK, перезапуск, восстановление, защита аккаунта', { timeout: 22000 }, async () => {
   const server = await fixture();

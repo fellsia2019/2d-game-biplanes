@@ -54,6 +54,11 @@ class Peer {
     });
   }
   send(m: object) { this.ws.send(JSON.stringify(m)); }
+  async ready(battle: Battle) {
+    const response = this.wait(m => m.type === 'state' && !m.battle.missionIntro);
+    this.send({type:'mission-ready', key:battle.missionIntro, paused:false});
+    return (await response).battle;
+  }
   last(type: string) { return this.messages.filter(m => m.type === type).at(-1); }
   async auth(token = TOKEN) {
     const welcome = this.wait(m => m.type === 'welcome'), profile = this.wait(m => m.type === 'profile');
@@ -245,7 +250,7 @@ test('A queued skill purchase from the closed previous window cannot grant or ch
 test('Owned phase works in career input, stays disabled in online duels, and cannot be purchased in battle', { timeout: 15000 }, async () => {
   const server=await fixture([sortieSeed(p=>{p.skills={phase:true};}),seed('opponent')]);
   try {
-    const peer=await server.connect(); await peer.auth(); await peer.message('pve',{resume:true},'start');
+    const peer=await server.connect(); await peer.auth(); const intro=(await peer.message('pve',{resume:true},'start')).battle; await peer.ready(intro);
     await assert.rejects(peer.rpc('skill-buy',{id:'phase',nonce:randomUUID()}),/вернитесь в ангар/);
     peer.send({type:'input',turn:0,fire:false,boost:false,skill:true});
     const active=(await peer.wait(m=>m.type==='state'&&m.battle.planes[0].phaseSeconds>0)).battle;
@@ -267,7 +272,7 @@ test('An old saved sortie resumes automatically, repairs once and never credits 
   try {
     const peer=await server.connect(), profile=(await peer.auth()).profile;
     const next=(await peer.message('pve',{resume:true},'start')).battle;
-    assert.equal(next.phase,'flight'); assert.equal(next.paused,false); assert.equal(next.operation.completed,1);
+    assert.equal(next.phase,'flight'); assert.equal(next.paused,true); assert.ok(next.missionIntro); assert.equal(next.operation.completed,1);
     assert.equal(next.operation.seconds,0); assert.equal(next.operation.killSilver,0); assert.equal(next.operation.killXp,0);
     assert.equal(next.planes[0].health,next.planes[0].hp); assert.equal(next.planes[0].energy,1); assert.equal(next.planes[0].heat,0);
     await assert.rejects(peer.rpc('sortie-next'),/Сначала завершите вылет/);
@@ -275,12 +280,12 @@ test('An old saved sortie resumes automatically, repairs once and never credits 
     assert.deepEqual(wallet(after),wallet(profile)); assert.deepEqual(after.daily,profile.daily); assert.deepEqual(after.weekly,profile.weekly);
     const reloaded=await server.connect(); await reloaded.auth();
     const resumed=(await reloaded.message('pve',{resume:true},'start')).battle;
-    assert.equal(resumed.phase,'flight'); assert.equal(resumed.paused,false); assert.equal(resumed.operation.completed,1);
+    assert.equal(resumed.phase,'flight'); assert.equal(resumed.paused,true); assert.ok(resumed.missionIntro); assert.equal(resumed.operation.completed,1);
     assert.equal(resumed.id,next.id); assert.deepEqual(resumed.earned,next.earned);
   } finally { await server.cleanup(); }
 });
 
-test('A live ordinary mission continues, credits once and survives leaving and reconnecting without a briefing', { timeout:15000 }, async()=>{
+test('A live mission pauses for briefing at entry and transition, credits once and preserves its map on reconnect', { timeout:15000 }, async()=>{
   const account=sortieSeed(), checkpoint=account.checkpoint!;
   checkpoint.phase='flight'; checkpoint.paused=false; checkpoint.operation!.completed=0;
   checkpoint.operation!.seconds=operationMission(4).seconds-.02;
@@ -289,9 +294,16 @@ test('A live ordinary mission continues, credits once and survives leaving and r
   const server=await fixture([account]);
   try {
     const first=await server.connect(), before=(await first.auth()).profile;
-    await first.message('pve',{resume:true},'start');
-    const continued=(await first.wait(m=>m.type==='state'&&m.battle.operation?.completed===1)).battle;
-    assert.equal(continued.phase,'flight'); assert.equal(continued.paused,false);
+    const intro=(await first.message('pve',{resume:true},'start')).battle;
+    assert.equal(intro.paused,true); assert.ok(intro.missionIntro);
+    first.send({type:'pause',paused:false}); first.send({type:'mission-ready',key:'stale',paused:false});
+    const frozen=(await first.wait(m=>m.type==='state')).battle;
+    assert.equal(frozen.time,intro.time); assert.equal(frozen.operation.seconds,intro.operation.seconds); assert.equal(frozen.paused,true);
+    // Register the transition waiter before releasing the nearly completed mission.
+    const transition=first.wait(m=>m.type==='state'&&m.battle.operation?.completed===1);
+    first.send({type:'mission-ready',key:intro.missionIntro,paused:false});
+    const continued=(await transition).battle;
+    assert.equal(continued.phase,'flight'); assert.equal(continued.paused,true); assert.notEqual(continued.missionIntro,intro.missionIntro);
     assert.equal(continued.planes[0].health,continued.planes[0].hp);
     assert.ok(!first.messages.some(m=>m.battle?.phase==='sortie-reward'));
     const credited=(await first.message('leave')).profile;
@@ -300,7 +312,7 @@ test('A live ordinary mission continues, credits once and survives leaving and r
     const second=await server.connect(), recovered=(await second.auth()).profile;
     assert.deepEqual(wallet(recovered),wallet(credited));
     const resumed=(await second.message('pve',{resume:true},'start')).battle;
-    assert.equal(resumed.phase,'flight'); assert.equal(resumed.paused,false); assert.equal(resumed.operation.completed,1);
+    assert.equal(resumed.phase,'flight'); assert.equal(resumed.paused,true); assert.ok(resumed.missionIntro); assert.equal(resumed.operation.completed,1);
     await assert.rejects(second.rpc('sortie-next'),/Сначала завершите вылет/);
     const final=(await second.message('leave')).profile;
     assert.deepEqual(wallet(final),wallet(credited)); assert.deepEqual(final.daily,credited.daily);

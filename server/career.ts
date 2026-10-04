@@ -1,6 +1,7 @@
 import { ZONE, careerStage, normalizeProgression, type Profile } from '../shared/data';
 import { MODIFIERS, makeModifierOffer, type ModifierOffer } from '../shared/modifiers';
 import type { Battle } from '../shared/simulation';
+import { hasPremium } from '../shared/premium';
 
 export const MAX_BOSS_ATTEMPTS = 3;
 export interface CareerAccount {
@@ -24,21 +25,25 @@ export function migrateCareer(a: CareerAccount) {
     if (!a.profile.defeatedBosses!.includes(level)) a.profile.defeatedBosses!.push(level);
   }
 }
-export function prepareBossAttempt(a: CareerAccount, battle: Battle) {
+export function prepareBossAttempt(a: CareerAccount, battle: Battle, now = Date.now()) {
   if (battle.phase !== 'boss' && battle.phase !== 'boss-intro') return;
   if (a.bossFailures?.level !== battle.level) a.bossFailures = {level: battle.level, count: 0};
   battle.bossAttempt = a.bossFailures.count + 1;
+  battle.bossAttemptsUnlimited = hasPremium(a.profile, now);
 }
-export function finishCareer(a: CareerAccount, battle: Battle) {
+export function finishCareer(a: CareerAccount, battle: Battle, now = Date.now()) {
   if (battle.phase !== 'ended' || a.lastFinishedBattle === battle.id) return;
   a.lastFinishedBattle = battle.id; a.checkpoint = undefined;
   const bossLoss = battle.planes[0].health <= 0 && battle.planes.some(p => p.id === 'boss');
   a.operationCheckpoint = !bossLoss && battle.planes[0].health <= 0 ? {level:battle.level, completed:battle.operation?.completed ?? 0} : undefined;
   a.restartLevel = battle.level; a.restartBoss = bossLoss;
   if (bossLoss) {
-    const count = (a.bossFailures?.level === battle.level ? a.bossFailures.count : 0) + 1;
-    a.bossFailures = {level: battle.level, count}; battle.bossAttempt = count;
-    if (count >= MAX_BOSS_ATTEMPTS) {
+    const unlimited = hasPremium(a.profile, now);
+    battle.bossAttemptsUnlimited = unlimited;
+    // Premium defeats do not consume the three normal attempts after expiry.
+    const count = unlimited ? 0 : (a.bossFailures?.level === battle.level ? a.bossFailures.count : 0) + 1;
+    a.bossFailures = {level: battle.level, count}; battle.bossAttempt = unlimited ? 1 : count;
+    if (!unlimited && count >= MAX_BOSS_ATTEMPTS) {
       a.restartLevel = careerStage(battle.level).start; a.restartBoss = false; a.bossFailures = undefined;
       battle.restartLevel = a.restartLevel;
       battle.bossAttemptsExhausted = true; battle.result = 'Попытки закончились';

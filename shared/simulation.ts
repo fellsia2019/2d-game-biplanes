@@ -9,7 +9,7 @@ export type { Bomber } from './bombers';
 export interface Controls { turn: number; horizontal?: number; fire: boolean; boost: boolean; skill?: boolean }
 export const IDLE: Controls = { turn: 0, fire: false, boost: false };
 export interface Stats { model: string; hp: number; speed: number; turn: number; damage: number; boostDuration?: number; boostRecharge?: number; cooling?: number; traits?: ModifierBonuses; rewardMultiplier?: number; phaseSkill?: boolean }
-interface DuelDecision { next: number; turn: number; fire: boolean; boost: boolean; aimError: number; burstUntil: number; nextBurst: number }
+interface DuelDecision { next: number; turn: number; fire: boolean; boost: boolean; aimError: number; burstUntil: number; nextBurst: number; separating?: boolean; separationSide?: number; nextEvasion?: number; evasionStart?: number; evasionUntil?: number; evasionHeading?: number; evasionSide?: number }
 export interface Plane extends Stats { id: string; x: number; y: number; angle: number; health: number; heat: number; overheated: boolean; energy: number; shot: number; dead: number; shield: number; score: number; bot: boolean; ram: number; boosting?: boolean; boostExhausted?: boolean; lastAttacker?: string; patrolIndex?: number; windup?: number; aimAngle?: number; rocketClock?: number; emergencyUsed?: boolean; phaseSeconds?: number; phaseCooldown?: number; skillHeld?: boolean; duelDecision?: DuelDecision }
 export interface Bullet { id: number; owner: string; x: number; y: number; vx: number; vy: number; life: number; damage: number; kind?: 'rocket' | 'bomb'; piercing?: number; hitTargets?: string[] }
 export interface Obstacle { id: number; kind: 'rock' | 'pvo' | 'fighter' | 'heavy'; x: number; y: number; radius: number; hp: number; fire: number; damage: number; height?: number; pvoModel?: PvoModel; terrainVariant?: number; elite?: boolean }
@@ -21,13 +21,25 @@ export interface Battle {
   time: number; distance: number; totalDistance: number; level: number; phase: 'flight' | 'sortie-reward' | 'boss-intro' | 'boss' | 'reward' | 'duel' | 'ended';
   spawn: number; seq: number; seed: number; paused: boolean; result: string; earned: Record<string, { silver: number; xp: number }>; activity: Record<string, number>;
   bossAttempt?: number; bossAttemptsExhausted?: boolean; restartLevel?: number;
+  bossAttemptsUnlimited?: boolean;
   rewardBossLevel?: number; rewardNextPhase?: 'flight' | 'ended';
   encounterSeed?: number;
+  missionIntro?: string;
   operation?: OperationState; pickups?: Pickup[];
   bombers?: Bomber[]; bomberClock?: number;
 }
 const clamp = (n: number, a: number, b: number) => Math.max(a, Math.min(b, n));
 export const angleDiff = (a: number, b: number) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+// Boss art occupies about 175×78 world units. Rotate the generous projectile
+// target with the model and test the entire bullet path, including grazing hits.
+function hitsBoss(p: Plane, fromX: number, fromY: number, toX: number, toY: number) {
+  const cos = Math.cos(p.angle), sin = Math.sin(p.angle);
+  const local = (x: number, y: number) => ({x: ((x-p.x)*cos+(y-p.y)*sin)/90, y: (-(x-p.x)*sin+(y-p.y)*cos)/45});
+  const a = local(fromX,fromY), b = local(toX,toY), dx = b.x-a.x, dy = b.y-a.y;
+  const length = dx*dx+dy*dy;
+  const t = length ? clamp(-(a.x*dx+a.y*dy)/length,0,1) : 0;
+  return (a.x+t*dx)**2+(a.y+t*dy)**2 <= 1;
+}
 function random(s: Battle) { s.seed = (1664525 * s.seed + 1013904223) >>> 0; return s.seed / 4294967296; }
 function encounterRandom(s: Battle) {
   if (s.operation) {
@@ -89,16 +101,41 @@ function botControls(s: Battle, p: Plane): Controls {
 }
 function duelBotControls(s: Battle, p: Plane, target: Plane): Controls {
   const decision = p.duelDecision ??= {next:0, turn:0, fire:false, boost:false, aimError:0, burstUntil:0, nextBurst:0};
+  // The duel wraps horizontally, so separation uses the nearest copy of the opponent.
+  const rawDx = target.x - p.x, dx = rawDx > WIDTH / 2 ? rawDx - WIDTH : rawDx < -WIDTH / 2 ? rawDx + WIDTH : rawDx;
+  const dy = target.y - p.y, distance = Math.hypot(dx, dy);
+  decision.nextEvasion ??= s.time + 6 + random(s) * 2;
+  if (s.time >= decision.nextEvasion) {
+    decision.evasionStart = s.time;
+    decision.evasionUntil = s.time + 2 + random(s);
+    decision.nextEvasion = s.time + 6 + random(s) * 2;
+    decision.evasionHeading = Math.atan2(dy, dx) + Math.PI;
+    decision.evasionSide = random(s) < .5 ? -1 : 1;
+    decision.next = 0;
+  }
+  const separating = distance < 220 || !!decision.separating && distance < 300;
+  if (separating !== !!decision.separating) {
+    decision.next = 0;
+    if (separating) {
+      const tangentY = Math.sin(Math.atan2(dy, dx) + Math.PI / 2);
+      decision.separationSide = tangentY * (330 - p.y) >= 0 ? 1 : -1;
+    }
+  }
+  decision.separating = separating;
+  const evading = s.time < (decision.evasionUntil ?? 0);
   if (s.time >= decision.next) {
     const reaction = .25 + random(s) * .05;
     decision.next = s.time + reaction;
     decision.aimError = (random(s) * 2 - 1) * Math.PI / 18;
-    const dx = target.x - p.x, dy = target.y - p.y;
-    const delta = angleDiff(Math.atan2(dy, dx) + decision.aimError, p.angle);
+    // During the scheduled break, follow a fixed zigzag rather than the player's tail.
+    const zigzag = (Math.floor((s.time - (decision.evasionStart ?? 0)) / .6) % 2 ? -1 : 1) * (decision.evasionSide ?? 1) * .65;
+    const aim = Math.atan2(dy, dx) + decision.aimError;
+    const heading = evading ? decision.evasionHeading! + zigzag : separating ? Math.atan2(dy, dx) + (decision.separationSide ?? 1) * 2.15 : aim;
+    const delta = angleDiff(heading, p.angle);
     // Hold a decision between observations without overshooting a small turn.
     decision.turn = Math.abs(delta) < .05 ? 0 : clamp(delta / (p.turn * reaction), -1, 1);
-    decision.fire = Math.abs(delta) < .3 && Math.hypot(dx, dy) < 900;
-    decision.boost = Math.hypot(dx, dy) > 550 && Math.abs(delta) < .25;
+    decision.fire = !evading && Math.abs(angleDiff(aim, p.angle)) < .3 && distance < 900;
+    decision.boost = !evading && !separating && distance > 550 && Math.abs(delta) < .25;
   }
   if (s.time >= decision.nextBurst) {
     decision.burstUntil = s.time + .55 + random(s) * .3;
@@ -110,7 +147,7 @@ function duelBotControls(s: Battle, p: Plane, target: Plane): Controls {
     const delta = angleDiff(heading, p.angle);
     return {turn:Math.abs(delta) < .08 ? 0 : Math.sign(delta), fire:false, boost:false};
   }
-  return {turn:decision.turn, fire:decision.fire && s.time < decision.burstUntil, boost:decision.boost};
+  return {turn:decision.turn, fire:!evading && decision.fire && s.time < decision.burstUntil, boost:!evading && !separating && decision.boost};
 }
 function award(s: Battle, rewards: Reward[], player: string, silver: number, xp: number, kind: Reward['kind'], win?: boolean, bossLevel?: number) {
   if (!s.earned[player]) return;
@@ -344,7 +381,7 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
       // Each bomb leaves the moving bay in sequence, forming a horizontal carpet.
       while (bomber.hp > 0 && bomber.dropped < bomber.bombs && bomber.warning + bomber.dropped * BOMBER.spacing / BOMBER.speed <= 0) {
         const x = bomber.dropX - bomber.dropped * BOMBER.spacing;
-        s.bullets.push({id:++s.seq, owner:'bomber-' + bomber.id, x, y:bomber.y + BOMBER.bayOffset, vx:0, vy:s.level < 26 ? 100 : 120, life:8, damage:def.enemyDamage * 1.8, kind:'bomb'});
+        s.bullets.push({id:++s.seq, owner:'bomber-' + bomber.id, x, y:bomber.y + BOMBER.bayOffset, vx:0, vy:s.level < 26 ? 150 : 180, life:8, damage:s.planes[0].hp * .5, kind:'bomb'});
         bomber.dropped++;
       }
     }
@@ -395,10 +432,10 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
         o.fire = o.kind === 'pvo' ? def.pvoCooldown : def.mobCooldown;
         if (o.kind === 'pvo') {
           const muzzle = pvoAim(o.x, s.planes[0]);
-          s.bullets.push({ id: ++s.seq, owner: 'obstacle-' + o.id, x: muzzle.x, y: muzzle.y, vx: Math.cos(muzzle.angle) * 240, vy: Math.sin(muzzle.angle) * 240, life: 4, damage: o.damage }); fx(s, 'shot', muzzle.x, muzzle.y);
+          s.bullets.push({ id: ++s.seq, owner: 'obstacle-' + o.id, x: muzzle.x, y: muzzle.y, vx: Math.cos(muzzle.angle) * 360, vy: Math.sin(muzzle.angle) * 360, life: 4, damage: o.damage }); fx(s, 'shot', muzzle.x, muzzle.y);
         } else {
           // Campaign aircraft face left, matching their mirrored sprites.
-          fireForward(s, 'obstacle-' + o.id, o.x, o.y, Math.PI, 240, 4, o.damage);
+          fireForward(s, 'obstacle-' + o.id, o.x, o.y, Math.PI, 360, 4, o.damage);
         }
       }
     }
@@ -412,13 +449,14 @@ export function stepBattle(s: Battle, inputs: Record<string, Controls>, dt: numb
     }
   }
   for (const b of s.bullets) {
+    const fromX = b.x, fromY = b.y;
     b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
     if (flight && b.kind === 'bomb' && b.life > 0 && (b.y >= GROUND_Y - 10 || s.obstacles.some(o => o.hp > 0 && (o.kind === 'rock' || o.kind === 'pvo') && touchesPolygon(b.x,b.y,5,o.kind === 'rock' ? rockPoints(o) : pvoPoints(o))))) {
       b.life = 0; fx(s,'explosion',b.x,Math.min(b.y,GROUND_Y - 10));
     }
     for (const p of s.planes) {
       if (p.id === b.owner || p.health <= 0 || p.shield > 0 || b.life <= 0 || b.hitTargets?.includes(p.id)) continue;
-      if (Math.hypot(p.x - b.x, p.y - b.y) < (p.id === 'boss' ? 38 : b.kind === 'bomb' ? 39 : 26)) { p.health -= b.damage * (1 - (p.traits?.resistance ?? 0)); p.lastAttacker = b.owner; bulletHit(b, p.id); fx(s, b.kind === 'rocket' || b.kind === 'bomb' ? 'explosion' : 'hit', b.x, b.y); }
+      if (p.id === 'boss' ? hitsBoss(p,fromX,fromY,b.x,b.y) : Math.hypot(p.x - b.x, p.y - b.y) < (b.kind === 'bomb' ? 39 : 26)) { p.health -= b.kind === 'bomb' ? p.hp * .5 : b.damage * (1 - (p.traits?.resistance ?? 0)); p.lastAttacker = b.owner; bulletHit(b, p.id); fx(s, b.kind === 'rocket' || b.kind === 'bomb' ? 'explosion' : 'hit', b.x, b.y); }
     }
     if (flight && b.owner === s.planes[0].id && b.life > 0) {
       for (const o of s.obstacles) {

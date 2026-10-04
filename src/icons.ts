@@ -15,7 +15,9 @@ const paths = {
   store: '<path d="M4 8h16l-1 13H5zM8 8V6a4 4 0 0 1 8 0v2"/><path d="m12 11 1.2 2.5 2.8.4-2 1.9.5 2.7-2.5-1.3-2.5 1.3.5-2.7-2-1.9 2.8-.4z"/>',
   help: '<circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4m0 3h.01"/>',
   settings: '<path d="m9.5 3-.6 2.2-1.7 1L5 5.6 2.5 10l1.6 1.6v1.9L2.5 15 5 19.4l2.2-.6 1.7 1 .6 2.2h5l.6-2.2 1.7-1 2.2.6 2.5-4.4-1.6-1.5v-1.9L21.5 10 19 5.6l-2.2.6-1.7-1L14.5 3z"/><circle cx="12" cy="12.5" r="3.5"/>',
-  silver: '<path d="m12 3 9 9-9 9-9-9z"/><path d="m12 7 5 5-5 5-5-5z"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  noAds: '<rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8M12 18v3M2 2l20 20"/>',
+  silver: '<ellipse cx="15.5" cy="6.5" rx="6.5" ry="2.8"/><path d="M9 6.5v4c0 3.7 13 3.7 13 0v-4"/><circle cx="10" cy="14" r="8"/><circle cx="10" cy="14" r="5.5"/><path d="m6.8 13 3.2-2 3.2 2m-6.4 3 3.2-2 3.2 2"/>',
   gold: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6.4"/><path d="m12 7 1.4 3 3.3.5-2.4 2.3.6 3.3-2.9-1.6-2.9 1.6.6-3.3-2.4-2.3 3.3-.5z"/>',
   xp: '<path d="m12 2 9 5v10l-9 5-9-5V7z"/><path d="m12 6 2 4 4 2-4 2-2 4-2-4-4-2 4-2z"/>',
   lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2"/>',
@@ -48,7 +50,7 @@ export type IconName = keyof typeof paths;
 export function icon(name: IconName, extraClass = '') {
   const resources = {
     gold: '<ellipse cx="8" cy="17" rx="6" ry="3" fill="#b77920" stroke="#ffe39a"/><path d="M2 13v4c0 4 12 4 12 0v-4" fill="#dc9a2a" stroke="#ffe39a"/><ellipse cx="8" cy="13" rx="6" ry="3" fill="#ffce61" stroke="#fff0ba"/><circle cx="16" cy="9" r="7" fill="#f9bd43" stroke="#fff0b0"/><circle cx="16" cy="9" r="4.7" stroke="#9f6216"/><path d="m16 5 1.1 2.6 2.9.4-2.2 1.9.6 2.8-2.4-1.5-2.4 1.5.6-2.8-2.2-1.9 2.9-.4z" fill="#fff0ab" stroke="none"/>',
-    silver: '<path d="m5 7 11-3 6 10-4 6-16-3z" fill="#a9c6df" stroke="#eff7ff"/><path d="m5 7 11-3-1 8-13 5z" fill="#e0effb" stroke="#eff7ff"/><path d="m15 12 7 2-4 6-3-8z" fill="#789cb8" stroke="#eff7ff"/><path d="m8 10 5-1" stroke="#819eb5"/><path d="M20 2v4m-2-2h4" stroke="#fff"/>',
+    silver: '<path d="M9 6.5v4c0 3.7 13 3.7 13 0v-4" fill="#7f9bb2" stroke="#d5e5f1"/><path d="M17 8.9v3.7m3-4.4v3.4" fill="none" stroke="#a7bfce" stroke-width=".8"/><ellipse cx="15.5" cy="6.5" rx="6.5" ry="2.8" fill="#d9e6ee" stroke="#f4faff"/><ellipse cx="15.5" cy="6.5" rx="4.4" ry="1.4" fill="none" stroke="#94adbf" stroke-width=".8"/><circle cx="10.6" cy="14.7" r="8" fill="#526e86" stroke="#c6d9e8"/><circle cx="10" cy="14" r="8" fill="#c8dce9" stroke="#f1f8ff"/><circle cx="10" cy="14" r="5.5" fill="#9ab6cc" stroke="#58768f" stroke-width="1"/><path d="m6.8 13 3.2-2 3.2 2m-6.4 3 3.2-2 3.2 2" fill="none" stroke="#edf7ff" stroke-width="1.7"/><path d="M4.1 10.6a6.8 6.8 0 0 1 4-3.2" fill="none" stroke="#ffffff" stroke-width="1.4"/>',
     xp: '<path d="m12 2 9 5v10l-9 5-9-5V7z" fill="#277e73" stroke="#acf5d8"/><path d="m12 5 2.1 4.5L19 12l-4.9 2.5L12 19l-2.1-4.5L5 12l4.9-2.5z" fill="#b2ffcf" stroke="none"/><path d="m12 8 1 3 3 1-3 1-1 3-1-3-3-1 3-1z" fill="#f4ffe8" stroke="none"/>',
   };
   if (name in resources) return '<svg class="icon resource-icon icon-' + name + ' ' + extraClass + '" viewBox="0 0 24 24" width="24" height="24" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + resources[name as keyof typeof resources] + '</svg>';

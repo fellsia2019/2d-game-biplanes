@@ -2,21 +2,22 @@ import { MODIFIERS, MODIFIER_TIERS, modifierCopy, modifierLevel, type ModifierId
 import { bossBalance, type Profile } from '../shared/data';
 import { icon } from './icons';
 
-function card(id: ModifierId, level: number, state: 'owned' | 'available' | 'choice', upgrade = false) {
+function card(id: ModifierId, level: number, state: 'owned' | 'available' | 'choice', upgrade = false, fresh = false) {
   const mod = MODIFIERS.find(m => m.id === id)!, tier = MODIFIER_TIERS[mod.tier], copy = modifierCopy(id, level);
   const tag = state === 'choice' ? 'button' : 'article';
   return '<' + tag + ' class="modifier-card tier-' + mod.tier + ' modifier-' + state + '" ' + (state === 'choice' ? 'type="button" data-modifier="' + id + '" aria-label="Выбрать ' + mod.name + (upgrade ? ', улучшение до уровня ' + level : '') + '"' : '') + '>' +
     '<span class="modifier-card-top"><span class="modifier-rarity"><i></i>' + tier.name + '</span><span class="modifier-number">' + tier.mark + '</span></span>' +
     '<span class="modifier-art" aria-hidden="true"><i></i>' + icon(mod.symbol) + '<span class="modifier-stars">' + '◆'.repeat(Object.keys(MODIFIER_TIERS).indexOf(mod.tier) + 1) + '</span></span>' +
     '<span class="modifier-category">' + mod.category + '</span><span class="modifier-name">' + mod.name + '</span><span class="modifier-metric">' + copy.metric + '</span><span class="modifier-description">' + copy.detail + '</span>' +
+    (fresh ? '<span class="modifier-new">' + icon('spark') + (level > 1 ? 'Улучшен' : 'Новый') + '</span>' : '') +
     '<span class="modifier-card-foot">' + (state === 'owned' ? icon('check') + ' Получен · ур. ' + level : state === 'choice' ? (upgrade ? 'Улучшить до ур. ' + level : 'Выбрать навсегда') + icon('arrow') : 'Не получен · награда за босса') + '</span></' + tag + '>';
 }
-export function renderModifiers(p: Profile, filter: 'all' | 'owned') {
+export function renderModifiers(p: Profile, filter: 'all' | 'owned', fresh: readonly ModifierId[] = []) {
   const owned = p.modifiers ?? [], visible = MODIFIERS.filter(m => filter === 'all' || owned.some(o => o.id === m.id));
   return '<div class="page-heading"><div><span class="collection-kicker">НАСЛЕДИЕ ПИЛОТА</span><h1>Модификаторы</h1></div><span class="collection-count">' + owned.length + '<small>/ ' + MODIFIERS.length + '</small></span></div>' +
     '<p class="collection-intro">Ваш постоянный набор для всей карьеры. Действует на любом самолёте и сохраняется при откате этапа. Каждый выбор остаётся навсегда.</p>' +
     '<div class="collection-toolbar" role="tablist" aria-label="Модификаторы"><button role="tab" class="collection-filter ' + (filter === 'owned' ? 'selected' : '') + '" data-modifier-filter="owned" aria-selected="' + (filter === 'owned') + '">Мои модификаторы <b>' + owned.length + '</b></button><button role="tab" class="collection-filter ' + (filter === 'all' ? 'selected' : '') + '" data-modifier-filter="all" aria-selected="' + (filter === 'all') + '">Каталог <b>' + MODIFIERS.length + '</b></button></div>' +
-    (visible.length ? '<div class="modifier-grid">' + visible.map(m => { const level = modifierLevel(owned, m.id); return card(m.id, level || 1, level ? 'owned' : 'available'); }).join('') + '</div>' : '<div class="collection-empty">' + icon('cards') + '<h2>Первая карточка ждёт у босса</h2><p>Победите Капитана Бурю на уровне 10 и выберите один из трёх модификаторов.</p><button class="button" data-tab="play">К вылету ' + icon('arrow') + '</button></div>') +
+    (visible.length ? '<div class="modifier-grid">' + visible.map(m => { const level = modifierLevel(owned, m.id); return card(m.id, level || 1, level ? 'owned' : 'available', false, fresh.includes(m.id)); }).join('') + '</div>' : '<div class="collection-empty">' + icon('cards') + '<h2>Первая карточка ждёт у босса</h2><p>Победите Капитана Бурю на уровне 10 и выберите один из трёх модификаторов.</p><button class="button" data-tab="play">К вылету ' + icon('arrow') + '</button></div>') +
     '<p class="collection-note">Четыре редкости · новые карточки без повторов. Когда коллекция собрана, боссы предлагают улучшить полученные модификаторы. В дуэлях эти бонусы не действуют.</p>';
 }
 export function renderModifierReward(p: Profile, offer: ModifierOffer) {

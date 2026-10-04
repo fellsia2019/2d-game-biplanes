@@ -1,6 +1,7 @@
 import { ZONE, type Profile } from '../shared/data';
 import type { Battle } from '../shared/simulation';
 import { icon } from './icons';
+import { hasPremium } from '../shared/premium';
 
 export class DebugPanel {
   private root = document.createElement('aside');
@@ -8,11 +9,15 @@ export class DebugPanel {
   private busy = false;
   private battle?: Battle;
   private training = false;
+  private premium = false;
   isOpen = false;
   constructor(private action: (action: string, amount: number) => Promise<unknown>, private pause: (open: boolean) => void, private fail: (message: string) => void) {
     this.root.id = 'debug-panel'; this.root.hidden = true;
     this.root.innerHTML = '<button class="debug-toggle" type="button" aria-expanded="false" aria-controls="debug-controls">' + icon('repair') + ' Debug <kbd>F2</kbd></button><section id="debug-controls" hidden><header><b>Пульт тестирования</b><span>ЛОКАЛЬНЫЙ РЕЖИМ</span></header><p class="debug-wallet"></p><label>Количество <input type="number" min="1" max="1000000" step="1" value="1000" aria-label="Количество debug-ресурсов"></label><div class="debug-money"><button type="button" data-debug="xp">+ Опыт</button><button type="button" data-debug="gold">+ Золото</button><button type="button" data-debug="silver">+ Серебро</button></div><p class="debug-level"></p><div class="debug-battle"><button type="button" data-debug="next-level">Следующий уровень +1</button><button type="button" data-debug="win-boss">' + icon('trophy') + ' Победить босса</button></div><small>Панель ставит полёт на паузу. Ресурсы и прогресс сохраняются.</small></section>';
     document.body.append(this.root);
+    const premiumControl = document.createElement('p');
+    premiumControl.innerHTML = '<button type="button" class="debug-premium" data-debug="premium-on" role="switch" aria-checked="false">Премиум: выключен · Включить</button>';
+    this.root.querySelector('#debug-controls')!.insertBefore(premiumControl, this.root.querySelector('.debug-level'));
     this.root.addEventListener('click', e => {
       const button = (e.target as HTMLElement).closest<HTMLButtonElement>('button'); if (!button) return;
       if (button.classList.contains('debug-toggle')) { this.toggle(); return; }
@@ -32,6 +37,11 @@ export class DebugPanel {
   setEnabled(enabled: boolean) { this.enabled = enabled; this.root.hidden = !enabled; }
   update(p: Profile | undefined, battle: Battle | undefined, training: boolean) {
     this.battle = battle; this.training = training;
+    this.premium = !!p && hasPremium(p);
+    const premiumButton = this.root.querySelector<HTMLButtonElement>('.debug-premium')!;
+    premiumButton.dataset.debug = this.premium ? 'premium-off' : 'premium-on';
+    premiumButton.textContent = this.premium ? 'Премиум: включён · Выключить' : 'Премиум: выключен · Включить';
+    premiumButton.setAttribute('aria-checked', String(this.premium));
     this.root.querySelector<HTMLElement>('.debug-wallet')!.textContent = p ? 'XP ' + p.xp + ' · золото ' + p.gold + ' · серебро ' + p.silver : 'Загрузка профиля…';
     this.root.querySelector<HTMLElement>('.debug-level')!.textContent = training ? 'Обучение: переходы отключены' : battle?.mode === 'pve' ? 'Кампания · уровень ' + battle.level + ' / ' + ZONE.length : 'Для переходов запустите кампанию';
     this.updateButtons();

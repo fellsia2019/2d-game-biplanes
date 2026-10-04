@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { WebSocket } from 'ws';
+import { hasPremium, PREMIUM_DURATION_MS } from '../shared/premium';
 class DebugPeer {
   ws = new WebSocket('ws://127.0.0.1:5198/socket'); messages: any[]=[];
   waiters: {predicate:(m:any)=>boolean;resolve:(m:any)=>void}[]=[];
@@ -31,6 +32,34 @@ async function withServer(debug:boolean, work:(peer:DebugPeer,store:string)=>Pro
 }
 test('Обычный сервер отклоняет debug-команды и не меняет баланс',async()=>{
   await withServer(false,async peer=>{const auth=await peer.auth();assert.equal(auth.welcome.debugEnabled,false);await assert.rejects(peer.call('debug',{action:'gold',amount:1000}),/отключена/);const p=peer.wait(m=>m.type==='profile');peer.send({type:'refresh'});assert.equal((await p).profile.gold,0);});
+});
+
+test('Debug premium toggles persist and update the current boss; normal server rejects both actions', async()=>{
+  await withServer(false, async peer=>{
+    await peer.auth();
+    for(const action of ['premium-on','premium-off']) await assert.rejects(peer.call('debug',{action}), /отключена/);
+    const profile=peer.wait(m=>m.type==='profile');peer.send({type:'refresh'});
+    assert.equal(hasPremium((await profile).profile),false);
+  });
+  await withServer(true, async(peer,store)=>{
+    await peer.auth();
+    await peer.call('debug',{action:'premium-on'});
+    let saved=JSON.parse(await readFile(store,'utf8'))[0];
+    assert.equal(hasPremium(saved.profile),true);
+    assert.equal(saved.profile.premium.expiresAt-saved.profile.premium.purchasedAt,PREMIUM_DURATION_MS);
+    const start=peer.wait(m=>m.type==='start');peer.send({type:'pve'});await start;
+    for(let level=2;level<=10;level++)await peer.call('debug',{action:'next-level',paused:true});
+    assert.equal(peer.last('start').battle.bossAttemptsUnlimited,true);
+    const before=peer.last('start').battle;
+    await peer.call('debug',{action:'premium-off'});
+    assert.equal(peer.last('state').battle.bossAttemptsUnlimited,false);
+    assert.equal(peer.last('state').battle.id,before.id);
+    assert.equal(peer.last('state').battle.paused,true);
+    saved=JSON.parse(await readFile(store,'utf8'))[0];assert.equal(saved.profile.premium,undefined);
+    await peer.call('debug',{action:'premium-on'});
+    assert.equal(peer.last('state').battle.bossAttemptsUnlimited,true);
+    assert.equal(hasPremium(peer.last('profile').profile),true);
+  });
 });
 test('Debug: ресурсы сохраняются, +1 идёт через уровни, босс и ангар заморожены, выбор карточки атомарен', {timeout:20000}, async()=>{
   await withServer(true,async(peer,store)=>{

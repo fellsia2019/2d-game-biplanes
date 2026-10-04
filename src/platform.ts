@@ -1,11 +1,20 @@
+import { hasPremium, type PremiumState } from '../shared/premium';
+
 export interface Product { id: string; price: string; priceValue: string; priceCurrencyCode: string }
 interface Player { isAuthorized(): boolean; getData(keys: string[]): Promise<{ biplanesToken?: string }>; setData(data: object, flush: boolean): Promise<void> }
 interface Payments { getCatalog(): Promise<Product[]>; purchase(options: { id: string; developerPayload: string }): Promise<{ signature: string }>; getPurchases(): Promise<{ signature: string }>; consumePurchase(token: string): Promise<void> }
+interface AdCallbacks { onOpen(): void; onClose(wasShown?: boolean): void; onError(error: object): void; onRewarded(): void }
+interface Advertising {
+  showFullscreenAdv(options: { callbacks: AdCallbacks }): void;
+  showRewardedVideo(options: { callbacks: AdCallbacks }): void;
+  hideBannerAdv?(): Promise<unknown>;
+}
 interface Sdk {
   features: { LoadingAPI?: { ready(): void }; GameplayAPI?: { start(): void; stop(): void } };
   on(event: 'game_api_pause' | 'game_api_resume', callback: () => void): void;
   getPlayer(): Promise<Player>; getPayments(options: { signed: true }): Promise<Payments>;
   auth: { openAuthDialog(): Promise<void> };
+  adv?: Advertising;
 }
 declare global { interface Window { YaGames?: { init(): Promise<Sdk> } } }
 type Rpc = (type: string, data?: object) => Promise<any>;
@@ -18,11 +27,18 @@ export class Platform {
   private sdk?: Sdk; private player?: Player; private payments?: Payments;
   private playing = false; private ready = false; private readySent = false; private busy = false;
   private token?: string; private cloudSaved = false; private cloudRead = false; private recovery?: Promise<void>;
+  private adBusy = false; private pauseAd?: (value: boolean) => void;
+  constructor(private currentProfile: () => PremiumState | undefined = () => undefined) {}
   products: Product[] = []; onChange?: () => void;
   get available() { return !!this.sdk; }
   get authorized() { return this.player?.isAuthorized() ?? false; }
   get canPay() { return !!this.payments && this.authorized && this.cloudSaved; }
-  async init(pause: (value: boolean) => void) {
+  get canShowAds() {
+    const profile = this.currentProfile();
+    return !!profile && !hasPremium(profile) && !!this.sdk?.adv && !this.busy && !this.adBusy;
+  }
+  async init(pause: (value: boolean) => void, pauseAd = pause) {
+    this.pauseAd = pauseAd;
     try {
       if (!window.YaGames && location.hostname !== '127.0.0.1' && location.hostname !== 'localhost') {
         await new Promise<void>((resolve, reject) => {
@@ -33,6 +49,7 @@ export class Platform {
       }
       if (!window.YaGames) return;
       this.sdk = await deadline(window.YaGames.init());
+      void this.refreshAds();
       this.sdk.on('game_api_pause', () => pause(true)); this.sdk.on('game_api_resume', () => pause(false));
       this.notifyReady();
       if (this.playing) this.sdk.features.GameplayAPI?.start();
@@ -41,6 +58,42 @@ export class Platform {
         (async () => { try { this.payments = await deadline(this.sdk!.getPayments({ signed: true }), 4000); this.products = await deadline(this.payments.getCatalog(), 4000); } catch { this.payments = undefined; } })(),
       ]);
     } catch { /* Local mode remains playable. */ }
+  }
+  // Call when the server supplies a profile or restores a purchase. Banner
+  // control must be enabled in the platform console before using sticky ads.
+  async refreshAds() {
+    const profile = this.currentProfile();
+    if (!profile || hasPremium(profile)) {
+      try { await this.sdk?.adv?.hideBannerAdv?.(); }
+      catch { /* An unavailable banner must not block loading or a purchase. */ }
+    }
+  }
+  showFullscreenAd() { return this.showAd('fullscreen'); }
+  showRewardedAd() { return this.showAd('rewarded'); }
+  private showAd(kind: 'fullscreen' | 'rewarded'): Promise<boolean> {
+    // Read the current entitlement and clock for every request, including
+    // expiry, extension and restored receipts. Unknown profiles fail closed.
+    if (!this.canShowAds) return Promise.resolve(false);
+    this.adBusy = true;
+    return new Promise(resolve => {
+      let opened = false, finished = false, rewarded = false;
+      const finish = (success: boolean) => {
+        if (finished) return;
+        finished = true; this.adBusy = false;
+        if (opened) this.pauseAd?.(false);
+        resolve(success);
+      };
+      const callbacks: AdCallbacks = {
+        onOpen: () => { if (!finished) { opened = true; this.pauseAd?.(true); } },
+        onRewarded: () => { if (!finished) rewarded = true; },
+        onClose: shown => finish(kind === 'rewarded' ? rewarded : shown === true),
+        onError: () => finish(false),
+      };
+      try {
+        if (kind === 'rewarded') this.sdk!.adv!.showRewardedVideo({ callbacks });
+        else this.sdk!.adv!.showFullscreenAdv({ callbacks });
+      } catch { finish(false); }
+    });
   }
   private async readCloudToken() {
     if (!this.authorized) return;
@@ -79,7 +132,7 @@ export class Platform {
     if (result.pending.length) throw new Error('Некоторые покупки ожидают проверки ангара');
   }
   async purchase(id: string, rpc: Rpc) {
-    if (this.busy || !this.canPay || !this.payments) throw new Error('Войдите в Яндекс и дождитесь сохранения ангара');
+    if (this.busy || this.adBusy || !this.canPay || !this.payments) throw new Error('Войдите в Яндекс и дождитесь сохранения ангара');
     this.busy = true;
     let paid = false;
     try {

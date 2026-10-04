@@ -13,6 +13,7 @@ export function mountCareerSlider() {
     initialSlide: Number(container.dataset.current ?? 0), centeredSlides: true, centeredSlidesBounds: true,
     watchOverflow: true, grabCursor: true, keyboard: {enabled: true, onlyInViewport: true},
     navigation: {prevEl: route.querySelector<HTMLElement>('.career-prev'), nextEl: route.querySelector<HTMLElement>('.career-next')},
-    a11y: {prevSlideMessage: 'Предыдущие этапы', nextSlideMessage: 'Следующие этапы', slideLabelMessage: 'Этап {{index}} из {{slidesLength}}'},
+    // Keep each card's own accessible label, including its progress and lock.
+    a11y: {prevSlideMessage: 'Предыдущие этапы', nextSlideMessage: 'Следующие этапы', slideLabelMessage: ''},
   });
 }

@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-04",
+  "branch": "main",
+  "baseCommit": "5043eaa",
+  "checks": {
+    "tests": {
+      "passed": 296,
+      "failed": 0,
+      "skipped": 0
+    },
+    "build": "passed for final changes before commit",
+    "diffCheck": "passed",
+    "consoleErrors": [],
+    "enemyProjectiles": "Bomb/mob/PVO/boss speeds increased 50%; all 11 bosses tested at four rotations for nose/tail/wing hits and outside misses. Swept hits, rockets, piercing single-hit and shield protection verified. Player and duel firing unchanged.",
+    "bossDamageCadence": "Damage25/100/200/250 is15/30/45/70; intermediate damage grows monotonically. Cooldown200/225/250 is1.25/1.125/1 seconds. Actual shot timing and damage verified at30Hz.294 tests passed.",
+    "projectileRender": "Regression tests cover duplicate backward corrections for mob/boss bullets and bombs, older snapshots with a different phase, resumed forward movement and projectile disappearance. Shared rendered coordinates keep contrast and body aligned; no server state mutation or extrapolation.296 tests passed."
+  },
+  "browser": {
+    "clouds": "Continuous softly shaded silhouettes, no circle seams",
+    "silver": "Silver coins with a stack on the right, foreground face on the left, double-chevron engraving and ridged edge; distinct from gold composition and star.",
+    "projectileContrast": "Enemy bullet and bomber carpet rendered with yellow and navy outlines; persisted after reload; default restored to off",
+    "premium": "No-ad perk and purchase description visible; SDK mocked for premium, expiry, unknown profiles, close/error and reward confirmation",
+    "tasks": "Badge remained after opening tasks; isolated preview claimed login and two tasks: 3 → 2 → 0",
+    "modifiers": "New and upgraded cards produced badge; opening collection cleared badge and displayed Новый / Улучшен",
+    "profileSafety": "Menu preview replaces storage and transport with memory; no server socket or user progression changes",
+    "stages": "Locked stages show a gold lock and Закрыт; current route is green; past route stages retain check marks. Cards are a noninteractive progress map; Swiper preserves complete accessible labels.",
+    "mainWallet": "Silver, gold and XP visible on the main screen; wallet fits a 320px viewport; gold opens store; main screen restored after check.",
+    "missionIntro": "Large objective dialog: Full HD 1920x1080 title54px/panel760x406; landscape phone844x390 title33.76px/panel680x234, fully visible. Auto-dismiss and early button verified. Manual pause held countdown at5 and restored dialog after resume. Server tests verify no simulation time/damage while gated, stale keys rejected, next sortie and reconnect gated, reward credited once. Local debug server restarted on5187; user profile preserved.",
+    "duelBotSimulation": "Close retreat at220, released at300; a short outward turn rather than an endless retreat. Close retreat may fire if nose aims at player, no boost. Scheduled zigzag every6–8s for2–3s remains non-firing. Fifteen moving-player scenarios across all5 models and3 seeds fired12–43 times in30s. Safety, deterministic behavior and boss regression passed.",
+    "duelScore": "Persistent centered score with You/Bot or Player labels, timer and first-to3 rule. Isolated actual-client fixture verified0:0→1:0, enemy death/2s return label, score stays1:0 after respawn, final3:0 victory. Phone844x390 score26px; FullHD42px. Width320 fits138px score panel without overlapping HP/pause or text overflow. Build/diff passed; prior281-test simulation suite unchanged.",
+    "compactDuelScore": "Phone844x390:220x47.19 panel,22px score; score and HP backgrounds both rgba(16,36,53,0.44). Persistent respawn explanation hidden on mobile; death countdown still shown temporarily.",
+    "bombs": "Smooth metallic nose-down bomb with fins; visible in actual client scene at FullHD and844x390, contrast outline retained. Projectile sprites removed with expired IDs. Authoritative collision damage exactly50% current maxHP across100/350/801HP, levels7/201, resistance0/.5 and legacy damage99999. Spawn shield still blocks; normal bullet resistance unchanged.Included in the current 294-test suite.",
+    "premiumBossAttempts": "Active premium stays at boss after repeated defeats; free/expired resets after third defeat. Tests cover purchase after two losses, expiry during battle, persistence and idempotence. WebSocket integration rejects forged client flag and verifies disk outcomes. Actual client store shows unlimited perk and no-reset explanation; boss intro shows infinity and unlimited attempts.",
+    "fleetAvailability": "Boss-only unlock verified with no predecessor ownership or upgrades, insufficient balance rejected without charge. Owned blue, purchasable green, shortfall amber and locked muted with lock; selected outline preserves status. Enabled green purchase and disabled boss/shortfall buttons checked in real client with memory profile. FullHD1920x1080 and phone844x390 checked."
+  },
+  "viewports": [
+    {
+      "canvas": [
+        1689.578125,
+        950.390625
+      ],
+      "field": [
+        1689.59375,
+        950.390625
+      ],
+      "navPresent": false,
+      "viewport": [
+        1920,
+        1080
+      ]
+    },
+    {
+      "canvas": [
+        2252.765625,
+        1267.1875
+      ],
+      "field": [
+        2252.796875,
+        1267.1875
+      ],
+      "hud": [
+        2252.796875,
+        1267.1875
+      ],
+      "navPresent": false,
+      "viewport": [
+        2560,
+        1440
+      ]
+    },
+    {
+      "canvas": [
+        3379.1875,
+        1900.78125
+      ],
+      "field": [
+        3379.1875,
+        1900.796875
+      ],
+      "hud": [
+        3379.1875,
+        1900.796875
+      ],
+      "navPresent": false,
+      "viewport": [
+        3840,
+        2160
+      ]
+    }
+  ],
+  "limitations": [
+    "Real Yandex SDK ads and ad placements are not connected",
+    "Viewport checks verify geometry, not FPS"
+  ],
+  "screenshots": [
+    "settings-default.jpg",
+    "premium-silver.jpg",
+    "bullets-contrast.jpg",
+    "bombs-contrast.jpg",
+    "notifications-fullhd.png",
+    "modifier-new-fullhd.png",
+    "main-notifications.jpg",
+    "silver-coins.jpg",
+    "stages-locked.jpg",
+    "main-wallet.jpg",
+    "premium-unlimited-store.png",
+    "premium-unlimited-boss-intro.png",
+    "fleet-available-fullhd.png",
+    "fleet-locked-fullhd.png",
+    "fleet-shortfall-fullhd.png",
+    "fleet-locked-mobile.png"
+  ],
+  "historicalScreenshots": "mission-intro-fullhd.png and mission-intro-mobile.png capture the original five-second preview; current duration is fifteen seconds, verified by tests. duel-score-mobile.png/fullhd.png precede the compact mobile card; duel-score-compact-mobile.png records the current mobile layout."
+}

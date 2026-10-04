@@ -18,8 +18,13 @@ import { phoenixPartRequirements } from '../shared/phoenix';
 import type { Upgrade } from '../shared/data';
 import { Battle } from '../shared/simulation';
 import { operationPlan, operationMission, missionProgress } from '../shared/operations';
+import { MissionIntroClock } from '../shared/mission-intro';
+import { saveProjectileContrast } from './preferences';
+import { countTaskRewards, ModifierInbox } from './menu-notifications';
 const app = document.querySelector<HTMLDivElement>('#app')!, toastEl = document.querySelector<HTMLDivElement>('#toast')!;
-const scene = new SkyScene(), platform = new Platform();
+const scene = new SkyScene(), platform = new Platform(() => p);
+const modifierInbox = new ModifierInbox();
+const missionIntroClock = new MissionIntroClock();
 const loading = new LoadingScreen(); loading.stage('Загружаем самолёты и небо…', 0);
 const debug = import.meta.env.DEV ? new DebugPanel((action, amount) => rpc('debug', {action, amount, paused:true}), open => setPause('debug', open), toast) : undefined;
 new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: 1200, height: 675, backgroundColor: '#92caff', scene: [scene], scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, render: { antialias: true, roundPixels: false }, audio: { noAudio: true } });
@@ -153,11 +158,15 @@ function syncAudio() {
   scene.audio.setScene(!!battle && battle.phase !== 'ended');
   scene.audio.suspend(document.hidden || pauseReasons.size > 0 || !!battle?.paused);
 }
-function navButton(id: string, icon: string, label: string) { return '<button class="nav-item ' + (tab === id ? 'selected' : '') + '" data-tab="' + id + '"><span>' + icon + '</span>' + label + '</button>'; }
+function navButton(id: string, symbol: string, label: string) {
+  const count = p ? id === 'tasks' ? countTaskRewards(p) : id === 'modifiers' ? modifierInbox.unseen(p).length : 0 : 0;
+  const notice = count ? label + (id === 'tasks' ? ': награды доступны — ' : ': новые или улучшенные карточки — ') + count : label;
+  return '<button class="nav-item ' + (tab === id ? 'selected ' : '') + (count ? 'has-notice' : '') + '" data-tab="' + id + '" aria-label="' + notice + '" title="' + notice + '"><span class="nav-symbol">' + symbol + (count ? '<b class="nav-badge" aria-hidden="true">' + (count > 9 ? '9+' : count) + '</b>' : '') + '</span>' + label + '</button>';
+}
 function topbar() {
   if (!p) return '';
   return '<header class="topbar"><a class="brand" href="#" data-tab="play" aria-label="Главный экран">' + icon('compass') + '<span>БИПЛАНЫ</span></a>' +
-    (tab !== 'play' && tab !== 'help' && tab !== 'settings' ? '<div class="wallet"><span class="silver" aria-label="Серебро: ' + money(p.silver) + '">' + icon('silver') + '<b>' + money(p.silver) + '</b></span><button class="gold balance-button" data-tab="store" aria-label="Золото: ' + money(p.gold) + '. Открыть магазин">' + icon('gold') + '<b>' + money(p.gold) + '</b></button><span class="xp" aria-label="Опыт">' + icon('xp') + money(p.xp) + ' XP</span></div>' : '') + '</header>';
+    (tab !== 'help' && tab !== 'settings' ? '<div class="wallet"><span class="silver" aria-label="Серебро: ' + money(p.silver) + '">' + icon('silver') + '<b>' + money(p.silver) + '</b></span><button class="gold balance-button" data-tab="store" aria-label="Золото: ' + money(p.gold) + '. Открыть магазин">' + icon('gold') + '<b>' + money(p.gold) + '</b></button><span class="xp" aria-label="Опыт">' + icon('xp') + money(p.xp) + ' XP</span></div>' : '') + '</header>';
 }
 function tasks() {
   const day = new Date().toISOString().slice(0, 10), claimed = p!.loginDay === day;
@@ -176,7 +185,7 @@ function settings() {
     const sound = action === 'sound', muted = sound ? scene.audio.muted : scene.audio.musicMuted;
     return '<button class="audio-setting ' + (muted ? 'audio-off' : '') + '" data-action="' + action + '" aria-label="' + (sound ? 'Звуковые эффекты' : 'Фоновая музыка') + '" aria-pressed="' + !muted + '"><span class="setting-symbol" data-audio-icon>' + icon(sound ? muted ? 'muted' : 'volume' : muted ? 'musicOff' : 'music') + '</span><span class="setting-copy"><b>' + (sound ? 'Звуковые эффекты' : 'Фоновая музыка') + '</b><span>' + (sound ? 'Выстрелы, попадания и награды' : 'Музыка в меню и во время полёта') + '</span></span><span class="audio-state"><span data-audio-state>' + (sound ? muted ? 'Выключены' : 'Включены' : muted ? 'Выключена' : 'Включена') + '</span><i class="toggle-track" aria-hidden="true"></i></span></button>';
   }).join('');
-  return '<div class="page-heading"><h1>Настройки</h1></div><section class="settings-panel"><h2>Звук</h2><div class="audio-settings">' + rows + '</div><h2>Управление</h2><button class="audio-setting" data-action="touch-setting" aria-pressed="' + forceTouch + '"><span class="setting-symbol">' + icon('turnRight') + '</span><span class="setting-copy"><b>Всегда показывать экранное управление</b><span>Круговой контрол и огонь. На телефоне включаются автоматически.</span></span><span class="audio-state">' + (forceTouch ? 'Включено' : 'Автоматически') + '</span></button><p class="muted">Настройки сохраняются на этом устройстве.</p></section>';
+  return '<div class="page-heading"><h1>Настройки</h1></div><section class="settings-panel"><h2>Звук</h2><div class="audio-settings">' + rows + '</div><h2>Управление</h2><button class="audio-setting" data-action="touch-setting" aria-pressed="' + forceTouch + '"><span class="setting-symbol">' + icon('turnRight') + '</span><span class="setting-copy"><b>Всегда показывать экранное управление</b><span>Круговой контрол и огонь. На телефоне включаются автоматически.</span></span><span class="audio-state">' + (forceTouch ? 'Включено' : 'Автоматически') + '</span></button><h2>Доступность</h2><button class="audio-setting projectile-setting" data-action="projectile-contrast" aria-label="Заметные снаряды врагов" aria-pressed="' + scene.projectileContrast + '"><span class="setting-symbol">' + icon('eye') + '</span><span class="setting-copy"><b>Заметные снаряды врагов</b><span>Увеличенная подсветка и яркий контур вражеских пуль и бомб.</span></span><span class="audio-state"><span>' + (scene.projectileContrast ? 'Включено' : 'Выключено') + '</span><i class="toggle-track" aria-hidden="true"></i></span></button><p class="muted">Настройки сохраняются на этом устройстве.</p></section>';
 }
 function help() {
   const card = (mode: TutorialMode, title: string, symbol: 'plane' | 'duel') => {
@@ -193,7 +202,9 @@ function renderMenu(preserveScroll = false) {
   scene.active = false; platform.gameplay(false); document.body.classList.remove('in-flight');
   syncAudio();
   if (!p) { app.innerHTML = '<div class="connecting"><span class="brand-mark">' + icon('gold') + '</span><h1>БИПЛАНЫ</h1><p>' + (connected ? 'Готовим самолёт…' : 'Соединяемся с ангаром…') + '</p></div>'; return; }
-  const content = tab === 'play' ? renderLobby(p, resume, restartLevel, operationCompleted) : tab === 'fleet' ? renderHangar(p, inspectedPlane) : tab === 'modifiers' ? renderModifiers(p, modifierFilter) : tab === 'skills' ? renderSkills(p) : tab === 'tasks' ? tasks() : tab === 'store' ? renderStore(p, { available: paymentsEnabled && platform.canPay, authorized: platform.authorized, platformAvailable: platform.available, products: platform.products }) : tab === 'settings' ? settings() : help();
+  const newModifiers = modifierInbox.unseen(p);
+  if (tab === 'modifiers' && !bossOffer) modifierInbox.markSeen(p);
+  const content = tab === 'play' ? renderLobby(p, resume, restartLevel, operationCompleted) : tab === 'fleet' ? renderHangar(p, inspectedPlane) : tab === 'modifiers' ? renderModifiers(p, modifierFilter, newModifiers) : tab === 'skills' ? renderSkills(p) : tab === 'tasks' ? tasks() : tab === 'store' ? renderStore(p, { available: paymentsEnabled && platform.canPay, authorized: platform.authorized, platformAvailable: platform.available, products: platform.products }) : tab === 'settings' ? settings() : help();
   const gate = bossGateLevel ? '<aside class="boss-return"><span>' + icon('target') + '<span><b>' + bossBalance(bossGateLevel).name + ' ждёт</b><small>Бой сохранён · уровень ' + bossGateLevel + '</small></span></span><button class="button" data-action="boss-return">К боссу ' + icon('arrow') + '</button></aside>' : '';
   app.innerHTML = '<div class="shell screen-' + tab + '">' + topbar() + '<main class="menu-content">' + gate + content + '</main><nav class="menu-nav" aria-label="Главное меню">' + navButton('play', icon('play'), 'Играть') + navButton('fleet', icon('plane'), 'Самолёты') + navButton('modifiers', icon('cards'), 'Модификаторы') + navButton('skills', icon('layers'), 'Навыки') + navButton('tasks', icon('tasks'), 'Задачи') + navButton('store', icon('store'), 'Магазин') + navButton('settings', icon('settings'), 'Настройки') + '</nav>' + (!connected ? '<div class="connection-warning">Восстанавливаем соединение…</div>' : '') + '</div>' + (bossOffer ? renderModifierReward(p, bossOffer) : '');
   const contentElement = document.querySelector('.menu-content'); if (contentElement) contentElement.scrollTop = scrollTop;
@@ -201,20 +212,23 @@ function renderMenu(preserveScroll = false) {
 }
 function renderQueue() {
   destroyCareerSlider();
-  app.innerHTML = '<div class="shade"><section class="queue-panel"><span class="eyebrow">ВОЗДУШНАЯ ДУЭЛЬ</span><h1>Поиск соперника</h1><div class="radar"><i></i><span>' + icon('plane') + '</span></div><div class="queue-time"><b id="queue-seconds">0</b><span>сек</span></div><p id="queue-hint">Ищем игрока</p><label class="bot-option"><input id="allow-bots" type="checkbox" ' + (p!.allowBots ? 'checked' : '') + '> Разрешить ботов</label><p class="muted">Бот через 15 секунд, если игрок не найдётся.</p><button class="button" data-action="queue-bot" ' + (!p!.allowBots ? 'hidden' : '') + '>Сразу в бой с ботом ' + icon('duel') + '</button><button class="plain" data-action="cancel">Назад</button></section></div>';
+  app.innerHTML = '<div class="shade"><section class="queue-panel"><span class="eyebrow">ВОЗДУШНАЯ ДУЭЛЬ</span><h1>Поиск соперника</h1><div class="radar"><i></i><span>' + icon('plane') + '</span></div><div class="queue-time"><b id="queue-seconds">0</b><span>сек</span></div><p id="queue-hint">Ищем игрока</p><p class="duel-queue-rule">До 3 сбитий или лучший счёт за 2 минуты. Сбитые самолёты возрождаются через 2 секунды.</p><label class="bot-option"><input id="allow-bots" type="checkbox" ' + (p!.allowBots ? 'checked' : '') + '> Разрешить ботов</label><p class="muted">Бот через 15 секунд, если игрок не найдётся.</p><button class="button" data-action="queue-bot" ' + (!p!.allowBots ? 'hidden' : '') + '>Сразу в бой с ботом ' + icon('duel') + '</button><button class="plain" data-action="cancel">Назад</button></section></div>';
 }
 function renderBattle() {
   if (!battle) return;
   destroyCareerSlider();
   scene.active = true; document.body.classList.add('in-flight'); document.body.classList.toggle('touch-flight', touchDevice());
   syncAudio();
-  app.innerHTML = '<div class="battle-hud"><div class="battle-top"><div class="hud-plane" aria-label="Прочность самолёта"><b id="hp-text">' + icon('armor') + ' <span id="hp-value"></span></b><div class="meter hp"><i id="hp-bar"></i></div></div><div class="battle-title"><b id="mode-title"></b><small id="mode-subtitle"></small></div><div class="hud-actions"><span id="duel-score" class="duel-score" hidden><b id="duel-score-value"></b><small id="duel-time"></small></span><button class="hud-button" data-action="pause" aria-label="Пауза">' + icon('pause') + '</button></div></div><div class="level-progress"><i id="level-bar"></i></div><div id="boss-hud"></div><div class="battle-bottom"><div class="instrument" title="Нагрев оружия" aria-label="Нагрев оружия">' + icon('heat') + '<div class="meter heat"><i id="heat-bar"></i></div></div><div class="instrument" title="Запас форсажа" aria-label="Запас форсажа">' + icon('boost') + '<div class="meter energy"><i id="energy-bar"></i></div></div></div><small id="mission-status" class="mission-status" hidden></small><div class="touch-controls"><div><button class="flight-stick" data-joystick aria-label="Круговой контрол управления"><span class="stick-directions" aria-hidden="true">↕</span><span class="stick-knob"></span></button></div><div><button class="boost-control" data-control="boost" aria-label="Форсаж">' + icon('boost') + '</button><button class="fire-control" data-control="fire" aria-label="Стрелять">' + icon('target') + '</button></div></div><div id="battle-overlay"></div></div>';
+  app.innerHTML = '<div class="battle-hud"><div class="battle-top"><div class="hud-plane" aria-label="Прочность самолёта"><b id="hp-text">' + icon('armor') + ' <span id="hp-value"></span></b><div class="meter hp"><i id="hp-bar"></i></div></div><div class="battle-title"><b id="mode-title"></b><small id="mode-subtitle"></small></div><div class="hud-actions"><span id="duel-score" class="duel-score" hidden><span class="duel-score-line"><span class="duel-you">ВЫ</span><b id="duel-score-value" aria-live="polite" aria-atomic="true"></b><span id="duel-opponent"></span></span><small class="duel-score-rule"><span id="duel-time"></span> · До 3 сбитий</small><small id="duel-respawn"></small></span><button class="hud-button" data-action="pause" aria-label="Пауза">' + icon('pause') + '</button></div></div><div class="level-progress"><i id="level-bar"></i></div><div id="boss-hud"></div><div class="battle-bottom"><div class="instrument" title="Нагрев оружия" aria-label="Нагрев оружия">' + icon('heat') + '<div class="meter heat"><i id="heat-bar"></i></div></div><div class="instrument" title="Запас форсажа" aria-label="Запас форсажа">' + icon('boost') + '<div class="meter energy"><i id="energy-bar"></i></div></div></div><small id="mission-status" class="mission-status" hidden></small><div class="touch-controls"><div><button class="flight-stick" data-joystick aria-label="Круговой контрол управления"><span class="stick-directions" aria-hidden="true">↕</span><span class="stick-knob"></span></button></div><div><button class="boost-control" data-control="boost" aria-label="Форсаж">' + icon('boost') + '</button><button class="fire-control" data-control="fire" aria-label="Стрелять">' + icon('target') + '</button></div></div><div id="battle-overlay"></div></div>';
   app.insertAdjacentHTML('beforeend', '<div id="career-overlay"></div>');
   document.querySelector('.boost-control')?.insertAdjacentHTML('beforebegin','<button class="skill-control" data-control="skill" aria-label="Фазовый проход" hidden>ФАЗА · E</button>');
   updateHud();
 }
 function updateHud() {
   if (!battle) return;
+  missionIntroClock.sync(!lesson ? battle.missionIntro : undefined);
+  if (missionIntroClock.key) { pauseReasons.add('mission-intro'); clearControls(); }
+  else pauseReasons.delete('mission-intro');
   debug?.update(p, battle, !!lesson);
   syncAudio();
   const me = battle.planes.find(x => x.id === you); if (!me) return;
@@ -226,38 +240,61 @@ function updateHud() {
   const directions = document.querySelector('.stick-directions'); if (directions) directions.textContent = vertical ? '✥' : '↻';
   const def = ZONE[battle.level - 1], enemy = battle.planes.find(x => x.id !== you);
   const operation = battle.operation, mission = operationMission(battle.level, operation?.completed ?? 0);
-  setText('mode-title', lesson ? 'ТРЕНИРОВКА' : battle.mode === 'pve' ? (battle.phase === 'boss' || battle.phase === 'boss-intro' ? def.boss!.name + ' · ' + (battle.bossAttempt ?? 1) + '/3' : 'ОПЕРАЦИЯ ' + battle.level + ' · ВЫЛЕТ ' + Math.min(operationPlan(battle.level).sorties, (operation?.completed ?? 0) + 1) + '/' + operationPlan(battle.level).sorties) : 'ВОЗДУШНАЯ ДУЭЛЬ');
+  setText('mode-title', lesson ? 'ТРЕНИРОВКА' : battle.mode === 'pve' ? (battle.phase === 'boss' || battle.phase === 'boss-intro' ? def.boss!.name + ' · ' + (battle.bossAttemptsUnlimited ? '∞' : (battle.bossAttempt ?? 1) + '/3') : 'ОПЕРАЦИЯ ' + battle.level + ' · ВЫЛЕТ ' + Math.min(operationPlan(battle.level).sorties, (operation?.completed ?? 0) + 1) + '/' + operationPlan(battle.level).sorties) : 'ВОЗДУШНАЯ ДУЭЛЬ');
   const subtitle = document.getElementById('mode-subtitle');
   if (subtitle) { subtitle.hidden = false; subtitle.textContent = lesson ? 'БЕЗОПАСНЫЙ ПОЛЁТ' : battle.mode === 'pve' && battle.phase === 'flight' && operation ? mission.title + ' · ' + missionProgress(operation, mission) : battle.mode === 'pve' ? def.name : (enemy?.bot ? 'БОТ · КУРСАНТ' : 'ОНЛАЙН · ИГРОК') + ' · ' + Math.max(0, Math.ceil(120 - battle.time)) + ' сек'; subtitle.title = mission.brief; }
   const introKey = battle.id + ':' + battle.phase + ':' + battle.level + ':' + (operation?.completed ?? 0);
   if (introKey !== hudIntroKey) { hudIntroKey = introKey; hudIntroAt = battle.time; }
   document.querySelector('.battle-title')?.classList.toggle('intro-hidden', battle.time - hudIntroAt >= 6);
-  const score = document.getElementById('duel-score'); if (score) { score.hidden = !!lesson || battle.mode !== 'duel'; setText('duel-score-value', me.score + ' : ' + (enemy?.score ?? 0)); const remaining = Math.max(0, Math.ceil(120 - battle.time)); setText('duel-time', (enemy?.bot ? 'БОТ · ' : '') + Math.floor(remaining / 60) + ':' + String(remaining % 60).padStart(2, '0')); score.setAttribute('aria-label', 'Счёт ' + me.score + ' : ' + (enemy?.score ?? 0) + ', осталось ' + remaining + ' секунд'); }
+  const duel = !lesson && battle.mode === 'duel';
+  document.querySelector('.battle-hud')?.classList.toggle('duel-hud', duel);
+  const score = document.getElementById('duel-score');
+  if (score) {
+    score.hidden = !duel;
+    if (duel) {
+      setText('duel-score-value', me.score + ' : ' + (enemy?.score ?? 0));
+      setText('duel-opponent', enemy?.bot ? 'БОТ' : 'ИГРОК');
+      const remaining = Math.max(0, Math.ceil(120 - battle.time));
+      setText('duel-time', Math.floor(remaining / 60) + ':' + String(remaining % 60).padStart(2, '0'));
+      const respawn = me.health <= 0 && me.dead > 0 ? 'Вы сбиты · возврат через ' + Math.ceil(me.dead) + ' с' : enemy && enemy.health <= 0 && enemy.dead > 0 ? 'Противник сбит · возврат через ' + Math.ceil(enemy.dead) + ' с' : 'Сбитые самолёты возрождаются';
+      setText('duel-respawn', respawn);
+      score.classList.toggle('respawning', me.health <= 0 && me.dead > 0 || !!enemy && enemy.health <= 0 && enemy.dead > 0);
+      score.classList.toggle('duel-score-winning', me.score > (enemy?.score ?? 0));
+      score.classList.toggle('duel-score-losing', me.score < (enemy?.score ?? 0));
+      score.setAttribute('aria-label', 'Вы ' + me.score + ', ' + (enemy?.bot ? 'бот ' : 'соперник ') + (enemy?.score ?? 0) + '. До 3 сбитий, осталось ' + remaining + ' секунд. ' + respawn);
+    }
+  }
   const objective = document.getElementById('mission-status'); if (objective) { objective.hidden = !!lesson || battle.mode !== 'pve' || battle.phase !== 'flight'; objective.textContent = operation ? missionProgress(operation, mission) : ''; }
   document.querySelector('.instrument')?.classList.toggle('overheated', me.overheated);
   bar('level-bar', battle.mode === 'pve' ? (operation?.seconds ?? 0) / mission.seconds : battle.time / 120);
   const skillButton = document.querySelector<HTMLButtonElement>('[data-control="skill"]'); if (skillButton) { skillButton.hidden = !me.phaseSkill; skillButton.disabled = !!me.phaseCooldown && !me.phaseSeconds; skillButton.textContent = me.phaseSeconds ? 'ФАЗА ' + me.phaseSeconds.toFixed(1) : me.phaseCooldown ? Math.ceil(me.phaseCooldown) + 'с' : 'ФАЗА · E'; }
   const boss = document.getElementById('boss-hud'); if (boss) boss.innerHTML = battle.phase === 'boss' ? '<div class="boss-meter"><i style="width:' + Math.max(0, enemy!.health / enemy!.hp * 100) + '%"></i></div><span>' + Math.max(0, Math.ceil(enemy!.health)) + ' / ' + Math.round(enemy!.hp) + '</span>' : '';
-  const phase = ['boss-intro', 'reward'].includes(battle.phase) ? battle.phase + ':' + (bossOffer?.id ?? '') : battle.paused ? 'paused' : battle.phase;
+  const phase = ['boss-intro', 'reward'].includes(battle.phase) ? battle.phase + ':' + (bossOffer?.id ?? '') + (battle.phase === 'boss-intro' ? ':' + !!battle.bossAttemptsUnlimited : '') : battle.missionIntro && !pauseReasons.has('manual') ? 'mission-intro:' + battle.missionIntro : battle.paused ? 'paused' : battle.phase;
   if (phase !== lastPhase) { lastPhase = phase; renderOverlay(); }
   if (battle.phase === 'ended' && !finished) { finished = true; clearControls(); platform.gameplay(false); scene.audio.play('reward'); }
 }
 function renderOverlay() {
   if (!battle) return;
-  const careerModal = battle.phase === 'boss-intro' || battle.phase === 'reward' || battle.mode === 'pve' && battle.phase === 'ended';
+  const careerModal = battle.phase === 'boss-intro' || battle.phase === 'reward' || battle.mode === 'pve' && battle.phase === 'ended' || !!battle.missionIntro && battle.phase === 'flight' && !pauseReasons.has('manual');
   const el = document.getElementById(careerModal ? 'career-overlay' : 'battle-overlay'); if (!el) return;
   const other = document.getElementById(careerModal ? 'battle-overlay' : 'career-overlay'); if (other) other.innerHTML = '';
   if (lesson && !battle.paused) { renderLesson(); return; }
+  if (battle.missionIntro && battle.phase === 'flight' && !lesson && !pauseReasons.has('manual')) {
+    const mission = operationMission(battle.level, battle.operation?.completed ?? 0);
+    const target = mission.targetPickups ? 'Соберите ' + mission.targetPickups + (mission.kind === 'supply' ? ' ремонтных контейнера' : ' светящихся кольца') : mission.targetSpecial ? 'Уничтожьте целей: ' + mission.targetSpecial : 'Сбейте самолётов: ' + mission.targetKills;
+    el.innerHTML = '<div class="shade mission-intro-shade"><section class="mission-intro-panel" role="dialog" aria-modal="true" aria-labelledby="mission-intro-title"><span class="mission-intro-kicker">ОПЕРАЦИЯ ' + battle.level + ' · ВЫЛЕТ ' + ((battle.operation?.completed ?? 0) + 1) + '</span><h1 id="mission-intro-title">' + mission.title + '</h1><p class="mission-intro-brief">' + mission.brief + '</p><p class="mission-intro-target">' + target + ' <span>· ' + mission.seconds + ' сек полёта</span></p><div class="mission-intro-footer"><span>Полёт на паузе · старт через <b id="mission-intro-count">' + Math.ceil(missionIntroClock.remaining) + '</b> сек</span><button class="button" data-action="mission-ready">В бой ' + icon('arrow') + '</button></div></section></div>';
+    return;
+  }
   if (battle.phase === 'boss-intro') {
     const boss = bossBalance(battle.level), stage = careerStage(battle.level);
-    el.innerHTML = '<div class="shade career-shade"><section class="boss-intro-panel" role="dialog" aria-modal="true" aria-labelledby="boss-title"><div class="boss-intro-art"><span class="boss-stage-tag">ЭТАП ' + stage.number + ' · УРОВЕНЬ ' + battle.level + '</span><canvas data-aircraft="' + bossAircraft(battle.level) + '" width="400" height="200" role="img" aria-label="Самолёт босса ' + boss.name + '"></canvas><span class="boss-intro-seal">' + icon('target') + '</span></div><div class="boss-intro-copy"><span class="collection-kicker">ВЫ ДОШЛИ ДО БОССА</span><h1 id="boss-title">' + boss.name + '</h1><p>Полёт на паузе. Подготовьте самолёт в ангаре или вступите в бой сейчас. У босса управление изменится: A/D поворачивают нос, самолёт летит по курсу. На телефоне джойстик задаёт направление.</p><div class="boss-intro-specs"><span>' + icon('armor') + '<b>' + boss.hp + '</b> HP</span><span>' + icon('cards') + 'Модификатор за победу</span></div><p class="boss-attempt-note">Попытка ' + (battle.bossAttempt ?? 1) + ' из 3. После трёх поражений — возврат к уровню ' + stage.start + '. Ваши модификаторы сохранятся.</p><div class="boss-intro-actions"><button class="button" data-action="boss-start">В бой ' + icon('duel') + '</button><button class="button subtle" data-action="boss-hangar">' + icon('hangar') + ' В ангар</button></div><small>Возвращение из ангара не тратит попытку.</small></div></section></div>';
+    el.innerHTML = '<div class="shade career-shade"><section class="boss-intro-panel" role="dialog" aria-modal="true" aria-labelledby="boss-title"><div class="boss-intro-art"><span class="boss-stage-tag">ЭТАП ' + stage.number + ' · УРОВЕНЬ ' + battle.level + '</span><canvas data-aircraft="' + bossAircraft(battle.level) + '" width="400" height="200" role="img" aria-label="Самолёт босса ' + boss.name + '"></canvas><span class="boss-intro-seal">' + icon('target') + '</span></div><div class="boss-intro-copy"><span class="collection-kicker">ВЫ ДОШЛИ ДО БОССА</span><h1 id="boss-title">' + boss.name + '</h1><p>Полёт на паузе. Подготовьте самолёт в ангаре или вступите в бой сейчас. У босса управление изменится: A/D поворачивают нос, самолёт летит по курсу. На телефоне джойстик задаёт направление.</p><div class="boss-intro-specs"><span>' + icon('armor') + '<b>' + boss.hp + '</b> HP</span><span>' + icon('cards') + 'Модификатор за победу</span></div><p class="boss-attempt-note">' + (battle.bossAttemptsUnlimited ? 'Премиум: неограниченные попытки. После поражений вы остаётесь у босса, без возврата к началу этапа.' : 'Попытка ' + (battle.bossAttempt ?? 1) + ' из 3. После трёх поражений — возврат к уровню ' + stage.start + '.') + ' Ваши модификаторы сохранятся.</p><div class="boss-intro-actions"><button class="button" data-action="boss-start">В бой ' + icon('duel') + '</button><button class="button subtle" data-action="boss-hangar">' + icon('hangar') + ' В ангар</button></div><small>Возвращение из ангара не тратит попытку.</small></div></section></div>';
     return;
   }
   if (battle.phase === 'reward') { el.innerHTML = p && bossOffer ? renderModifierReward(p, bossOffer) : '<div class="shade"><p>Сохраняем победу…</p></div>'; return; }
   if (battle.phase === 'ended') {
     const me = battle.planes.find(x => x.id === you)!, e = battle.earned[you], duel = battle.mode === 'duel';
     const enemy = battle.planes.find(x => x.id !== you), win = duel && me.score > (enemy?.score ?? 0);
-    el.innerHTML = '<div class="shade"><section class="result-panel"><span class="result-symbol">' + (win || battle.level === ZONE.length && me.health > 0 ? '' + icon('trophy') + '' : '' + icon('plane') + '') + '</span><span class="eyebrow">' + (duel ? 'ДУЭЛЬ ЗАВЕРШЕНА' : 'КОНЕЦ ВЫЛЕТА · УРОВЕНЬ ' + battle.level) + '</span><h1>' + (duel && battle.result === 'Дуэль завершена' ? win ? 'Победа!' : 'Поражение' : battle.result) + '</h1>' + (battle.bossAttemptsExhausted ? '<p class="stage-reset-note">Возврат к началу этапа ' + careerStage(battle.level).number + ' · уровень ' + battle.restartLevel + '. Самолёты, улучшения и модификаторы сохранены.</p>' : '') + '<div class="result-loot"><b class="silver">' + icon('silver') + ' ' + money(e?.silver ?? 0) + '</b><b class="xp">+' + money(e?.xp ?? 0) + ' XP</b></div><button class="button" data-action="home">Главный экран ' + icon('arrow') + '</button>' + (!duel && me.health <= 0 ? '<button class="plain" data-action="retry">' + (battle.bossAttemptsExhausted ? 'С начала этапа · уровень ' + battle.restartLevel : battle.planes.some(p => p.id === 'boss') ? 'Повторить босса · осталось ' + (3 - (battle.bossAttempt ?? 1)) : 'Повторить уровень ' + battle.level) + '</button>' : '') + '</section></div>';
+    el.innerHTML = '<div class="shade"><section class="result-panel"><span class="result-symbol">' + (win || battle.level === ZONE.length && me.health > 0 ? '' + icon('trophy') + '' : '' + icon('plane') + '') + '</span><span class="eyebrow">' + (duel ? 'ДУЭЛЬ ЗАВЕРШЕНА' : 'КОНЕЦ ВЫЛЕТА · УРОВЕНЬ ' + battle.level) + '</span><h1>' + (duel && battle.result === 'Дуэль завершена' ? win ? 'Победа!' : 'Поражение' : battle.result) + '</h1>' + (duel ? '<p class="duel-final-score">Вы <b>' + me.score + ' : ' + (enemy?.score ?? 0) + '</b> ' + (enemy?.bot ? 'Бот' : 'Соперник') + '</p>' : '') + (battle.bossAttemptsExhausted ? '<p class="stage-reset-note">Возврат к началу этапа ' + careerStage(battle.level).number + ' · уровень ' + battle.restartLevel + '. Самолёты, улучшения и модификаторы сохранены.</p>' : '') + '<div class="result-loot"><b class="silver">' + icon('silver') + ' ' + money(e?.silver ?? 0) + '</b><b class="xp">+' + money(e?.xp ?? 0) + ' XP</b></div><button class="button" data-action="home">Главный экран ' + icon('arrow') + '</button>' + (!duel && me.health <= 0 ? '<button class="plain" data-action="retry">' + (battle.bossAttemptsExhausted ? 'С начала этапа · уровень ' + battle.restartLevel : battle.planes.some(p => p.id === 'boss') ? (battle.bossAttemptsUnlimited ? 'Повторить босса · без ограничений' : 'Повторить босса · осталось ' + (3 - (battle.bossAttempt ?? 1))) : 'Повторить уровень ' + battle.level) + '</button>' : '') + '</section></div>';
   } else if (battle.paused) el.innerHTML = '<div class="shade"><section class="result-panel"><h1>Пауза</h1><p>' + (lesson ? 'Продолжите обучение, когда будете готовы.' : 'Полёт сохранён.') + '</p><button class="button" data-action="resume">Продолжить ' + icon('arrow') + '</button><button class="plain" data-action="home">Главный экран</button></section></div>';
   else el.innerHTML = '';
 }
@@ -272,6 +309,11 @@ function setPause(reason: string, value: boolean) {
   if (lesson) { battle.paused = pauseReasons.size > 0; scene.accept(structuredClone(battle), you); renderOverlay(); return; }
   send({ type: 'pause', paused: pauseReasons.size > 0 });
   platform.gameplay(pauseReasons.size === 0 && !['boss-intro', 'reward'].includes(battle.phase));
+}
+function finishIntro() {
+  const key = missionIntroClock.finish(); if (!key) return;
+  pauseReasons.delete('mission-intro'); clearControls();
+  send({type:'mission-ready', key, paused:pauseReasons.size > 0});
 }
 function home(destination = 'play') { const training = !!lesson; if (!training || lessonBoss) send({type:'leave'}); lesson = undefined; afterLesson = undefined; lessonBoss = undefined; tab = destination; if (destination === 'fleet') inspectedPlane = p?.selected ?? ''; battle = undefined; finished = false; pauseReasons.clear(); clearControls(); syncOrientation(); renderMenu(); }
 document.addEventListener('click', e => {
@@ -315,6 +357,7 @@ document.addEventListener('click', e => {
     case 'queue-bot': if (queueStarted && p?.allowBots) send({type:'queue-bot'}); break;
     case 'pve': beginLesson('pve'); break;
     case 'touch-setting': forceTouch = !forceTouch; localStorage.setItem('biplanes-touch-controls', forceTouch ? '1' : '0'); renderMenu(true); break;
+    case 'projectile-contrast': scene.projectileContrast = !scene.projectileContrast; saveProjectileContrast(scene.projectileContrast); renderMenu(true); break;
     case 'tutorial-pve': beginLesson('pve', true); break;
     case 'tutorial-duel': beginLesson('duel', true); break;
     case 'cancel': send({ type: 'cancel' }); break;
@@ -329,6 +372,7 @@ document.addEventListener('click', e => {
     case 'recover': void platform.recover(rpc).then(() => toast('Покупки проверены')).catch(error => toast(error.message)); break;
     case 'trade-confirm': if (pendingTrade) spend(pendingTrade); pendingTrade = undefined; document.querySelector('#shop-confirm')?.remove(); break;
     case 'trade-cancel': pendingTrade = undefined; document.querySelector('#shop-confirm')?.remove(); break;
+    case 'mission-ready': finishIntro(); break;
     case 'pause': setPause('manual', true); break;
     case 'resume': setPause('manual', false); break;
     case 'home': home(); break;
@@ -401,6 +445,9 @@ function currentControls() {
 let lessonFrame = performance.now();
 function tickLesson(now: number) {
   const dt = Math.min(.04, (now - lessonFrame) / 1000); lessonFrame = now;
+  if (missionIntroClock.tick(now, !!battle && !document.hidden && [...pauseReasons].every(reason => reason === 'mission-intro'))) finishIntro();
+  const introCount = document.getElementById('mission-intro-count');
+  if (introCount) introCount.textContent = String(Math.ceil(missionIntroClock.remaining));
   if (lesson && battle && !battle.paused && !pauseReasons.size && !document.hidden) {
     const raw = lesson.demonstrating ? lessonInput(lesson.step, lesson.mode) : currentControls();
     const input = lesson.controls(raw);
@@ -432,6 +479,8 @@ function connect() {
     if (m.type === 'reply') { const pending = rpcWaiters.get(m.requestId); if (pending) { rpcWaiters.delete(m.requestId); clearTimeout(pending.timer); if (m.ok) pending.resolve(m.result); else pending.reject(new Error(m.error)); } }
     if (m.type === 'profile') {
       const previous = p; p = m.profile; resume = m.resume; restartLevel = m.restartLevel; operationCompleted = m.operationCompleted ?? 0; bossOffer = m.bossOffer; bossGateLevel = m.bossGateLevel;
+      modifierInbox.sync(p!);
+      void platform.refreshAds();
       if (!battle && !queueStarted) {
         renderMenu(true);
         if (previous && previous.id === p!.id) {
@@ -448,7 +497,7 @@ function connect() {
     }
     if (m.type === 'queued') { queueStarted = Date.now(); renderQueue(); }
     if (m.type === 'cancelled') { queueStarted = 0; renderMenu(); }
-    if (m.type === 'start') { battle = m.battle; you = m.you; queueStarted = 0; finished = false; lastPhase = ''; pauseReasons.clear(); if (debug?.isOpen) { pauseReasons.add('debug'); send({type:'pause',paused:true}); } clearControls(); renderBattle(); scene.accept(battle!, you); platform.gameplay(!battle!.paused && !['ended', 'boss-intro', 'reward'].includes(battle!.phase)); syncOrientation(); }
+    if (m.type === 'start') { missionIntroClock.reset(); battle = m.battle; you = m.you; queueStarted = 0; finished = false; lastPhase = ''; pauseReasons.clear(); if (debug?.isOpen) { pauseReasons.add('debug'); send({type:'pause',paused:true}); } clearControls(); renderBattle(); scene.accept(battle!, you); platform.gameplay(!battle!.paused && !['ended', 'boss-intro', 'reward'].includes(battle!.phase)); syncOrientation(); }
     if (m.type === 'state' && battle?.id === m.battle.id) { battle = m.battle; scene.accept(battle!, you); updateHud(); platform.gameplay(!battle!.paused && !['ended', 'boss-intro', 'reward'].includes(battle!.phase)); }
     if (m.type === 'error') toast(m.message);
   };
@@ -461,8 +510,11 @@ function connect() {
 }
 scene.onLoadProgress = progress => loading.stage('Загружаем самолёты и небо…', progress * 65);
 scene.onLoadError = () => loading.fail('Не удалось загрузить самолёты. Повторите загрузку.');
-scene.onReady = () => { if (!started) { started = true; loading.stage('Подключаем платформу…', 72); renderMenu(); void platform.init(value => setPause('platform', value)).then(() => { loading.stage('Соединяемся с ангаром…', 82); connect(); }); } };
+scene.onReady = () => { if (!started) { started = true; loading.stage('Подключаем платформу…', 72); renderMenu(); void platform.init(value => setPause('platform', value), value => setPause('advertisement', value)).then(() => { loading.stage('Соединяемся с ангаром…', 82); connect(); }); } };
 platform.onChange = () => { if (p && !battle && !queueStarted) renderMenu(true); };
 window.addEventListener('resize', syncOrientation);
+setInterval(() => {
+  if (p && connected && !battle && !queueStarted && !document.hidden && p.daily.key !== new Date().toISOString().slice(0, 10)) send({type:'refresh'});
+}, 60000);
 matchMedia('(pointer: coarse)').addEventListener('change', syncOrientation);
 syncOrientation();

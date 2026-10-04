@@ -35,12 +35,6 @@ test('Самолёты открываются боссами, большой з�
   for (const level of [25,100,200]) {
     p.defeatedBosses!.push(level);
     for (const plane of PLANES.filter(m=>m.unlockBoss===level)) {
-      if (plane.currency === 'silver') {
-        assert.equal(planeUnlocked(p,plane),false, 'Босс не заменяет полную прокачку предыдущего самолёта');
-        const previous = PLANES[PLANES.indexOf(plane) - 1];
-        p.upgrades[previous.id] = { hull: MAX_UPGRADE_LEVEL, engine: MAX_UPGRADE_LEVEL, gun: MAX_UPGRADE_LEVEL };
-        p.research![previous.id] = { ...p.upgrades[previous.id] };
-      }
       assert.equal(planeUnlocked(p,plane),true); buyPlane(p,plane.id);
     }
   }

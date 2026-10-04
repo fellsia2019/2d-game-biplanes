@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Бипланы — проверка уведомлений</title></head><body>
+<div id="game"></div><div id="app"></div><div id="toast" role="status"></div><div id="orientation-guard" hidden></div>
+<div style="position:fixed;z-index:10000;bottom:8px;left:8px;display:flex;flex-wrap:wrap;max-width:calc(100% - 16px);gap:4px;font:10px sans-serif" aria-label="Изолированная проверка">
+<button id="qa-modifier">Получить модификатор</button><button id="qa-upgrade">Улучшить модификатор</button><button id="qa-flight">Показать полёт</button>
+<button id="qa-duel">Показать дуэль</button><button id="qa-score">Сбить бота</button><button id="qa-respawn">Возродить бота</button><button id="qa-finish">Завершить дуэль</button>
+<button id="qa-bomb">Показать бомбы</button>
+<button id="qa-premium-boss">Показать босса с премиумом</button>
+<button id="qa-fleet">Показать статусы самолётов</button>
+</div>
+<aside id="qa-bomb-art" hidden style="position:fixed;right:12px;top:90px;z-index:10000;padding:16px;border:1px solid #bcd8e4;border-radius:12px;background:#164056;color:#eef7fc;text-align:center;font:14px sans-serif">Авиабомба<canvas id="qa-bomb-canvas" width="96" height="192" style="display:block;margin:8px auto 0"></canvas></aside>
+<script type="module">
+import {freshProfile,resetTasks,claimTask,planeStats} from '/shared/data.ts';
+import {createBattle,makePlane,approachBoss} from '/shared/simulation.ts';
+import {armMissionIntro,finishMissionIntro} from '/shared/mission-intro.ts';
+import {paintBomb} from '/src/bomb-art.ts';
+// The real client and its navigation, with an in-memory profile and transport.
+// This page never opens a server socket or writes device preferences.
+const values = new Map();
+Object.defineProperty(window,'localStorage',{value:{getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)}});
+const profile=freshProfile('menu-preview'); resetTasks(profile); profile.daily.activity=3; profile.daily.kills=5;
+let socket;
+document.querySelector('#qa-fleet').onclick=()=>{profile.defeatedBosses=[25];profile.silver=3000;profile.gold=0;socket.profile();};
+class PreviewSocket {
+  static OPEN=1; readyState=1;
+  constructor(){socket=this;queueMicrotask(()=>this.onopen?.());}
+  emit(value){this.onmessage?.({data:JSON.stringify(value)});}
+  profile(){this.emit({type:'profile',profile,operationCompleted:0,restartLevel:1,resume:false});}
+  send(payload){const m=JSON.parse(payload);if(m.type==='auth'||m.type==='refresh')this.profile();
+    if(m.type==='mission-ready'&&this.battle){finishMissionIntro(this.battle,m.key,m.paused);this.emit({type:'state',battle:this.battle});}
+    if(m.type==='pause'&&this.battle){this.battle.paused=!!this.battle.missionIntro||m.paused;this.emit({type:'state',battle:this.battle});}
+    if(m.type==='claim'){claimTask(profile,m.period,m.id,m.key);this.profile();}
+    if(m.type==='login'){profile.loginDay=new Date().toISOString().slice(0,10);profile.loginIndex++;this.profile();}}
+}
+window.WebSocket=PreviewSocket;
+document.querySelector('#qa-modifier').onclick=()=>{profile.modifiers=[{id:'tailwind',level:1}];socket.profile();};
+document.querySelector('#qa-upgrade').onclick=()=>{profile.modifiers=[{id:'tailwind',level:2}];socket.profile();};
+document.querySelector('#qa-flight').onclick=()=>{const battle=createBattle('menu-preview-flight','pve',[makePlane(profile.id,planeStats(profile))],3);armMissionIntro(battle);socket.battle=battle;socket.emit({type:'start',battle,you:profile.id});};
+document.querySelector('#qa-duel').onclick=()=>{const battle=createBattle('duel-score-preview','duel',[makePlane(profile.id,planeStats(profile)),makePlane('bot',planeStats(profile),true,1)]);battle.time=18;socket.battle=battle;socket.emit({type:'start',battle,you:profile.id});};
+document.querySelector('#qa-score').onclick=()=>{const battle=socket.battle;if(battle?.mode==='duel'){battle.planes[0].score++;battle.planes[1].health=0;battle.planes[1].dead=2;socket.emit({type:'state',battle});}};
+document.querySelector('#qa-respawn').onclick=()=>{const battle=socket.battle;if(battle?.mode==='duel'){battle.planes[1].health=battle.planes[1].hp;battle.planes[1].dead=0;socket.emit({type:'state',battle});}};
+document.querySelector('#qa-finish').onclick=()=>{const battle=socket.battle;if(battle?.mode==='duel'){battle.planes[0].score=3;battle.phase='ended';battle.result='Дуэль завершена';socket.emit({type:'state',battle});}};
+document.querySelector('#qa-bomb').onclick=()=>{const battle=createBattle('bomb-art-preview','pve',[makePlane(profile.id,planeStats(profile))],7);battle.bullets=[450,570,690].map((x,n)=>({id:n+1,owner:'bomber-preview',kind:'bomb',x,y:200+n*90,vx:0,vy:100,life:8,damage:battle.planes[0].hp*.5}));socket.battle=battle;socket.emit({type:'start',battle,you:profile.id});document.querySelector('#qa-bomb-art').hidden=false;paintBomb(document.querySelector('#qa-bomb-canvas').getContext('2d'));};
+document.querySelector('#qa-premium-boss').onclick=()=>{profile.premium={active:true,purchasedAt:Date.now(),expiresAt:Date.now()+30*86400000};socket.profile();const battle=createBattle('premium-boss-preview','pve',[makePlane(profile.id,planeStats(profile,true))],10);approachBoss(battle);battle.bossAttempt=1;battle.bossAttemptsUnlimited=true;socket.battle=battle;socket.emit({type:'start',battle,you:profile.id});};
+setInterval(()=>{if(socket?.battle)socket.emit({type:'state',battle:socket.battle});},100);
+await import('/src/main.ts');
+</script></body></html>

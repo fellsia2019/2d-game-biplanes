@@ -67,6 +67,8 @@ test('Сервер: онлайн 1×1, кошелёк, сохранение, о�
     shop.send({ type: 'claim', period: 'daily', id: 'kills' });
     const upgradedRun = shop.wait(m => m.type === 'start'); shop.send({ type: 'pve' }); const upgradedState = (await upgradedRun).battle;
     assert.equal(upgradedState.planes[0].model, 'swift'); assert.equal(upgradedState.planes[0].hp,planeStats(upgradedProfile,true).hp);
+    assert.equal(upgradedState.paused, true); assert.ok(upgradedState.missionIntro);
+    shop.send({type:'mission-ready', key:upgradedState.missionIntro, paused:false});
     const forward = shop.wait(m => m.type === 'state' && m.battle.planes[0].x > 240);
     shop.send({type: 'input', turn: 0, horizontal: 1, fire: false, boost: false});
     const advanced = (await forward).battle.planes[0]; assert.equal(advanced.angle, 0);

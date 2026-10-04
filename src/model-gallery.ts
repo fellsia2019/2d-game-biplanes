@@ -33,6 +33,11 @@ await Promise.all(Array.from(new Set(frames.filter(f=>f.type==='plane').map(f=>f
 await Promise.all(PVO_MODELS.map(async model => { const image = new Image(); image.src = pvoAsset(model); await image.decode(); preparePvo(image, model); }));
 let paused=false,time=0,last=performance.now(),boost=false,transitionPreview=false;
 const scene=new SkyScene(), profile=freshProfile('gallery'); let pilot=makePlane(profile.id,planeStats(profile)); pilot.shield=9999;
+const contrastControl = document.createElement('label'); contrastControl.className = 'flight-contrast';
+contrastControl.innerHTML = '<input type="checkbox" id="projectile-contrast"> Заметные снаряды врагов';
+document.querySelector('.flight-tools')!.append(contrastControl);
+const contrastInput = contrastControl.querySelector('input')!; contrastInput.checked = scene.projectileContrast;
+contrastInput.addEventListener('change', () => { scene.projectileContrast = contrastInput.checked; });
 let battle=createBattle('gallery-flight','pve',[pilot]); battle.spawn=99999;
 function seedObstacles(){battle.obstacles=[0,1,2].map((id)=>({id,kind:'rock' as const,x:750+id*330,y:GROUND_Y,radius:72,height:150+id*50,hp:99999,fire:99999,damage:0}));battle.obstacles.push({id:4,pvoModel:'tracked',kind:'pvo',x:1850,y:GROUND_Y,radius:24,hp:100,fire:99999,damage:0});}
 seedObstacles();
