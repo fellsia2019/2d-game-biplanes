@@ -7,6 +7,7 @@
 <button id="qa-bomb">Показать бомбы</button>
 <button id="qa-premium-boss">Показать босса с премиумом</button>
 <button id="qa-fleet">Показать статусы самолётов</button>
+<button id="qa-fleet-shortfall">Не хватает серебра</button>
 </div>
 <aside id="qa-bomb-art" hidden style="position:fixed;right:12px;top:90px;z-index:10000;padding:16px;border:1px solid #bcd8e4;border-radius:12px;background:#164056;color:#eef7fc;text-align:center;font:14px sans-serif">Авиабомба<canvas id="qa-bomb-canvas" width="96" height="192" style="display:block;margin:8px auto 0"></canvas></aside>
 <script type="module">
@@ -21,6 +22,7 @@ Object.defineProperty(window,'localStorage',{value:{getItem:key=>values.get(key)
 const profile=freshProfile('menu-preview'); resetTasks(profile); profile.daily.activity=3; profile.daily.kills=5;
 let socket;
 document.querySelector('#qa-fleet').onclick=()=>{profile.defeatedBosses=[25];profile.silver=3000;profile.gold=0;socket.profile();};
+document.querySelector('#qa-fleet-shortfall').onclick=()=>{profile.defeatedBosses=[25];profile.silver=1548;profile.gold=0;socket.profile();};
 class PreviewSocket {
   static OPEN=1; readyState=1;
   constructor(){socket=this;queueMicrotask(()=>this.onopen?.());}

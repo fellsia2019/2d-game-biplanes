@@ -4,16 +4,16 @@
   "baseCommit": "5043eaa",
   "checks": {
     "tests": {
-      "passed": 296,
+      "passed": 298,
       "failed": 0,
       "skipped": 0
     },
-    "build": "passed for final changes before commit",
+    "build": "passed after bounded projectile prediction and disappearance smoothing",
     "diffCheck": "passed",
     "consoleErrors": [],
     "enemyProjectiles": "Bomb/mob/PVO/boss speeds increased 50%; all 11 bosses tested at four rotations for nose/tail/wing hits and outside misses. Swept hits, rockets, piercing single-hit and shield protection verified. Player and duel firing unchanged.",
     "bossDamageCadence": "Damage25/100/200/250 is15/30/45/70; intermediate damage grows monotonically. Cooldown200/225/250 is1.25/1.125/1 seconds. Actual shot timing and damage verified at30Hz.294 tests passed.",
-    "projectileRender": "Regression tests cover duplicate backward corrections for mob/boss bullets and bombs, older snapshots with a different phase, resumed forward movement and projectile disappearance. Shared rendered coordinates keep contrast and body aligned; no server state mutation or extrapolation.296 tests passed."
+    "projectileRender": "Straight bullets/bombs continue through a160ms packet delay without a stopped frame, rewind or catch-up jump. Prediction limited to150ms; aircraft stay on confirmed motion and reverse/stop regressions pass. Disappearing projectiles move until their confirmed removal. Pause/new battle reset, expiry and server state immutability retained.298 tests passed."
   },
   "browser": {
     "clouds": "Continuous softly shaded silhouettes, no circle seams",
@@ -31,7 +31,8 @@
     "compactDuelScore": "Phone844x390:220x47.19 panel,22px score; score and HP backgrounds both rgba(16,36,53,0.44). Persistent respawn explanation hidden on mobile; death countdown still shown temporarily.",
     "bombs": "Smooth metallic nose-down bomb with fins; visible in actual client scene at FullHD and844x390, contrast outline retained. Projectile sprites removed with expired IDs. Authoritative collision damage exactly50% current maxHP across100/350/801HP, levels7/201, resistance0/.5 and legacy damage99999. Spawn shield still blocks; normal bullet resistance unchanged.Included in the current 294-test suite.",
     "premiumBossAttempts": "Active premium stays at boss after repeated defeats; free/expired resets after third defeat. Tests cover purchase after two losses, expiry during battle, persistence and idempotence. WebSocket integration rejects forged client flag and verifies disk outcomes. Actual client store shows unlimited perk and no-reset explanation; boss intro shows infinity and unlimited attempts.",
-    "fleetAvailability": "Boss-only unlock verified with no predecessor ownership or upgrades, insufficient balance rejected without charge. Owned blue, purchasable green, shortfall amber and locked muted with lock; selected outline preserves status. Enabled green purchase and disabled boss/shortfall buttons checked in real client with memory profile. FullHD1920x1080 and phone844x390 checked."
+    "fleetAvailability": "Boss-only unlock verified with no predecessor ownership or upgrades, insufficient balance rejected without charge. Owned blue, purchasable green, shortfall amber and locked muted with lock; selected outline preserves status. Enabled green purchase and disabled boss/shortfall buttons checked in real client with memory profile. FullHD1920x1080 and phone844x390 checked.",
+    "shortfallPurchasePrice": "Disabled red purchase button retains full2500 silver price;1548 silver fixture shows952 shortfall below. Checked in actual client at1920x1080; production build passed."
   },
   "viewports": [
     {
@@ -108,7 +109,8 @@
     "fleet-available-fullhd.png",
     "fleet-locked-fullhd.png",
     "fleet-shortfall-fullhd.png",
-    "fleet-locked-mobile.png"
+    "fleet-locked-mobile.png",
+    "fleet-shortfall-price-fullhd.png"
   ],
   "historicalScreenshots": "mission-intro-fullhd.png and mission-intro-mobile.png capture the original five-second preview; current duration is fifteen seconds, verified by tests. duel-score-mobile.png/fullhd.png precede the compact mobile card; duel-score-compact-mobile.png records the current mobile layout."
 }

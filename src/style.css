@@ -523,4 +523,5 @@ body.lesson-rail { --frame-width: min(800px, calc(100vw - 32px), calc((100dvh - 
 .detail-action.fleet-purchase.fleet-available { background: linear-gradient(#63e8bc, #28ad85); color: #082e25; border-color: #a9ffdc; border-bottom-color: #157556; box-shadow: 0 3px 0 #123e32, 0 0 18px #43d7a52a; }
 .detail-action.fleet-purchase.fleet-available span { color: inherit; }
 .detail-action.fleet-purchase.fleet-locked:disabled { background: #292a35; border-color: #76515d; border-bottom-color: #45313b; color: #daa0a8; box-shadow: none; }
-.detail-action.fleet-purchase.fleet-shortfall:disabled { background: #393128; border-color: #937547; border-bottom-color: #594426; color: #e4bd80; box-shadow: none; }
+.detail-action.fleet-purchase.fleet-shortfall:disabled { background: linear-gradient(#703740, #512831); border-color: #b86370; border-bottom-color: #38212b; color: #ffd1d7; box-shadow: none; }
+.detail-action.fleet-purchase.fleet-shortfall:disabled span { color: inherit; }

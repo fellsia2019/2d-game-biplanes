@@ -64,6 +64,36 @@ function flightTrace(input: Controls, ending: 'stop' | 'reverse' | 'hold') {
 }
 const directions=[{turn:-1,fire:false,boost:false},{turn:1,fire:false,boost:false},{turn:0,horizontal:-1,fire:false,boost:false},{turn:0,horizontal:1,fire:false,boost:false}];
 
+test('Fast enemy bullets and bombs keep moving through a delayed packet without stopping or rewinding',()=>{
+  for(const [vx,vy] of [[-360,0],[420,0],[-585,0],[0,180]]){
+    const buffer=new RenderBuffer();let next=0;const points:{x:number;y:number}[]=[];
+    for(let frame=0;frame<100;frame++){
+      const now=frame*1000/60;
+      while(next<25){
+        const time=next/15,arrival=time*1000+(next>=7&&next<=9?160:0);
+        if(arrival>now)break;
+        const state=snapshot(time);state.bullets=[{id:7,owner:'enemy',x:600+vx*time,y:200+vy*time,vx,vy,life:4-time,damage:15}];
+        buffer.push(state,arrival);next++;
+      }
+      const sample=buffer.sample(now);if(sample&&frame>15&&frame<90)points.push(sample.bullets[0]);
+    }
+    for(let i=1;i<points.length;i++){
+      const travelled=((points[i].x-points[i-1].x)*vx+(points[i].y-points[i-1].y)*vy)/Math.hypot(vx,vy);
+      assert.ok(travelled>0,'projectile stalls during a packet gap');
+      assert.ok(travelled<=Math.hypot(vx,vy)/60*1.11+1e-7,'projectile snaps after the delayed packet');
+    }
+  }
+});
+
+test('A projectile missing from the next snapshot moves until its confirmed disappearance',()=>{
+  const buffer=new RenderBuffer(),a=snapshot(0),b=snapshot(.2);b.bullets=[];
+  buffer.push(a,0);buffer.sample(0);buffer.push(b,200);
+  const first=buffer.sample(200)!;const second=buffer.sample(217)!;
+  assert.ok(second.bullets[0].x>first.bullets[0].x);
+  for(let now=234;now<600;now+=17)buffer.sample(now);
+  assert.equal(buffer.sample(600)!.bullets.length,0);
+});
+
 test('Отпускание каждой из 4 клавиш при задержанных снимках не возвращает самолёт назад',()=>{
   for(const input of directions) {
     const {samples,endpoint}=flightTrace(input,'stop'),axis=input.turn?'y':'x',sign=input.turn||input.horizontal!;
@@ -118,11 +148,14 @@ test('Переход через край арены и угол ±π не тян
   assert.ok(Math.abs(s.planes[0].angle) > 3);
 });
 
-test('Пауза и окончание возвращают точное состояние; потеря пакетов удерживает последний подтверждённый кадр', () => {
+test('Пауза и окончание точны; при потере пакетов самолёт удерживается, прогноз снаряда ограничен 150 мс', () => {
   const buffer = new RenderBuffer(), a = snapshot(0), b = snapshot(1 / 15);
   buffer.push(a, 0); buffer.sample(0); buffer.push(b, 67);
   for (let now = 67; now <= 3000; now += 17) buffer.sample(now);
-  assert.equal(buffer.sample(3100),b);
+  const stopped=buffer.sample(3100)!;
+  assert.deepEqual(stopped.planes,b.planes);
+  assert.ok(Math.abs(stopped.bullets[0].x-b.bullets[0].x-400*.15)<1e-8);
+  assert.equal(buffer.sample(4100)!.bullets[0].x,stopped.bullets[0].x);
   const paused = { ...b, paused: true }; buffer.push(paused, 3200);
   assert.equal(buffer.sample(10000), paused);
   const ended = { ...b, phase: 'ended' as const, planes: [{ ...b.planes[0], health: 0 }] }; buffer.push(ended, 11000);
